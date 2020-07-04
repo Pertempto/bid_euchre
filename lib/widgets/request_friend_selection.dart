@@ -6,9 +6,8 @@ import '../data/user.dart';
 
 class RequestFriendSelection extends StatefulWidget {
   final List<User> usersList;
-  final Data data;
 
-  RequestFriendSelection(this.usersList, this.data);
+  RequestFriendSelection(this.usersList);
 
   @override
   _RequestFriendSelectionState createState() => _RequestFriendSelectionState();
@@ -16,15 +15,15 @@ class RequestFriendSelection extends StatefulWidget {
 
 class _RequestFriendSelectionState extends State<RequestFriendSelection> {
   List<User> usersList;
-  List<User> _filteredUsersList;
+  List<User> filteredUsersList;
   TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
     usersList = widget.usersList;
-    if (_filteredUsersList == null) {
-      _filteredUsersList = List.from(usersList);
-      _filteredUsersList.sort((a, b) => a.name.compareTo(b.name));
+    if (filteredUsersList == null) {
+      filteredUsersList = List.from(usersList);
+      filteredUsersList.sort((a, b) => a.name.compareTo(b.name));
     }
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -32,7 +31,7 @@ class _RequestFriendSelectionState extends State<RequestFriendSelection> {
         title: Text('Request Friend'),
       ),
       body: ListView.builder(
-          itemCount: _filteredUsersList.length + 1,
+          itemCount: filteredUsersList.length + 2,
           itemBuilder: (context, index) {
             if (index == 0) {
               return Padding(
@@ -42,14 +41,16 @@ class _RequestFriendSelectionState extends State<RequestFriendSelection> {
                     Flexible(
                       child: TextField(
                         decoration: InputDecoration(hintText: 'Filter', suffixIcon: Icon(Icons.search)),
-                        onChanged: _onFilterTextChanged,
+                        onChanged: onFilterTextChanged,
                       ),
                     ),
                   ],
                 ),
               );
+            } else if (index == filteredUsersList.length + 1) {
+              return SizedBox(height: 16);
             } else {
-              User user = _filteredUsersList[index - 1];
+              User user = filteredUsersList[index - 1];
               return ListTile(
                 dense: true,
                 title: Text(user.name, style: textTheme.headline6.copyWith(fontWeight: FontWeight.normal)),
@@ -63,11 +64,11 @@ class _RequestFriendSelectionState extends State<RequestFriendSelection> {
     );
   }
 
-  void _onFilterTextChanged(String text) async {
-    _filteredUsersList.clear();
+  void onFilterTextChanged(String text) async {
+    filteredUsersList.clear();
     usersList.forEach((user) {
       if (text.isEmpty || user.name.toLowerCase().contains(text.toLowerCase())) {
-        _filteredUsersList.add(user);
+        filteredUsersList.add(user);
       }
     });
     setState(() {});

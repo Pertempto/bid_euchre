@@ -98,6 +98,23 @@ class Game {
     return formatter.format(date);
   }
 
+  Set<String> get fullGamePlayerIds {
+    List<Set<String>> gameSpots = [{}, {}, {}, {}];
+    for (Round round in rounds) {
+      List<String> playerIds = getPlayerIdsAfterRound(round.roundIndex - 1);
+      for (int i = 0; i < 4; i++) {
+        gameSpots[i].add(playerIds[i]);
+      }
+    }
+    Set<String> fullGamePlayerIds = {};
+    for (int i = 0; i < 4; i++) {
+      if (gameSpots[i].length == 1) {
+        fullGamePlayerIds.add(initialPlayerIds[i]);
+      }
+    }
+    return fullGamePlayerIds;
+  }
+
   bool get isFinished {
     int teamIndex = winningTeamIndex;
     if (teamIndex == null) {

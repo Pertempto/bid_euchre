@@ -25,15 +25,35 @@ class _HomeOverviewState extends State<HomeOverview> {
     textTheme = Theme.of(context).textTheme;
 
     List<Widget> children = [
+      SizedBox(height: 8),
+      notificationsSection(),
       pinnedPlayersSection(),
     ];
 
     return SingleChildScrollView(child: Column(children: children));
   }
 
+  Widget notificationsSection() {
+    List<Widget> children = [
+      ListTile(
+        title: Text('Notifications', style: textTheme.headline6),
+        dense: true,
+      ),
+    ];
+    for (String userId in data.friendsDb.getRequestingFriendIds(data.currentUser.userId)) {
+      children.add(ListTile(
+        title: Text('${data.users[userId].name} wants to be your friend!', style: textTheme.subtitle1),
+        trailing: Icon(Icons.person),
+        dense: true,
+      ));
+    }
+    children.add(Divider());
+
+    return Column(children: children);
+  }
+
   Widget pinnedPlayersSection() {
     List<Widget> children = [
-      SizedBox(height: 8),
       ListTile(
         title: Text('Pinned Players', style: textTheme.headline6),
         trailing: Icon(Icons.add),

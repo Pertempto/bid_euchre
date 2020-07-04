@@ -2,6 +2,8 @@ import 'package:bideuchre/data/data_store.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'stats_list.dart';
+
 class StatsPage extends StatefulWidget {
   StatsPage();
 
@@ -27,8 +29,8 @@ class _StatsPageState extends State<StatsPage> {
           ),
           body: TabBarView(
             children: <Widget>[
-              Container(),
-              Container(),
+              StatsList(false),
+              StatsList(true),
             ],
           ),
         ),

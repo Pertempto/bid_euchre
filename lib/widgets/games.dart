@@ -98,7 +98,7 @@ class _GamesPageState extends State<GamesPage> {
             Expanded(
               child: Stack(
                 children: <Widget>[
-                  if (filteredGames.isEmpty)
+                  if (filteredGames.isEmpty && !showFriendsGames)
                     Container(
                       alignment: Alignment.center,
                       width: double.infinity,

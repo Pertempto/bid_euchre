@@ -6,6 +6,7 @@ import 'authentication.dart';
 import 'friends_db.dart';
 import 'game.dart';
 import 'player.dart';
+import 'stats.dart';
 
 class DataStore {
   static CollectionReference friendsCollection = Firestore.instance.collection('friends');
@@ -37,22 +38,6 @@ class DataStore {
             }
           }
           return _playersWrap(allowNull, (players, loaded) {
-//          players.values.forEach((p) {
-//            if (true) {
-//              Iterable<Game> gs = games.where((g) => g.initialPlayerIds.contains(p.playerId));
-//              if (gs.isEmpty) {
-//                print('${p.fullName} has no games, ${p.playerId}');
-//                Iterable<Game> gs = games.where((g) => g.allPlayerIds.contains(p.playerId));
-//                print('in ${gs.length} games');
-//              } else {
-//                Game g = gs.last;
-//                print('${p.fullName}, ${g.dateString} by ${users[g.userId].name} ${p.playerId}');
-//
-//                p.ownerId = g.userId;
-//                p.updateFirestore();
-//              }
-//            }
-//          });
             Map<String, Player> filteredPlayers = {};
             for (String playerId in players.keys) {
               Player player = players[playerId];
@@ -64,7 +49,9 @@ class DataStore {
                 }
               }
             }
-            Data data = Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, loaded);
+            StatsDb statsDb = StatsDb.fromGames(games);
+            Data data =
+                Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
               print('using last data');
               return callback(lastData);
@@ -154,8 +141,9 @@ class Data {
   final List<Game> games;
   final Map<String, Player> allPlayers;
   final Map<String, Player> players;
+  final StatsDb statsDb;
   final bool loaded;
 
   Data(this.currentUser, this.users, this.friendsDb, this.allGames, this.games, this.allPlayers, this.players,
-      this.loaded);
+      this.statsDb, this.loaded);
 }

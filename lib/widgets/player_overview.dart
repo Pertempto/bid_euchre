@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
+import 'game_detail.dart';
 
 class PlayerOverview extends StatefulWidget {
   final Player player;
@@ -52,10 +53,14 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       if (!game.isFinished) {
         gameStatuses[game.gameId] = 'In Progress';
       } else {
-        if (teamsPlayerIds[game.winningTeamIndex].contains(player.playerId)) {
-          gameStatuses[game.gameId] = 'Won';
+        if (game.fullGamePlayerIds.contains(player.playerId)) {
+          if (teamsPlayerIds[game.winningTeamIndex].contains(player.playerId)) {
+            gameStatuses[game.gameId] = 'Won';
+          } else {
+            gameStatuses[game.gameId] = 'Lost';
+          }
         } else {
-          gameStatuses[game.gameId] = 'Lost';
+          gameStatuses[game.gameId] = 'Partial';
         }
       }
     }
@@ -80,21 +85,26 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
       String dateString = intl.DateFormat.yMd().format(date);
       String timeString = intl.DateFormat.jm().format(date);
-      horizontalScrollChildren.add(Card(
-        child: Container(
-          constraints: BoxConstraints(
-            minWidth: 100,
-          ),
-          margin: EdgeInsets.all(8),
-          child: Column(
-            children: <Widget>[
-              Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
-              Row(children: scoreChildren),
-              Text(dateString, style: textTheme.caption),
-              Text(timeString, style: textTheme.caption),
-            ],
+      horizontalScrollChildren.add(GestureDetector(
+        child: Card(
+          child: Container(
+            constraints: BoxConstraints(
+              minWidth: 100,
+            ),
+            margin: EdgeInsets.all(8),
+            child: Column(
+              children: <Widget>[
+                Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
+                Row(children: scoreChildren),
+                Text(dateString, style: textTheme.caption),
+                Text(timeString, style: textTheme.caption),
+              ],
+            ),
           ),
         ),
+        onTap: () {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+        },
       ));
     }
     children.add(SingleChildScrollView(
