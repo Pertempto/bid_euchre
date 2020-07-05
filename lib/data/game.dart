@@ -190,6 +190,8 @@ class Game {
 }
 
 class Round {
+  static const List<int> ALL_BIDS = [3, 4, 5, 6, 12, 24];
+
   int roundIndex;
   bool isPlayerSwitch;
 

@@ -3,13 +3,38 @@ import 'dart:math';
 import 'package:intl/intl.dart' as intl;
 
 import 'game.dart';
+import 'player.dart';
 
 class StatsDb {
   List<Game> games;
+  Map<String, Map<StatType, StatItem>> preloadedPlayers;
 
   StatsDb.fromGames(this.games);
 
+  Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId) {
+    Map<int, BiddingSplit> splits = {};
+    for (int bid in Round.ALL_BIDS) {
+      splits[bid] = BiddingSplit(bid, []);
+    }
+    for (Game g in games.where((g) => (g.isFinished && g.allPlayerIds.contains(playerId)))) {
+      for (Round r in g.rounds.where((r) => !r.isPlayerSwitch)) {
+        String bidderId = g.getPlayerIdsAfterRound(r.roundIndex - 1)[r.bidderIndex];
+        if (bidderId == playerId) {
+          splits[r.bid].rounds.add(r);
+        }
+      }
+    }
+    return splits;
+  }
+
   Map<String, Map<StatType, StatItem>> getPlayerStats(Set<StatType> statTypes, Set<String> playerIds) {
+    if (preloadedPlayers != null) {
+      Map<String, Map<StatType, StatItem>> stats = {};
+      for (String playerId in playerIds) {
+        stats[playerId] = preloadedPlayers[playerId];
+      }
+      return stats;
+    }
     Map<String, List<int>> scoreDiffsMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => []);
     Map<String, int> numGamesMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
     Map<String, int> numRoundsMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
@@ -307,6 +332,10 @@ class StatsDb {
     return stats;
   }
 
+  preload(Map<String, Player> players) {
+    preloadedPlayers = getPlayerStats(StatType.values.toSet(), players.keys.toSet());
+  }
+
   static String statName(StatType statType) {
     switch (statType) {
       case (StatType.record):
@@ -439,4 +468,37 @@ enum StatType {
   averageBid,
   pointsPerBid,
   lastPlayed,
+}
+
+class BiddingSplit {
+  int bid;
+  List<Round> rounds;
+
+  BiddingSplit(this.bid, this.rounds);
+
+  double get avgPoints {
+    if (count == 0) {
+      return double.nan;
+    }
+    return rounds.map((r) => r.score[r.bidderIndex % 2]).reduce((a, b) => a + b) / count;
+  }
+
+  double get avgTricks {
+    if (count == 0) {
+      return double.nan;
+    }
+    return rounds.map((r) => r.wonTricks).reduce((a, b) => a + b) / count;
+  }
+
+  int get count {
+    return rounds.length;
+  }
+
+  double get madePct {
+    if (count == 0) {
+      return double.nan;
+    }
+    int made = rounds.where((r) => r.madeBid).length;
+    return made / count;
+  }
 }

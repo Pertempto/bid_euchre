@@ -1,6 +1,7 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
+import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -21,6 +22,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   Player player;
   Data data;
   TextTheme textTheme;
+  Map<StatType, StatItem> playerStats;
 
   @override
   bool get wantKeepAlive => true;
@@ -30,17 +32,92 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     super.build(context);
     player = widget.player;
     data = DataStore.lastData;
+    playerStats = data.statsDb.getPlayerStats(
+        {StatType.record, StatType.streak, StatType.numGames, StatType.numRounds, StatType.numBids, StatType.numPoints},
+        {player.playerId})[player.playerId];
+    print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
+      overviewSection(),
+      Divider(),
       gamesSection(),
       Divider(),
       partnersSection(),
       Divider(),
       opponentsSection(),
       Divider(),
+      SizedBox(height: 64),
     ];
+    print('built: ${DateTime.now().millisecondsSinceEpoch}');
     return SingleChildScrollView(child: Column(children: children));
+  }
+
+  Widget overviewSection() {
+    TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
+    TextStyle statStyle = textTheme.bodyText2;
+    List<Widget> children = [
+      ListTile(
+        title: Text('Overview', style: textTheme.headline6),
+        dense: true,
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Record', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Streak', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Games', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Rounds', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Bids', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Points', style: titleStyle), flex: 2),
+            Expanded(
+              child: Text(playerStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
   Widget gamesSection() {

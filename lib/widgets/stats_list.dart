@@ -170,7 +170,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
               child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: FloatingActionButton(
-                  heroTag: 'scrollToTopBtn',
+                  heroTag: 'scrollToTopBtn$teams',
                   mini: true,
                   child: Icon(Icons.arrow_upward),
                   onPressed: () {

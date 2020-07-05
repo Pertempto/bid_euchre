@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../data/data_store.dart';
 import '../data/user.dart';
 
 class RequestFriendSelection extends StatefulWidget {

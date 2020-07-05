@@ -422,7 +422,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                         width: double.infinity,
                         child: CupertinoSlidingSegmentedControl(
                           children: Map.fromIterable(
-                            [3, 4, 5, 6, 12, 24],
+                            Round.ALL_BIDS,
                             key: (i) => i,
                             value: (i) {
                               if (i == 24) {

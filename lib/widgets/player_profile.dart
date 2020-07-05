@@ -20,33 +20,36 @@ class PlayerProfile extends StatefulWidget {
 class _PlayerProfileState extends State<PlayerProfile> {
   @override
   Widget build(BuildContext context) {
-    return DataStore.dataWrap(
-      (data) {
-        Player player = data.players[widget.player.playerId];
-        return DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(player == null ? 'Loading...' : player.fullName),
-              bottom: TabBar(
-                tabs: <Widget>[
-                  Tab(icon: Icon(Icons.person), text: 'Overview'),
-                  Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
-                  Tab(icon: Icon(Icons.settings), text: 'Settings'),
-                ],
-              ),
-            ),
-            body: TabBarView(
-              children: <Widget>[
-                player == null ? Container() : PlayerOverview(player),
-                player == null ? Container() : PlayerStats(player),
-                player == null ? Container() : PlayerSettings(player),
-              ],
-            ),
+//    return DataStore.dataWrap(
+//      (data) {
+    Data data = DataStore.lastData;
+    Player player = data.players[widget.player.playerId];
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(player == null ? 'Loading...' : player.fullName),
+          bottom: TabBar(
+            tabs: <Widget>[
+              Tab(icon: Icon(Icons.person), text: 'Overview'),
+              Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
+              Tab(icon: Icon(Icons.settings), text: 'Settings'),
+            ],
           ),
-        );
-      },
-      allowNull: true,
+        ),
+        body: TabBarView(
+          children: <Widget>[
+            player == null ? Container() : PlayerOverview(player),
+            player == null ? Container() : PlayerStats(player),
+            player == null ? Container() : PlayerSettings(player),
+          ],
+        ),
+      ),
     );
+
+//      },
+//      allowNull: true,
+//      preloadStats: true,
+//   );
   }
 }

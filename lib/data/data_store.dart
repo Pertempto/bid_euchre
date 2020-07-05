@@ -16,6 +16,8 @@ class DataStore {
   static Auth auth;
   static String currentUserId;
   static Data lastData;
+  static StatsDb lastStats;
+  static bool dataIsDirty = true;
 
   static StreamBuilder dataWrap(Widget Function(Data data) callback, {bool allowNull = false}) {
     return _usersWrap(allowNull, (users) {
@@ -49,7 +51,17 @@ class DataStore {
                 }
               }
             }
-            StatsDb statsDb = StatsDb.fromGames(games);
+            StatsDb statsDb = lastStats;
+            if (statsDb == null || dataIsDirty) {
+              print('loading new stats db');
+              statsDb = StatsDb.fromGames(games);
+              statsDb.preload(filteredPlayers);
+              dataIsDirty = false;
+              lastStats = statsDb;
+            }
+            if (!loaded) {
+              dataIsDirty = true;
+            }
             Data data =
                 Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
