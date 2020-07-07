@@ -85,7 +85,9 @@ class _TeamStatsState extends State<TeamStats> with AutomaticKeepAliveClientMixi
                 .map(
                   (c) => Padding(
                     padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
-                    child: Column(children: c, crossAxisAlignment: CrossAxisAlignment.end),
+                    child: Column(
+                        children: c.map((w) => Padding(padding: EdgeInsets.only(top: 4), child: w)).toList(),
+                        crossAxisAlignment: CrossAxisAlignment.end),
                   ),
                 )
                 .toList()),
