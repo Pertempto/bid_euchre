@@ -20,8 +20,7 @@ class PlayerProfile extends StatefulWidget {
 class _PlayerProfileState extends State<PlayerProfile> {
   @override
   Widget build(BuildContext context) {
-//    return DataStore.dataWrap(
-//      (data) {
+
     Data data = DataStore.lastData;
     Player player = data.players[widget.player.playerId];
     return DefaultTabController(
@@ -46,10 +45,5 @@ class _PlayerProfileState extends State<PlayerProfile> {
         ),
       ),
     );
-
-//      },
-//      allowNull: true,
-//      preloadStats: true,
-//   );
   }
 }

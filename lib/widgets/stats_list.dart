@@ -7,6 +7,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../util.dart';
 import 'player_profile.dart';
+import 'team_profile.dart';
 
 class StatsList extends StatefulWidget {
   final bool teams;
@@ -148,8 +149,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           ),
           onTap: () {
             if (teams) {
-              // TODO: get team profile working
-//            Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(teamId)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(id)));
             } else {
               Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerProfile(data.players[id])));
             }

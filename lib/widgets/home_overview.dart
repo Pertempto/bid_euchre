@@ -82,12 +82,12 @@ class _HomeOverviewState extends State<HomeOverview> {
   }
 
   addPinnedPlayer() async {
-    String playerId =
+    Player player =
         await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection(hidePinned: true)));
     User user = data.currentUser;
-    if (playerId != null && !user.pinnedPlayerIds.contains(playerId)) {
+    if (player != null && !user.pinnedPlayerIds.contains(player.playerId)) {
       setState(() {
-        user.pinnedPlayerIds.add(playerId);
+        user.pinnedPlayerIds.add(player.playerId);
         user.updateFirestore();
       });
     }

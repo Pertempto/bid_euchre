@@ -101,7 +101,7 @@ class _PlayerSelectionState extends State<PlayerSelection> {
                 ],
               ),
               onTap: () {
-                Navigator.pop(context, player.playerId);
+                Navigator.pop(context, player);
               },
             );
           }
@@ -141,11 +141,12 @@ class _PlayerSelectionState extends State<PlayerSelection> {
             FlatButton(
               child: Text('Submit'),
               onPressed: () {
-                String name = textFieldController.value.text;
+                String name = textFieldController.value.text.trim();
                 if (name.isNotEmpty) {
                   Player player = Player.newPlayer(user, name);
+                  print('new player: ${player.playerId}');
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop(player.playerId);
+                  Navigator.of(context).pop(player);
                 }
               },
             ),

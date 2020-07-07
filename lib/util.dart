@@ -1,4 +1,5 @@
 import 'data/data_store.dart';
+import 'data/player.dart';
 
 class Util {
   static String scoreString(int score) {
@@ -6,9 +7,17 @@ class Util {
   }
 
   static String getTeamName(String teamId, Data data) {
-    List<String> playerIds = teamId.split(' ');
-    List<String> playerNames = playerIds.map((id) => data.allPlayers[id].shortName).toList();
+    List<Player> players = teamId.split(' ').map((id) => data.allPlayers[id]).toList();
+    if (players.contains(null)) {
+      return null;
+    }
+    List<String> playerNames = players.map((p) => p.shortName).toList();
     playerNames.sort();
     return playerNames.join(' & ');
+  }
+
+  static String getTeamId(List<String> playerIds) {
+    playerIds.sort();
+    return playerIds.join(' ');
   }
 }

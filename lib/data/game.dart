@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../util.dart';
 import 'data_store.dart';
 import 'player.dart';
 import 'user.dart';
@@ -50,7 +51,7 @@ class Game {
     rounds = [Round.empty(0, 0)];
     print(dataMap);
     doc.setData(dataMap);
-    print('done');
+    DataStore.dataIsDirty = true;
   }
 
   Map<String, dynamic> get dataMap {
@@ -127,6 +128,18 @@ class Game {
     return rounds.where((r) => !r.isPlayerSwitch).length;
   }
 
+  List<String> get teamIds {
+    List<String> teamIds = [null, null];
+    Set<String> fullGamers = fullGamePlayerIds;
+    for (int i = 0; i < 2; i++) {
+      List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
+      if (initialIds.toSet().intersection(fullGamers).length == 2) {
+        teamIds[i] = Util.getTeamId(initialIds);
+      }
+    }
+    return teamIds;
+  }
+
   int get winningTeamIndex {
     List<int> score = currentScore;
     if (score[0] > score[1]) {
@@ -186,6 +199,7 @@ class Game {
 
   void updateFirestore() {
     DataStore.gamesCollection.document(gameId).updateData(dataMap);
+    DataStore.dataIsDirty = true;
   }
 }
 

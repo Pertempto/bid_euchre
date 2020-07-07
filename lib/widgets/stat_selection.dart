@@ -18,7 +18,6 @@ class _StatSelectionState extends State<StatSelection> {
     if (statOptions == null) {
       statOptions = StatType.values.toList();
       statOptions.sort((a, b) => StatsDb.statName(a).compareTo(StatsDb.statName(b)));
-      print(statOptions);
     }
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -37,7 +36,7 @@ class _StatSelectionState extends State<StatSelection> {
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Row(
                     children: <Widget>[
-                      Text(StatsDb.statName(stat), style: textTheme.subtitle1),
+                      Text(StatsDb.statName(stat), style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w400)),
                       Spacer(),
                       Icon(Icons.chevron_right),
                     ],

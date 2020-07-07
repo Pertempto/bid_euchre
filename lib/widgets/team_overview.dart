@@ -8,22 +8,23 @@ import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
 import 'game_detail.dart';
-import 'team_profile.dart';
 
-class PlayerOverview extends StatefulWidget {
-  final Player player;
+class TeamOverview extends StatefulWidget {
+  final String teamId;
 
-  PlayerOverview(this.player);
+  TeamOverview(this.teamId);
 
   @override
-  _PlayerOverviewState createState() => _PlayerOverviewState();
+  _TeamOverviewState createState() => _TeamOverviewState();
 }
 
-class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAliveClientMixin<PlayerOverview> {
-  Player player;
+class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClientMixin<TeamOverview> {
+  String teamId;
   Data data;
   TextTheme textTheme;
-  Map<StatType, StatItem> playerStats;
+  Set<String> playerIds;
+  Map<StatType, StatItem> teamStats;
+  bool opponentsSortByRecord = true;
 
   @override
   bool get wantKeepAlive => true;
@@ -31,11 +32,12 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    player = widget.player;
+    teamId = widget.teamId;
     data = DataStore.lastData;
-    playerStats = data.statsDb.getPlayerStats(
+    playerIds = teamId.split(' ').toSet();
+    teamStats = data.statsDb.getTeamStats(
         {StatType.record, StatType.streak, StatType.numGames, StatType.numRounds, StatType.numBids, StatType.numPoints},
-        {player.playerId})[player.playerId];
+        playerIds)[teamId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
@@ -43,8 +45,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       overviewSection(),
       Divider(),
       gamesSection(),
-      Divider(),
-      partnersSection(),
       Divider(),
       opponentsSection(),
       Divider(),
@@ -69,13 +69,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -87,13 +87,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Games', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Rounds', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -105,13 +105,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points', style: titleStyle), flex: 2),
             Expanded(
-              child: Text(playerStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -124,23 +124,21 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
 
   Widget gamesSection() {
     print('games start: ${DateTime.now().millisecondsSinceEpoch}');
-    List<Game> games = data.games.where((g) => (g.allPlayerIds.contains(player.playerId))).toList();
+
+    List<Game> games = data.games.where((g) => g.teamIds.contains(teamId)).toList();
+
     Map<String, String> gameStatuses = {};
     Map<String, bool> flipScores = {};
     for (Game game in games) {
-      List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
-      flipScores[game.gameId] = !teamsPlayerIds[0].contains(player.playerId);
+      List<String> teamsIds = game.teamIds;
+      flipScores[game.gameId] = teamsIds[1] == teamId;
       if (!game.isFinished) {
         gameStatuses[game.gameId] = 'In Progress';
       } else {
-        if (game.fullGamePlayerIds.contains(player.playerId)) {
-          if (teamsPlayerIds[game.winningTeamIndex].contains(player.playerId)) {
-            gameStatuses[game.gameId] = 'Won';
-          } else {
-            gameStatuses[game.gameId] = 'Lost';
-          }
+        if (teamsIds[game.winningTeamIndex] == teamId) {
+          gameStatuses[game.gameId] = 'Won';
         } else {
-          gameStatuses[game.gameId] = 'Partial';
+          gameStatuses[game.gameId] = 'Lost';
         }
       }
     }
@@ -200,48 +198,102 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
-  Widget partnersSection() {
-    Map<String, List<int>> partnerRecords = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(player.playerId)))) {
+  Widget opponentsSection() {
+    Map<String, List<int>> playerRecordsAgainst = {};
+    Map<String, List<int>> teamRecordsAgainst = {};
+    for (Game game in data.allGames.where((g) => (g.isFinished && g.teamIds.contains(teamId)))) {
       int winningTeam = game.winningTeamIndex;
       List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
       for (int teamIndex = 0; teamIndex < 2; teamIndex++) {
-        Set<String> teamPlayerIds = teamsPlayerIds[teamIndex];
-        if (teamPlayerIds.contains(player.playerId) && teamPlayerIds.length == 2) {
-          String partnerId = teamPlayerIds.firstWhere((id) => id != player.playerId);
-          partnerRecords.putIfAbsent(partnerId, () => [0, 0]);
-          if (teamIndex == winningTeam) {
-            partnerRecords[partnerId][0] += 1;
-          } else {
-            partnerRecords[partnerId][1] += 1;
+        List<String> teamIds = game.teamIds;
+        if (teamIds[teamIndex] == teamId) {
+          Set<String> opponentPlayerIds = teamsPlayerIds[1 - teamIndex];
+          for (String opponentId in opponentPlayerIds) {
+            playerRecordsAgainst.putIfAbsent(opponentId, () => [0, 0]);
+            if (teamIndex == winningTeam) {
+              playerRecordsAgainst[opponentId][0] += 1;
+            } else {
+              playerRecordsAgainst[opponentId][1] += 1;
+            }
+          }
+          if (teamIds[1 - teamIndex] != null) {
+            String oTeamId = teamIds[1 - teamIndex];
+            teamRecordsAgainst.putIfAbsent(oTeamId, () => [0, 0]);
+            if (teamIndex == winningTeam) {
+              teamRecordsAgainst[oTeamId][0] += 1;
+            } else {
+              teamRecordsAgainst[oTeamId][1] += 1;
+            }
           }
         }
       }
     }
-    List<String> partnerIds = partnerRecords.keys.toList();
-    partnerIds.sort((a, b) {
-      double aPct = partnerRecords[a][0] / (partnerRecords[a][0] + partnerRecords[a][1]);
-      double bPct = partnerRecords[b][0] / (partnerRecords[b][0] + partnerRecords[b][1]);
+    List<String> oPlayerIds = playerRecordsAgainst.keys.toList();
+    oPlayerIds.sort((a, b) {
+      if (opponentsSortByRecord) {
+        double aPct = playerRecordsAgainst[a][0] / (playerRecordsAgainst[a][0] + playerRecordsAgainst[a][1]);
+        double bPct = playerRecordsAgainst[b][0] / (playerRecordsAgainst[b][0] + playerRecordsAgainst[b][1]);
+        int pctCmp = -aPct.compareTo(bPct);
+        if (pctCmp != 0) {
+          return pctCmp;
+        }
+      } else {
+        int aGames = playerRecordsAgainst[a][0] + playerRecordsAgainst[a][1];
+        int bGames = playerRecordsAgainst[b][0] + playerRecordsAgainst[b][1];
+        int gamesCmp = -aGames.compareTo(bGames);
+        if (gamesCmp != 0) {
+          return gamesCmp;
+        }
+      }
+      return -playerRecordsAgainst[a][0].compareTo(playerRecordsAgainst[b][0]);
+    });
+    List<String> oTeamIds = teamRecordsAgainst.keys.toList();
+    oTeamIds.sort((a, b) {
+      double aPct = teamRecordsAgainst[a][0] / (teamRecordsAgainst[a][0] + teamRecordsAgainst[a][1]);
+      double bPct = teamRecordsAgainst[b][0] / (teamRecordsAgainst[b][0] + teamRecordsAgainst[b][1]);
       int pctCmp = -aPct.compareTo(bPct);
       if (pctCmp != 0) {
         return pctCmp;
       }
-      return -partnerRecords[a][0].compareTo(partnerRecords[b][0]);
+      return -teamRecordsAgainst[a][0].compareTo(teamRecordsAgainst[b][0]);
     });
 
     List<Widget> children = [
       ListTile(
-        title: Text('Partners', style: textTheme.headline6),
+        title: Text('Opponents', style: textTheme.headline6),
         dense: true,
       ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: Row(
+          children: <Widget>[
+            Text('Sort: ', style: textTheme.subtitle1),
+            SizedBox(width: 32),
+            Expanded(
+              child: CupertinoSlidingSegmentedControl(
+                groupValue: opponentsSortByRecord,
+                onValueChanged: (value) {
+                  setState(() {
+                    opponentsSortByRecord = value;
+                  });
+                },
+                children: {
+                  true: Text('Record'),
+                  false: Text('Games'),
+                },
+              ),
+            ),
+          ],
+        ),
+      )
     ];
-    List<Widget> horizontalScrollChildren = [SizedBox(width: 2)];
-    for (String playerId in partnerIds) {
+    List<Widget> playersScrollChildren = [SizedBox(width: 2)];
+    for (String playerId in oPlayerIds) {
       Player player = data.players[playerId];
       if (player != null) {
-        List<int> record = partnerRecords[playerId];
+        List<int> record = playerRecordsAgainst[playerId];
         String recordString = '${record[0]}-${record[1]}';
-        horizontalScrollChildren.add(
+        playersScrollChildren.add(
           Card(
             child: Container(
               constraints: BoxConstraints(
@@ -264,79 +316,30 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       child: Padding(
         padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
         child: Row(
-          children: horizontalScrollChildren,
+          children: playersScrollChildren,
         ),
       ),
     ));
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
-  }
-
-  Widget opponentsSection() {
-    Map<String, List<int>> oppRecordsAgainst = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(player.playerId)))) {
-      int winningTeam = game.winningTeamIndex;
-      List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
-      for (int teamIndex = 0; teamIndex < 2; teamIndex++) {
-        Set<String> teamPlayerIds = teamsPlayerIds[teamIndex];
-        if (teamPlayerIds.contains(player.playerId)) {
-          Set<String> opponentPlayerIds = teamsPlayerIds[1 - teamIndex];
-          for (String opponentId in opponentPlayerIds) {
-            oppRecordsAgainst.putIfAbsent(opponentId, () => [0, 0]);
-            if (teamIndex == winningTeam) {
-              oppRecordsAgainst[opponentId][0] += 1;
-            } else {
-              oppRecordsAgainst[opponentId][1] += 1;
-            }
-          }
-        }
-      }
-    }
-    List<String> opponentIds = oppRecordsAgainst.keys.toList();
-    opponentIds.sort((a, b) {
-      double aPct = oppRecordsAgainst[a][0] / (oppRecordsAgainst[a][0] + oppRecordsAgainst[a][1]);
-      double bPct = oppRecordsAgainst[b][0] / (oppRecordsAgainst[b][0] + oppRecordsAgainst[b][1]);
-      int pctCmp = -aPct.compareTo(bPct);
-      if (pctCmp != 0) {
-        return pctCmp;
-      }
-      return -oppRecordsAgainst[a][0].compareTo(oppRecordsAgainst[b][0]);
-    });
-
-    List<Widget> children = [
-      ListTile(
-        title: Text('Opponents', style: textTheme.headline6),
-        dense: true,
-      ),
-    ];
-    List<Widget> horizontalScrollChildren = [SizedBox(width: 2)];
-    for (String oPlayerId in opponentIds) {
-      Player oPlayer = data.players[oPlayerId];
-      if (oPlayer != null) {
-        List<int> record = oppRecordsAgainst[oPlayerId];
+    List<Widget> teamsScrollChildren = [SizedBox(width: 2)];
+    for (String teamId in oTeamIds) {
+      String teamName = Util.getTeamName(teamId, data);
+      if (teamName != null) {
+        List<int> record = teamRecordsAgainst[teamId];
         String recordString = '${record[0]}-${record[1]}';
-        horizontalScrollChildren.add(
-          GestureDetector(
-            child: Card(
-              child: Container(
-                constraints: BoxConstraints(
-                  minWidth: 50,
-                ),
-                margin: EdgeInsets.all(8),
-                child: Column(
-                  children: <Widget>[
-                    Text(oPlayer.shortName, style: textTheme.bodyText1),
-                    Text(recordString, style: textTheme.bodyText2),
-                  ],
-                ),
+        teamsScrollChildren.add(
+          Card(
+            child: Container(
+              constraints: BoxConstraints(
+                minWidth: 50,
+              ),
+              margin: EdgeInsets.all(8),
+              child: Column(
+                children: <Widget>[
+                  Text(teamName, style: textTheme.bodyText1),
+                  Text(recordString, style: textTheme.bodyText2),
+                ],
               ),
             ),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => TeamProfile(Util.getTeamId([player.playerId, oPlayerId]))),
-              );
-            },
           ),
         );
       }
@@ -346,7 +349,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       child: Padding(
         padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
         child: Row(
-          children: horizontalScrollChildren,
+          children: teamsScrollChildren,
         ),
       ),
     ));

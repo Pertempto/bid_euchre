@@ -1,5 +1,6 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:flutter/cupertino.dart';
@@ -51,7 +52,15 @@ class _NewGameState extends State<NewGame> {
         SizedBox(height: 8), //balance out dividers whitespace
       ];
       for (int i = 0; i < 4; i++) {
-        String playerName = initialPlayerIds[i] == null ? 'Select' : data.players[initialPlayerIds[i]].fullName;
+        String playerId = initialPlayerIds[i];
+        String playerName = 'Select';
+        if (playerId != null) {
+          if (data.players[playerId] == null) {
+            playerName = '';
+          } else {
+            playerName = data.players[playerId].fullName;
+          }
+        }
         children.add(ListTile(
           title: Text('Player ${i + 1}', style: leadingStyle),
           trailing: Text(playerName, style: trailingStyle.copyWith(color: teamColors[i % 2])),
@@ -124,10 +133,11 @@ class _NewGameState extends State<NewGame> {
   }
 
   selectPlayer(int playerIndex) async {
-    String playerId = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()));
-    if (playerId != null) {
+    Player player = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()));
+    if (player != null) {
       setState(() {
-        initialPlayerIds[playerIndex] = playerId;
+        print('player: $player');
+        initialPlayerIds[playerIndex] = player.playerId;
       });
     }
   }

@@ -1,24 +1,24 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
-import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class PlayerStats extends StatefulWidget {
-  final Player player;
+class TeamStats extends StatefulWidget {
+  final String teamId;
 
-  PlayerStats(this.player);
+  TeamStats(this.teamId);
 
   @override
-  _PlayerStatsState createState() => _PlayerStatsState();
+  _TeamStatsState createState() => _TeamStatsState();
 }
 
-class _PlayerStatsState extends State<PlayerStats> with AutomaticKeepAliveClientMixin<PlayerStats> {
-  Player player;
+class _TeamStatsState extends State<TeamStats> with AutomaticKeepAliveClientMixin<TeamStats> {
+  String teamId;
   Data data;
   TextTheme textTheme;
-  Map<StatType, StatItem> playerStats;
+  Set<String> playerIds;
+  Map<StatType, StatItem> teamStats;
 
   @override
   bool get wantKeepAlive => true;
@@ -26,9 +26,10 @@ class _PlayerStatsState extends State<PlayerStats> with AutomaticKeepAliveClient
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    player = widget.player;
+    teamId = widget.teamId;
     data = DataStore.lastData;
-    playerStats = data.statsDb.getPlayerStats(StatType.values.toSet(), {player.playerId})[player.playerId];
+    playerIds = teamId.split(' ').toSet();
+    teamStats = data.statsDb.getTeamStats(StatType.values.toSet(), playerIds)[teamId];
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       SizedBox(height: 8),
@@ -45,8 +46,8 @@ class _PlayerStatsState extends State<PlayerStats> with AutomaticKeepAliveClient
     for (int i = 0; i < titles.length; i++) {
       columnChildren.add([Text(titles[i], style: textTheme.subtitle2)]);
     }
-    Map<int, BiddingSplit> splits = data.statsDb.getPlayerBiddingSplits(player.playerId);
-    int numBids = playerStats[StatType.numBids].statValue;
+    Map<int, BiddingSplit> splits = data.statsDb.getTeamBiddingSplits(teamId);
+    int numBids = teamStats[StatType.numBids].statValue;
     for (int bid in Round.ALL_BIDS) {
       BiddingSplit split = splits[bid];
       String rateString = '-';

@@ -143,7 +143,7 @@ class _SettingsState extends State<HomeSettings> {
             FlatButton(
               child: Text('Submit'),
               onPressed: () {
-                String name = textFieldController.value.text;
+                String name = textFieldController.value.text.trim();
                 if (name.isNotEmpty) {
                   currentUser.name = name;
                   currentUser.updateFirestore();

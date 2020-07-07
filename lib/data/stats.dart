@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:bideuchre/data/data_store.dart';
 import 'package:intl/intl.dart' as intl;
 
+import '../util.dart';
 import 'game.dart';
 import 'player.dart';
 
@@ -30,10 +32,18 @@ class StatsDb {
   Map<String, Map<StatType, StatItem>> getPlayerStats(Set<StatType> statTypes, Set<String> playerIds) {
     if (preloadedPlayers != null) {
       Map<String, Map<StatType, StatItem>> stats = {};
+      bool needLoad = false;
       for (String playerId in playerIds) {
         stats[playerId] = preloadedPlayers[playerId];
+        if (stats[playerId] == null) {
+          print('need another load');
+          needLoad = true;
+          DataStore.dataIsDirty = true;
+        }
       }
-      return stats;
+      if (!needLoad) {
+        return stats;
+      }
     }
     Map<String, List<int>> scoreDiffsMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => []);
     Map<String, int> numGamesMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
@@ -178,6 +188,22 @@ class StatsDb {
     return stats;
   }
 
+  Map<int, BiddingSplit> getTeamBiddingSplits(String teamId) {
+    Map<int, BiddingSplit> splits = {};
+    for (int bid in Round.ALL_BIDS) {
+      splits[bid] = BiddingSplit(bid, []);
+    }
+    for (Game g in games.where((g) => (g.isFinished && g.teamIds.contains(teamId)))) {
+      int teamIndex = g.teamIds.indexOf(teamId);
+      for (Round r in g.rounds.where((r) => !r.isPlayerSwitch)) {
+        if (r.bidderIndex % 2 == teamIndex) {
+          splits[r.bid].rounds.add(r);
+        }
+      }
+    }
+    return splits;
+  }
+
   Map<String, Map<StatType, StatItem>> getTeamStats(Set<StatType> statTypes, Set<String> playerIds) {
     Map<String, Map> massiveMap = {};
     for (Game g in games.where((g) => g.isFinished && g.fullGamePlayerIds.intersection(playerIds).length >= 2)) {
@@ -186,9 +212,7 @@ class StatsDb {
       List<String> teamIds = [null, null];
       for (int i = 0; i < 2; i++) {
         if (teamsPlayerIds[i].intersection(gPlayerIds).length == 2) {
-          List<String> teamPlayerIds = teamsPlayerIds[i].toList();
-          teamPlayerIds.sort();
-          String teamId = teamPlayerIds.join(' ');
+          String teamId = Util.getTeamId(teamsPlayerIds[i].toList());
           teamIds[i] = teamId;
           massiveMap.putIfAbsent(
             teamId,
