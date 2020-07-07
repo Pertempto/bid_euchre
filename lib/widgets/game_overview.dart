@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
+import 'package:bideuchre/widgets/player_profile.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/cupertino.dart';
@@ -253,7 +254,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                   elevation: 1,
                   child: Column(
                     children: <Widget>[
-                      gameHeader(game, data, textTheme),
+                      gameHeader(game, data, textTheme, context),
                       Container(
                         width: double.infinity,
                         alignment: Alignment.center,
@@ -708,11 +709,21 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
   }
 }
 
-Widget gameHeader(Game game, Data data, TextTheme textTheme) {
+Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
   List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();
-  TextStyle team1Style = textTheme.headline5.copyWith(color: game.teamColors[0], height: 1.1);
-  TextStyle team2Style = textTheme.headline5.copyWith(color: game.teamColors[1], height: 1.1);
+  Widget playerTitle(int index) {
+    return GestureDetector(
+      child: Text(
+        players[index].shortName,
+        style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
+      ),
+      onTap: () {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(players[0])));
+      },
+    );
+  }
+
   return Column(
     children: [
       Container(
@@ -723,8 +734,8 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(players[0].shortName, style: team1Style),
-                  Text(players[2].shortName, style: team1Style),
+                  playerTitle(0),
+                  playerTitle(2),
                 ],
               ),
               flex: 7,
@@ -737,8 +748,8 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
-                  Text(players[1].shortName, style: team2Style),
-                  Text(players[3].shortName, style: team2Style),
+                  playerTitle(1),
+                  playerTitle(3),
                 ],
               ),
               flex: 7,
@@ -756,7 +767,8 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme) {
             Expanded(
               child: Text(
                 scoreStrings[0],
-                style: team1Style.copyWith(fontWeight: FontWeight.w900, fontSize: 40),
+                style:
+                    textTheme.headline5.copyWith(fontWeight: FontWeight.w900, fontSize: 40, color: game.teamColors[0]),
                 textAlign: TextAlign.end,
               ),
               flex: 7,
@@ -765,7 +777,8 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme) {
             Expanded(
               child: Text(
                 scoreStrings[1],
-                style: team2Style.copyWith(fontWeight: FontWeight.w900, fontSize: 40),
+                style:
+                    textTheme.headline5.copyWith(fontWeight: FontWeight.w900, fontSize: 40, color: game.teamColors[1]),
                 textAlign: TextAlign.start,
               ),
               flex: 7,

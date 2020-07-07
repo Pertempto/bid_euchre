@@ -29,7 +29,7 @@ class _GameStatsState extends State<GameStats> {
     data = DataStore.lastData;
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
-      gameHeader(game, data, textTheme),
+      gameHeader(game, data, textTheme, context),
       statsSection(),
     ];
     return SingleChildScrollView(
@@ -109,7 +109,6 @@ class _GameStatsState extends State<GameStats> {
             percent: madePercent,
             progressColor: game.teamColors[i],
             lineHeight: 12,
-//            isRTL: i == 1,
             linearStrokeCap: LinearStrokeCap.butt,
             padding: EdgeInsets.all(0),
           ),
@@ -152,7 +151,6 @@ class _GameStatsState extends State<GameStats> {
             percent: percent,
             progressColor: game.teamColors[i],
             lineHeight: 12,
-//            isRTL: i == 1,
             linearStrokeCap: LinearStrokeCap.butt,
             padding: EdgeInsets.all(0),
           ),
@@ -192,7 +190,6 @@ class _GameStatsState extends State<GameStats> {
             percent: percent,
             progressColor: game.teamColors[i],
             lineHeight: 12,
-//            isRTL: i == 1,
             linearStrokeCap: LinearStrokeCap.butt,
             padding: EdgeInsets.all(0),
           ),

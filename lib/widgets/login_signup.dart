@@ -150,10 +150,10 @@ class _LoginSignupState extends State<LoginSignup> {
         maxLines: 1,
         autofocus: false,
         decoration: InputDecoration(
-          hintText: 'Name',
+          hintText: 'Username',
           icon: Icon(Icons.person, color: Colors.grey),
         ),
-        validator: (value) => value.length < 5 ? 'Name is too short' : null,
+        validator: (value) => value.length < 5 ? 'Username is too short' : null,
         onSaved: (value) => _name = value,
       ),
     );
