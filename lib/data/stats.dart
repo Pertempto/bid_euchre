@@ -463,7 +463,7 @@ class StatItem {
         if (biddingRate == 0) {
           return '-';
         }
-        String inverseRateString = (1 / biddingRate).toStringAsFixed(2);
+        String inverseRateString = (1 / biddingRate).toStringAsFixed(1);
         return '1 in $inverseRateString';
       case (StatType.lastPlayed):
         if (statValue == 0) {

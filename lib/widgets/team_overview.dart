@@ -33,20 +33,23 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     teamId = widget.teamId;
+    print('teamId: $teamId');
     data = DataStore.lastData;
     playerIds = teamId.split(' ').toSet();
-    teamStats = data.statsDb.getTeamStats(
-        {StatType.record, StatType.streak, StatType.numGames, StatType.numRounds, StatType.numBids, StatType.numPoints},
-        playerIds)[teamId];
+    teamStats = data.statsDb.getTeamStats(StatType.values.toSet(), playerIds)[teamId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
       overviewSection(),
       Divider(),
+      biddingSection(),
+      Divider(),
       gamesSection(),
       Divider(),
       opponentsSection(),
+      Divider(),
+      biddingSplitsSection(),
       Divider(),
       SizedBox(height: 64),
     ];
@@ -54,29 +57,28 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     return SingleChildScrollView(child: Column(children: children));
   }
 
-  Widget overviewSection() {
-    print('overview start: ${DateTime.now().millisecondsSinceEpoch}');
+  Widget biddingSection() {
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
     List<Widget> children = [
       ListTile(
-        title: Text('Overview', style: textTheme.headline6),
+        title: Text('Bidding', style: textTheme.headline6),
         dense: true,
       ),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Record', style: titleStyle), flex: 2),
+            Expanded(child: Text('Bidding Record', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.biddingRecord].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Streak', style: titleStyle), flex: 2),
+            Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(teamStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
+              child: Text(teamStats[StatType.biddingRate].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 3,
             ),
           ],
         ),
@@ -85,47 +87,86 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Games', style: titleStyle), flex: 2),
+            Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.averageBid].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Rounds', style: titleStyle), flex: 2),
+            Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Bids', style: titleStyle), flex: 2),
-            Expanded(
-              child: Text(teamStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Points', style: titleStyle), flex: 2),
-            Expanded(
-              child: Text(teamStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.pointsPerBid].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
         ),
       ),
     ];
-    print('overview end: ${DateTime.now().millisecondsSinceEpoch}');
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  Widget biddingSplitsSection() {
+    List<List<Widget>> columnChildren = [];
+    List<String> titles = ['Bid', 'Count', 'Frequency', 'Made %', 'Tricks', 'Points'];
+    for (int i = 0; i < titles.length; i++) {
+      columnChildren.add([Text(titles[i], style: textTheme.subtitle2)]);
+    }
+    Map<int, BiddingSplit> splits = data.statsDb.getTeamBiddingSplits(teamId);
+    int numBids = teamStats[StatType.numBids].statValue;
+    for (int bid in Round.ALL_BIDS) {
+      BiddingSplit split = splits[bid];
+      String rateString = '-';
+      String madeString = '-';
+      String tricksString = '-';
+      String pointsString = '-';
+      if (split.count != 0) {
+        rateString = '1 in ${(numBids / split.count).toStringAsFixed(1)}';
+        madeString = '${(split.madePct * 100).toStringAsFixed(1)}%';
+        tricksString = split.avgTricks.toStringAsFixed(2);
+        pointsString = split.avgPoints.toStringAsFixed(2);
+      }
+      List<String> row = [
+        split.bid.toString(),
+        split.count.toString(),
+        rateString,
+        madeString,
+        tricksString,
+        pointsString
+      ];
+      for (int i = 0; i < row.length; i++) {
+        columnChildren[i].add(Text(row[i]));
+      }
+    }
+    List<Widget> children = [
+      ListTile(
+        title: Text('Bidding Splits', style: textTheme.headline6),
+        dense: true,
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: columnChildren
+                .map(
+                  (c) => Padding(
+                    padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
+                    child: Column(
+                        children: c.map((w) => Padding(padding: EdgeInsets.only(top: 4), child: w)).toList(),
+                        crossAxisAlignment: CrossAxisAlignment.end),
+                  ),
+                )
+                .toList()),
+      ),
+    ];
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
   Widget gamesSection() {
     print('games start: ${DateTime.now().millisecondsSinceEpoch}');
 
-    List<Game> games = data.games.where((g) => g.teamIds.contains(teamId)).toList();
+    List<Game> games = data.allGames.where((g) => g.teamIds.contains(teamId)).toList();
 
     Map<String, String> gameStatuses = {};
     Map<String, bool> flipScores = {};
@@ -181,7 +222,14 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           ),
         ),
         onTap: () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+          if (game.userId == data.currentUser.userId ||
+              data.friendsDb.areFriends(game.userId, data.currentUser.userId)) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+          } else {
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('You don\'t have permission to view this game!'),
+            ));
+          }
         },
       ));
     }
@@ -285,7 +333,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
             ),
           ],
         ),
-      )
+      ),
     ];
     List<Widget> playersScrollChildren = [SizedBox(width: 2)];
     for (String playerId in oPlayerIds) {
@@ -353,6 +401,74 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         ),
       ),
     ));
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  Widget overviewSection() {
+    print('overview start: ${DateTime.now().millisecondsSinceEpoch}');
+    TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
+    TextStyle statStyle = textTheme.bodyText2;
+    List<Widget> children = [
+      ListTile(
+        title: Text('Overview', style: textTheme.headline6),
+        dense: true,
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Record', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Streak', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Games', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Bids', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Points', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(teamStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+          ],
+        ),
+      ),
+    ];
+    print('overview end: ${DateTime.now().millisecondsSinceEpoch}');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }
