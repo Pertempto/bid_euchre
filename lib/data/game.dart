@@ -134,7 +134,7 @@ class Game {
     for (int i = 0; i < 2; i++) {
       List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
       if (initialIds.toSet().intersection(fullGamers).length == 2) {
-        teamIds[i] = Util.getTeamId(initialIds);
+        teamIds[i] = Util.teamId(initialIds);
       }
     }
     return teamIds;
@@ -199,7 +199,9 @@ class Game {
 
   void updateFirestore() {
     DataStore.gamesCollection.document(gameId).updateData(dataMap);
-    DataStore.dataIsDirty = true;
+    if (isFinished) {
+      DataStore.dataIsDirty = true;
+    }
   }
 }
 

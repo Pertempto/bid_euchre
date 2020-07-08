@@ -19,7 +19,7 @@ class _TeamProfileState extends State<TeamProfile> {
   Widget build(BuildContext context) {
     String teamId = widget.teamId;
     Data data = DataStore.lastData;
-    String teamName = Util.getTeamName(teamId, data);
+    String teamName = Util.teamName(teamId, data);
     return Scaffold(
       appBar: AppBar(
         title: Text(teamName == null ? 'Loading...' : teamName),

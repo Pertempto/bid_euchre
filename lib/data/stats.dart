@@ -212,7 +212,7 @@ class StatsDb {
       List<String> teamIds = [null, null];
       for (int i = 0; i < 2; i++) {
         if (teamsPlayerIds[i].intersection(gPlayerIds).length == 2) {
-          String teamId = Util.getTeamId(teamsPlayerIds[i].toList());
+          String teamId = Util.teamId(teamsPlayerIds[i].toList());
           teamIds[i] = teamId;
           massiveMap.putIfAbsent(
             teamId,

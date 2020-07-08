@@ -65,7 +65,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       Map<String, String> names = {};
       if (teams) {
-        names = Map.fromIterable(ids, key: (id) => id, value: (id) => Util.getTeamName(id, data));
+        names = Map.fromIterable(ids, key: (id) => id, value: (id) => Util.teamName(id, data));
       } else {
         names = Map.fromIterable(ids, key: (id) => id, value: (id) => data.players[id].fullName);
       }

@@ -69,10 +69,10 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Bidding Record', style: titleStyle), flex: 6),
+            Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
               child: Text(teamStats[StatType.biddingRecord].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
+              flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
@@ -297,11 +297,20 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     });
     List<String> oTeamIds = teamRecordsAgainst.keys.toList();
     oTeamIds.sort((a, b) {
-      double aPct = teamRecordsAgainst[a][0] / (teamRecordsAgainst[a][0] + teamRecordsAgainst[a][1]);
-      double bPct = teamRecordsAgainst[b][0] / (teamRecordsAgainst[b][0] + teamRecordsAgainst[b][1]);
-      int pctCmp = -aPct.compareTo(bPct);
-      if (pctCmp != 0) {
-        return pctCmp;
+      if (opponentsSortByRecord) {
+        double aPct = teamRecordsAgainst[a][0] / (teamRecordsAgainst[a][0] + teamRecordsAgainst[a][1]);
+        double bPct = teamRecordsAgainst[b][0] / (teamRecordsAgainst[b][0] + teamRecordsAgainst[b][1]);
+        int pctCmp = -aPct.compareTo(bPct);
+        if (pctCmp != 0) {
+          return pctCmp;
+        }
+      } else {
+        int aGames = teamRecordsAgainst[a][0] + teamRecordsAgainst[a][1];
+        int bGames = teamRecordsAgainst[b][0] + teamRecordsAgainst[b][1];
+        int gamesCmp = -aGames.compareTo(bGames);
+        if (gamesCmp != 0) {
+          return gamesCmp;
+        }
       }
       return -teamRecordsAgainst[a][0].compareTo(teamRecordsAgainst[b][0]);
     });
@@ -370,7 +379,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     ));
     List<Widget> teamsScrollChildren = [SizedBox(width: 2)];
     for (String teamId in oTeamIds) {
-      String teamName = Util.getTeamName(teamId, data);
+      String teamName = Util.teamName(teamId, data);
       if (teamName != null) {
         List<int> record = teamRecordsAgainst[teamId];
         String recordString = '${record[0]}-${record[1]}';
@@ -417,10 +426,10 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Record', style: titleStyle), flex: 6),
+            Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
               child: Text(teamStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
+              flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),

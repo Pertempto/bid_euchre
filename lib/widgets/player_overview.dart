@@ -70,10 +70,10 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Bidding Record', style: titleStyle), flex: 6),
+            Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
               child: Text(playerStats[StatType.biddingRecord].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
+              flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
@@ -360,10 +360,10 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Record', style: titleStyle), flex: 6),
+            Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
               child: Text(playerStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
+              flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),
@@ -507,7 +507,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => TeamProfile(Util.getTeamId([player.playerId, partnerId]))),
+                MaterialPageRoute(builder: (context) => TeamProfile(Util.teamId([player.playerId, partnerId]))),
               );
             },
           ),

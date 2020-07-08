@@ -1,5 +1,9 @@
+import 'dart:collection';
+import 'dart:math';
+
 import 'package:bideuchre/data/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'authentication.dart';
@@ -18,6 +22,8 @@ class DataStore {
   static Data lastData;
   static StatsDb lastStats;
   static bool dataIsDirty = true;
+  static const _eq = ListEquality();
+  static Map<List, List> _winData = HashMap(equals: _eq.equals, hashCode: _eq.hash, isValidKey: _eq.isValidKey);
 
   static StreamBuilder dataWrap(Widget Function(Data data) callback, {bool allowNull = false}) {
     return _usersWrap(allowNull, (users) {
@@ -29,6 +35,13 @@ class DataStore {
       User currentUser = users[currentUserId];
       return _friendsWrap(allowNull, (friendsDb) {
         return _gamesWrap(allowNull, (games) {
+//          games.forEach((g) {
+//            if (g.userId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
+//              print(g.gameId);
+//              g.userId = 'saGRfPf2HWdsgWkyWsyDjeKh22N2';
+//              g.updateFirestore();
+//            }
+//          });
           List<Game> filteredGames = [];
           for (Game game in games) {
             if (game.userId == currentUserId) {
@@ -39,7 +52,40 @@ class DataStore {
               }
             }
           }
+          if (_winData.isEmpty) {
+            print('loading win data...');
+            int c= 0;
+            for (Game g in games.where((g) => g.isFinished)) {
+              for (Round r in g.rounds) {
+                if (!r.isPlayerSwitch) {
+                  List<int> score = g.getScoreAfterRound(r.roundIndex - 1);
+                  int scoreDelta = (score[0] - score[1]).abs();
+                  if (scoreDelta != 0) {
+                    int higherScore = max(score[0], score[1]);
+                    int pointsLeftToWin = g.gameOverScore - higherScore;
+                    int winningTeamIndex = score.indexOf(higherScore);
+                    bool didWin = g.winningTeamIndex == winningTeamIndex;
+                    _winData.putIfAbsent([pointsLeftToWin, scoreDelta], () => [0, 0]);
+                    if (didWin) {
+                      _winData[[pointsLeftToWin, scoreDelta]][0]++;
+                    }
+                    _winData[[pointsLeftToWin, scoreDelta]][1]++;
+                    c++;
+                  }
+                }
+              }
+            }
+            print(_winData);
+            print('done loading win data, data points: $c');
+          }
           return _playersWrap(allowNull, (players, loaded) {
+//            players.values.forEach((p) {
+//              if (p.ownerId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
+//                print('${p.playerId} ${p.fullName}');
+//                p.ownerId = 'saGRfPf2HWdsgWkyWsyDjeKh22N2';
+//                p.updateFirestore();
+//              }
+//            });
             Map<String, Player> filteredPlayers = {};
             for (String playerId in players.keys) {
               Player player = players[playerId];
@@ -142,6 +188,42 @@ class DataStore {
         }
       },
     );
+  }
+
+  static List<double> winProbabilities(Game game) {
+    List<double> probabilities = [0.5, 0.5];
+    if (game.isFinished) {
+      probabilities[game.winningTeamIndex] = 1;
+      probabilities[1 - game.winningTeamIndex] = 0;
+      return probabilities;
+    }
+    List<int> score = game.currentScore;
+    int scoreDelta = (score[0] - score[1]).abs();
+    if (scoreDelta == 0) {
+      return [0.5, 0.5];
+    }
+    int higherScore = max(score[0], score[1]);
+    int pointsLeftToWin = game.gameOverScore - higherScore;
+    int winningTeamIndex = score.indexOf(higherScore);
+    int numSimilar = min(20, _winData.length);
+    double total = 0;
+    double count = 0;
+    for (int radius = 0; (count < numSimilar || radius <= 4) && radius < 100; radius++) {
+      for (List key in _winData.keys) {
+        int diff = (key[0] - pointsLeftToWin).abs() + (key[1] - scoreDelta).abs();
+        if (diff == radius) {
+          total += _winData[key][0];
+          count += _winData[key][1];
+        }
+      }
+    }
+    double winningChance = total / count;
+    if (winningChance == 1) {
+      winningChance = 0.999;
+    }
+    probabilities[winningTeamIndex] = winningChance;
+    probabilities[1 - winningTeamIndex] = 1 - winningChance;
+    return probabilities;
   }
 }
 
