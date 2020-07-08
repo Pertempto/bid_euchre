@@ -721,7 +721,7 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(players[0])));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(players[index])));
       },
     );
   }
