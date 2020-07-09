@@ -83,7 +83,7 @@ class StatsDb {
             numPointsMap[playerId] += round.score[i % 2];
           }
         }
-        if (!round.isPlayerSwitch) {
+        if (!round.isPlayerSwitch && round.bidderIndex != null) {
           String bidderId = rPlayerIds[round.bidderIndex];
           if (playerIds.contains(bidderId)) {
             numBidsMap[bidderId]++;
