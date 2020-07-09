@@ -1,8 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ColorChooser extends StatelessWidget {
-  final List<ColorSwatch> colorSwatches = [
+  static const List<ColorSwatch> COLOR_SWATCHES = [
     Colors.blue,
     Colors.lightBlue,
     Colors.cyan,
@@ -22,6 +24,7 @@ class ColorChooser extends StatelessWidget {
     Colors.blueGrey,
     Colors.brown,
   ];
+  static const int NUM_SHADES = 6;
   final Color selectedColor;
 
   ColorChooser(this.selectedColor);
@@ -30,12 +33,11 @@ class ColorChooser extends StatelessWidget {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     List<Widget> children = [];
-    children.addAll(List.generate(colorSwatches.length, (y) {
+    children.addAll(List.generate(COLOR_SWATCHES.length, (y) {
       return Row(
-        children: List.generate(6, (x) {
-          Color color = colorSwatches[y][x * 100 + 400];
+        children: List.generate(NUM_SHADES, (x) {
+          Color color = COLOR_SWATCHES[y][x * 100 + (1000 - NUM_SHADES * 100)];
           Widget child;
-          bool isGoodColor = color.computeLuminance() < 0.5;
           if (color.value == selectedColor.value) {
             child = Icon(
               Icons.check,
@@ -43,10 +45,10 @@ class ColorChooser extends StatelessWidget {
               size: 30,
             );
           }
-          if (isGoodColor) {
+          if (isValidColor(color)) {
             return Container(
-              height: width / 6,
-              width: width / 6,
+              height: width / NUM_SHADES,
+              width: width / NUM_SHADES,
               child: Material(
                 color: color,
                 child: InkWell(
@@ -77,6 +79,23 @@ class ColorChooser extends StatelessWidget {
         children: children,
       ),
     );
+  }
+
+  static Color generateRandomColor() {
+    Random rnd = Random();
+    while (true) {
+      int index = rnd.nextInt(COLOR_SWATCHES.length);
+      ColorSwatch swatch = COLOR_SWATCHES[index];
+      int x = rnd.nextInt(NUM_SHADES);
+      Color color = swatch[x * 100 + (1000 - NUM_SHADES * 100)];
+      if (isValidColor(color)) {
+        return color;
+      }
+    }
+  }
+
+  static bool isValidColor(Color color) {
+    return color.computeLuminance() < 0.5;
   }
 }
 

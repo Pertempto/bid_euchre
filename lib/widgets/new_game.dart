@@ -30,7 +30,7 @@ class _NewGameState extends State<NewGame> {
         Game copyGame = widget.copyGame;
         if (copyGame == null) {
           initialPlayerIds = [null, null, null, null];
-          teamColors = [Colors.blue, Colors.green];
+          teamColors = [ColorChooser.generateRandomColor(), ColorChooser.generateRandomColor()];
           gameOverScore = 42;
         } else {
           initialPlayerIds = copyGame.currentPlayerIds;

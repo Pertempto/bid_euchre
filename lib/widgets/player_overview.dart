@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
 import 'game_detail.dart';
+import 'compare.dart';
 import 'team_profile.dart';
 
 class PlayerOverview extends StatefulWidget {
@@ -78,7 +79,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(playerStats[StatType.biddingRate].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(playerStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -318,19 +319,24 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         List<int> record = oppRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
         horizontalScrollChildren.add(
-          Card(
-            child: Container(
-              constraints: BoxConstraints(
-                minWidth: 50,
-              ),
-              margin: EdgeInsets.all(8),
-              child: Column(
-                children: <Widget>[
-                  Text(oPlayer.shortName, style: textTheme.bodyText1),
-                  Text(recordString, style: textTheme.bodyText2),
-                ],
+          GestureDetector(
+            child: Card(
+              child: Container(
+                constraints: BoxConstraints(
+                  minWidth: 50,
+                ),
+                margin: EdgeInsets.all(8),
+                child: Column(
+                  children: <Widget>[
+                    Text(oPlayer.shortName, style: textTheme.bodyText1),
+                    Text(recordString, style: textTheme.bodyText2),
+                  ],
+                ),
               ),
             ),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Compare(player.playerId, oPlayerId)));
+            },
           ),
         );
       }

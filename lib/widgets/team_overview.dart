@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
 import 'game_detail.dart';
+import 'compare.dart';
 
 class TeamOverview extends StatefulWidget {
   final String teamId;
@@ -77,7 +78,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(teamStats[StatType.biddingRate].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(teamStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -378,25 +379,30 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       ),
     ));
     List<Widget> teamsScrollChildren = [SizedBox(width: 2)];
-    for (String teamId in oTeamIds) {
-      String teamName = Util.teamName(teamId, data);
+    for (String oTeamId in oTeamIds) {
+      String teamName = Util.teamName(oTeamId, data);
       if (teamName != null) {
-        List<int> record = teamRecordsAgainst[teamId];
+        List<int> record = teamRecordsAgainst[oTeamId];
         String recordString = '${record[0]}-${record[1]}';
         teamsScrollChildren.add(
-          Card(
-            child: Container(
-              constraints: BoxConstraints(
-                minWidth: 50,
-              ),
-              margin: EdgeInsets.all(8),
-              child: Column(
-                children: <Widget>[
-                  Text(teamName, style: textTheme.bodyText1),
-                  Text(recordString, style: textTheme.bodyText2),
-                ],
+          GestureDetector(
+            child: Card(
+              child: Container(
+                constraints: BoxConstraints(
+                  minWidth: 50,
+                ),
+                margin: EdgeInsets.all(8),
+                child: Column(
+                  children: <Widget>[
+                    Text(teamName, style: textTheme.bodyText1),
+                    Text(recordString, style: textTheme.bodyText2),
+                  ],
+                ),
               ),
             ),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Compare(teamId, oTeamId)));
+            },
           ),
         );
       }

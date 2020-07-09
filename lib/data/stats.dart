@@ -152,7 +152,7 @@ class StatsDb {
             avgScoreDiff = totalScoreDiff / numGames;
           }
           stats[playerId][statType] = StatItem(playerId, statType, avgScoreDiff);
-        } else if (statType == StatType.biddingRate) {
+        } else if (statType == StatType.biddingFrequency) {
           double biddingRate = 0;
           if (numRounds != 0) {
             biddingRate = numBids / numRounds;
@@ -320,7 +320,7 @@ class StatsDb {
             avgScoreDiff = totalScoreDiff / numGames;
           }
           stats[teamId][statType] = StatItem(teamId, statType, avgScoreDiff);
-        } else if (statType == StatType.biddingRate) {
+        } else if (statType == StatType.biddingFrequency) {
           double biddingRate = 0;
           if (numRounds != 0) {
             biddingRate = numBids / numRounds;
@@ -378,8 +378,8 @@ class StatsDb {
         return 'Number of Points';
       case (StatType.avgScoreDiff):
         return 'Average Score Difference';
-      case (StatType.biddingRate):
-        return 'Bidding Rate';
+      case (StatType.biddingFrequency):
+        return 'Bidding Frequency';
       case (StatType.biddingRecord):
         return 'Bidding Record';
       case (StatType.madeBidPercentage):
@@ -415,7 +415,7 @@ class StatItem {
         return -(record[0] / total);
       case (StatType.winningPct):
       case (StatType.avgScoreDiff):
-      case (StatType.biddingRate):
+      case (StatType.biddingFrequency):
       case (StatType.madeBidPercentage):
       case (StatType.averageBid):
       case (StatType.pointsPerBid):
@@ -458,7 +458,7 @@ class StatItem {
       case (StatType.averageBid):
       case (StatType.pointsPerBid):
         return (statValue as double).toStringAsFixed(2);
-      case (StatType.biddingRate):
+      case (StatType.biddingFrequency):
         double biddingRate = statValue as double;
         if (biddingRate == 0) {
           return '-';
@@ -486,7 +486,7 @@ enum StatType {
   numBids,
   numPoints,
   avgScoreDiff,
-  biddingRate,
+  biddingFrequency,
   biddingRecord,
   madeBidPercentage,
   averageBid,
