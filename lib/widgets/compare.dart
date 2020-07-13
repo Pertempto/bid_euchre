@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../data/data_store.dart';
 import '../data/player.dart';
+import '../util.dart';
 import 'player_profile.dart';
 
 class Compare extends StatefulWidget {
@@ -41,6 +42,7 @@ class _CompareState extends State<Compare> {
     textTheme = Theme.of(context).textTheme;
 
     teams = widget.id1.contains(' ');
+    List<Color> colors;
     if (teams) {
       List<String> team1Ids = widget.id1.split(' ');
       List<String> team2Ids = widget.id2.split(' ');
@@ -50,6 +52,19 @@ class _CompareState extends State<Compare> {
         data.players[team1Ids[1]],
         data.players[team2Ids[1]],
       ];
+      colors = [];
+      for (int i = 0; i < 2; i++) {
+        Color color;
+        String teamId = Util.teamId([players[i].playerId, players[i + 2].playerId]);
+        for (Game g in data.games) {
+          if (g.teamIds.contains(teamId)) {
+            int teamIndex = g.teamIds.indexOf(teamId);
+            color = g.teamColors[teamIndex];
+            break;
+          }
+        }
+        colors.add(color);
+      }
       stats = data.statsDb.getTeamStats(COMPARE_STATS.toSet(), (team1Ids + team2Ids).toSet());
       splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
@@ -57,13 +72,14 @@ class _CompareState extends State<Compare> {
         data.players[widget.id1],
         data.players[widget.id2],
       ];
+      colors = [null, null];
       stats = data.statsDb.getPlayerStats(COMPARE_STATS.toSet(), {widget.id1, widget.id2});
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
-
+    print('colors: $colors');
     Widget playerTitle(int index) {
       return GestureDetector(
-        child: Text(players[index].shortName, style: textTheme.headline5),
+        child: Text(players[index].shortName, style: textTheme.headline5.copyWith(color: colors[index % 2])),
         onTap: () {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(players[index])));
         },
@@ -196,7 +212,7 @@ class _CompareState extends State<Compare> {
                 String pointsString = '-';
                 double value = 0;
                 if (split.count != 0) {
-                  value = split.avgTricks;
+                  value = split.avgPoints;
                   pointsString = split.avgPoints.toStringAsFixed(2);
                 }
                 values.add(value);

@@ -6,6 +6,7 @@ import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../util.dart';
 import 'game_detail.dart';
 
 class NewGame extends StatefulWidget {
@@ -26,6 +27,7 @@ class _NewGameState extends State<NewGame> {
   @override
   Widget build(BuildContext context) {
     return DataStore.dataWrap((data) {
+      this.data = data;
       if (initialPlayerIds == null) {
         Game copyGame = widget.copyGame;
         if (copyGame == null) {
@@ -138,6 +140,17 @@ class _NewGameState extends State<NewGame> {
       setState(() {
         print('player: $player');
         initialPlayerIds[playerIndex] = player.playerId;
+        String partnerId = initialPlayerIds[(playerIndex + 2) % 4];
+        if (partnerId != null) {
+          String teamId = Util.teamId([player.playerId, partnerId]);
+          for (Game g in data.games) {
+            if (g.teamIds.contains(teamId)) {
+              int teamIndex = g.teamIds.indexOf(teamId);
+              teamColors[playerIndex % 2] = g.teamColors[teamIndex];
+              break;
+            }
+          }
+        }
       });
     }
   }
