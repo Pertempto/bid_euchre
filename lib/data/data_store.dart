@@ -54,7 +54,7 @@ class DataStore {
           }
           if (_winData.isEmpty) {
             print('loading win data...');
-            int c= 0;
+            int c = 0;
             for (Game g in games.where((g) => g.isFinished)) {
               for (Round r in g.rounds) {
                 if (!r.isPlayerSwitch) {
@@ -203,19 +203,23 @@ class DataStore {
       return [0.5, 0.5];
     }
     int higherScore = max(score[0], score[1]);
-//    int pointsLeftToWin = game.gameOverScore - higherScore;
+    int pointsLeftToWin = game.gameOverScore - higherScore;
     int winningTeamIndex = score.indexOf(higherScore);
-    int numSimilar = min(20, _winData.length);
     double total = 0;
     double count = 0;
-    for (int radius = 0; count < numSimilar && radius < 100; radius++) {
+    int leftToWinRadius = 5;
+    int scoreDeltaRadius = 1;
+    while (count < 20) {
+      total = 0;
+      count = 0;
       for (List key in _winData.keys) {
-        int diff = (key[1] - scoreDelta).abs();
-        if (diff == radius) {
+        if ((key[0] - pointsLeftToWin).abs() < leftToWinRadius && (key[1] - scoreDelta).abs() < scoreDeltaRadius) {
           total += _winData[key][0];
           count += _winData[key][1];
         }
       }
+      leftToWinRadius++;
+      scoreDeltaRadius++;
     }
     double winningChance = total / count;
     if (winningChance == 1) {
