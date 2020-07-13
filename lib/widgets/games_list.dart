@@ -31,9 +31,12 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   void initState() {
     scrollController = ScrollController();
     scrollController.addListener(() {
-      setState(() {
-        atScrollTop = scrollController.offset < 8;
-      });
+      bool top = scrollController.offset < 8;
+      if (top != atScrollTop) {
+        setState(() {
+          atScrollTop = top;
+        });
+      }
     });
     super.initState();
   }

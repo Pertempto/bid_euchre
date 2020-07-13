@@ -33,9 +33,12 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
   void initState() {
     scrollController = ScrollController();
     scrollController.addListener(() {
-      setState(() {
-        atScrollTop = scrollController.offset < 100;
-      });
+      bool top  = scrollController.offset < 100;
+      if (top != atScrollTop) {
+        setState(() {
+          atScrollTop = top;
+        });
+      }
     });
     super.initState();
   }
@@ -43,6 +46,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    print('updating list...');
     teams = widget.teams;
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
@@ -59,8 +63,8 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
         ids = ids.where((id) {
           bool has5Games = stats[id][StatType.numGames].statValue >= 5;
           DateTime lastPlayed = DateTime.fromMillisecondsSinceEpoch(stats[id][StatType.lastPlayed].statValue);
-          bool playedIn90Days = DateTime.now().subtract(Duration(days: 90)).isBefore(lastPlayed);
-          return has5Games && playedIn90Days;
+          bool playedIn60Days = DateTime.now().subtract(Duration(days: 60)).isBefore(lastPlayed);
+          return has5Games && playedIn60Days;
         }).toList();
       }
       Map<String, String> names = {};
