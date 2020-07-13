@@ -64,40 +64,43 @@ class _FriendsState extends State<FriendsPage> with AutomaticKeepAliveClientMixi
       dense: true,
     ));
     for (String userId in blockedUserIds) {
-      children.add(ListTile(
-        title: Text(users[userId].name, style: textTheme.subtitle1),
-        trailing: Icon(Icons.person),
-        dense: true,
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Blocked Friend'),
-                contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
-                content: Text('Unblock ${data.users[userId].name}?'),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Cancel'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  FlatButton(
-                    child: Text('Unblock'),
-                    onPressed: () {
-                      setState(() {
-                        friendsDb.deleteBlockedFriendRequest(currentUser.userId, userId);
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ));
+      User user = users[userId];
+      if (user != null) {
+        children.add(ListTile(
+          title: Text(user.name, style: textTheme.subtitle1),
+          trailing: Icon(Icons.person),
+          dense: true,
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Blocked Friend'),
+                  contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  content: Text('Unblock ${user.name}?'),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    FlatButton(
+                      child: Text('Unblock'),
+                      onPressed: () {
+                        setState(() {
+                          friendsDb.deleteBlockedFriendRequest(currentUser.userId, userId);
+                        });
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ));
+      }
     }
     return Column(children: children);
   }
@@ -110,40 +113,43 @@ class _FriendsState extends State<FriendsPage> with AutomaticKeepAliveClientMixi
       dense: true,
     ));
     for (String userId in friendIds) {
-      children.add(ListTile(
-        title: Text(users[userId].name, style: textTheme.subtitle1),
-        trailing: Icon(Icons.person),
-        dense: true,
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Delete Friend'),
-                contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
-                content: Text('Are you sure?'),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Cancel'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  FlatButton(
-                    child: Text('Delete'),
-                    onPressed: () {
-                      setState(() {
-                        friendsDb.deleteFriend(currentUser.userId, userId);
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ));
+      User user = users[userId];
+      if (user != null) {
+        children.add(ListTile(
+          title: Text(user.name, style: textTheme.subtitle1),
+          trailing: Icon(Icons.person),
+          dense: true,
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Delete Friend'),
+                  contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  content: Text('Are you sure?'),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    FlatButton(
+                      child: Text('Delete'),
+                      onPressed: () {
+                        setState(() {
+                          friendsDb.deleteFriend(currentUser.userId, userId);
+                        });
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ));
+      }
     }
     return Column(children: children);
   }
@@ -169,79 +175,82 @@ class _FriendsState extends State<FriendsPage> with AutomaticKeepAliveClientMixi
       dense: true,
     ));
     for (String userId in allRequestIds) {
-      children.add(ListTile(
-        title: Text(users[userId].name, style: textTheme.subtitle1),
-        trailing: Icon(requestingFriendIds.contains(userId) ? MdiIcons.accountArrowLeft : MdiIcons.accountArrowRight),
-        dense: true,
-        onTap: () {
-          if (requestingFriendIds.contains(userId)) {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text('Friend Request'),
-                  contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
-                  content: Text('Friend request from ${data.users[userId].name}'),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text('Cancel'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text('Block'),
-                      onPressed: () {
-                        setState(() {
-                          friendsDb.blockFriendRequest(currentUser.userId, userId);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text('Accept'),
-                      onPressed: () {
-                        setState(() {
-                          friendsDb.acceptFriendRequest(currentUser.userId, userId);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          } else {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text('Friend Request'),
-                  contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
-                  content: Text('Delete friend request to ${data.users[userId].name}?'),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text('Cancel'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text('Delete'),
-                      onPressed: () {
-                        setState(() {
-                          friendsDb.cancelFriendRequest(currentUser.userId, userId);
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          }
-        },
-      ));
+      User user = users[userId];
+      if (user != null) {
+        children.add(ListTile(
+          title: Text(user.name, style: textTheme.subtitle1),
+          trailing: Icon(requestingFriendIds.contains(userId) ? MdiIcons.accountArrowLeft : MdiIcons.accountArrowRight),
+          dense: true,
+          onTap: () {
+            if (requestingFriendIds.contains(userId)) {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Friend Request'),
+                    contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+                    content: Text('Friend request from ${user.name}'),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Block'),
+                        onPressed: () {
+                          setState(() {
+                            friendsDb.blockFriendRequest(currentUser.userId, userId);
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Accept'),
+                        onPressed: () {
+                          setState(() {
+                            friendsDb.acceptFriendRequest(currentUser.userId, userId);
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Friend Request'),
+                    contentPadding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+                    content: Text('Delete friend request to ${user.name}?'),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text('Delete'),
+                        onPressed: () {
+                          setState(() {
+                            friendsDb.cancelFriendRequest(currentUser.userId, userId);
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          },
+        ));
+      }
     }
     return Column(children: children);
   }

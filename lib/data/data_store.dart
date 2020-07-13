@@ -203,14 +203,14 @@ class DataStore {
       return [0.5, 0.5];
     }
     int higherScore = max(score[0], score[1]);
-    int pointsLeftToWin = game.gameOverScore - higherScore;
+//    int pointsLeftToWin = game.gameOverScore - higherScore;
     int winningTeamIndex = score.indexOf(higherScore);
     int numSimilar = min(20, _winData.length);
     double total = 0;
     double count = 0;
-    for (int radius = 0; (count < numSimilar || radius <= 4) && radius < 100; radius++) {
+    for (int radius = 0; count < numSimilar && radius < 100; radius++) {
       for (List key in _winData.keys) {
-        int diff = (key[0] - pointsLeftToWin).abs() + (key[1] - scoreDelta).abs();
+        int diff = (key[1] - scoreDelta).abs();
         if (diff == radius) {
           total += _winData[key][0];
           count += _winData[key][1];
