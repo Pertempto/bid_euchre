@@ -21,25 +21,9 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   Data data;
   List<Game> filteredGames;
   TextTheme textTheme;
-  ScrollController scrollController;
-  bool atScrollTop = true;
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    scrollController = ScrollController();
-    scrollController.addListener(() {
-      bool top = scrollController.offset < 8;
-      if (top != atScrollTop) {
-        setState(() {
-          atScrollTop = top;
-        });
-      }
-    });
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +57,6 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
               ),
             ),
           ListView.builder(
-            controller: scrollController,
             itemCount: showFriendsGames ? (filteredGames.length + 1) : (filteredGames.length + 2),
             itemBuilder: (context, index) {
               if (!showFriendsGames) {
@@ -104,19 +87,6 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
               }
             },
           ),
-          if (!atScrollTop)
-            Container(
-              alignment: Alignment.bottomRight,
-              padding: EdgeInsets.all(16.0),
-              child: FloatingActionButton(
-                heroTag: 'scrollToTopBtn$showFriendsGames',
-                mini: true,
-                child: Icon(Icons.arrow_upward),
-                onPressed: () {
-                  scrollController.animateTo(0, duration: Duration(milliseconds: 500), curve: Curves.linear);
-                },
-              ),
-            ),
         ],
       );
     });

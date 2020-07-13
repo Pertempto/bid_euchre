@@ -23,25 +23,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
   StatType displayStatType = StatType.record;
   bool showInfrequent = false;
   TextTheme textTheme;
-  ScrollController scrollController;
-  bool atScrollTop = true;
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    scrollController = ScrollController();
-    scrollController.addListener(() {
-      bool top  = scrollController.offset < 100;
-      if (top != atScrollTop) {
-        setState(() {
-          atScrollTop = top;
-        });
-      }
-    });
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,28 +146,8 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
         children.add(Divider());
       }
       children.add(SizedBox(height: 64));
-      return Stack(
-        children: <Widget>[
-          SingleChildScrollView(
-            controller: scrollController,
-            child: Column(children: children),
-          ),
-          if (!atScrollTop)
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: FloatingActionButton(
-                  heroTag: 'scrollToTopBtn$teams',
-                  mini: true,
-                  child: Icon(Icons.arrow_upward),
-                  onPressed: () {
-                    scrollController.animateTo(0, duration: Duration(milliseconds: 100), curve: Curves.linear);
-                  },
-                ),
-              ),
-            ),
-        ],
+      return SingleChildScrollView(
+        child: Column(children: children),
       );
     });
   }

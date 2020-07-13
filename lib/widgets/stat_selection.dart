@@ -32,6 +32,7 @@ class _StatSelectionState extends State<StatSelection> {
             } else {
               StatType stat = statOptions[index];
               return GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Row(
