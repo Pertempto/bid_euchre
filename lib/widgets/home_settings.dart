@@ -21,7 +21,7 @@ class _SettingsState extends State<HomeSettings> {
   @override
   void initState() {
     super.initState();
-    _initPackageInfo();
+    initPackageInfo();
   }
 
   @override
@@ -34,18 +34,23 @@ class _SettingsState extends State<HomeSettings> {
     TextStyle leadingStyle = textTheme.headline6;
     TextStyle trailingStyle = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
     List<Widget> children = [
+      SizedBox(height: 8), // balance out dividers whitespace
       ListTile(
-        title: Text('Signed in as ${currentUser.name}', style: leadingStyle),
+        title: Text('Username', style: leadingStyle),
+        trailing: Text(currentUser.name, style: trailingStyle),
         dense: true,
         onTap: () {
           editName(context);
         },
       ),
+      Divider(),
       ListTile(
         title: Text('App Version', style: leadingStyle),
         trailing: Text('v$appVersion', style: trailingStyle),
         dense: true,
+        onTap: showAbout,
       ),
+      Divider(),
       ListTile(
         trailing: Wrap(
           spacing: 12,
@@ -84,19 +89,7 @@ class _SettingsState extends State<HomeSettings> {
             OutlineButton.icon(
               icon: Icon(Icons.info),
               label: Text('About'),
-              onPressed: () {
-                showAboutDialog(
-                  context: context,
-                  applicationName: 'Bid Euchre Scorekeeper',
-                  applicationVersion: appVersion,
-                  applicationIcon: CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    radius: 24,
-                    child: Image.asset('assets/logo.png'),
-                  ),
-                  applicationLegalese: 'Copyright 2020 Addison Emig',
-                );
-              },
+              onPressed: showAbout,
             ),
           ],
         ),
@@ -106,14 +99,14 @@ class _SettingsState extends State<HomeSettings> {
     return SingleChildScrollView(child: Column(children: children));
   }
 
-  Future<void> _initPackageInfo() async {
+  Future<void> initPackageInfo() async {
     PackageInfo info = await PackageInfo.fromPlatform();
     setState(() {
       appVersion = info.version;
     });
   }
 
-  void editName(BuildContext context) {
+  editName(BuildContext context) {
     TextEditingController textFieldController = TextEditingController(text: currentUser.name);
     showDialog(
       context: context,
@@ -154,6 +147,20 @@ class _SettingsState extends State<HomeSettings> {
           ],
         );
       },
+    );
+  }
+
+  showAbout() {
+    showAboutDialog(
+      context: context,
+      applicationName: 'Bid Euchre Scorekeeper',
+      applicationVersion: appVersion,
+      applicationIcon: CircleAvatar(
+        backgroundColor: Colors.transparent,
+        radius: 24,
+        child: Image.asset('assets/logo.png'),
+      ),
+      applicationLegalese: 'Copyright 2020 Addison Emig',
     );
   }
 }
