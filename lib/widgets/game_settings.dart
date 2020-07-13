@@ -29,7 +29,13 @@ class _GameSettingsState extends State<GameSettings> {
     TextStyle leadingStyle = textTheme.headline6;
     TextStyle trailingStyle = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
     List<Widget> children = [
-      SizedBox(height: 8), //balance out dividers whitespace
+      SizedBox(height: 8), // balance out dividers whitespace
+      ListTile(
+        title: Text('Game Owner', style: leadingStyle),
+        trailing: Text(data.users[game.userId].name, style: trailingStyle),
+        dense: true,
+      ),
+      Divider(),
     ];
     for (int i = 0; i < 2; i++) {
       children.add(ListTile(

@@ -26,6 +26,7 @@ class _PlayerSettingsState extends State<PlayerSettings> {
         TextStyle leadingStyle = textTheme.headline6;
         TextStyle trailingStyle = textTheme.headline6.copyWith(fontWeight: FontWeight.w400);
         List<Widget> children = [
+          SizedBox(height: 8), // balance out dividers whitespace
           ListTile(
             title: Text('Name', style: leadingStyle),
             trailing: Text('${player.fullName}', style: trailingStyle),
@@ -36,6 +37,7 @@ class _PlayerSettingsState extends State<PlayerSettings> {
                     editName(context);
                   },
           ),
+          Divider(),
           if (!data.currentUser.pinnedPlayerIds.contains(player.playerId))
             ListTile(
               title: Text('Pin', style: leadingStyle),
@@ -56,6 +58,7 @@ class _PlayerSettingsState extends State<PlayerSettings> {
                 data.currentUser.updateFirestore();
               },
             ),
+          Divider(),
         ];
         return SingleChildScrollView(
           child: Column(children: children),
