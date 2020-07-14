@@ -710,7 +710,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
 }
 
 Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
-  List<double> winProbs = DataStore.winProbabilities(game);
+  List<double> winProbs = DataStore.winProbabilities(game.currentScore, game.gameOverScore);
 
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
   List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();

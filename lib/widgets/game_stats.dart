@@ -7,6 +7,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../data/data_store.dart';
 import '../data/game.dart';
+import '../util.dart';
 import 'game_overview.dart';
 
 class GameStats extends StatefulWidget {
@@ -31,6 +32,8 @@ class _GameStatsState extends State<GameStats> {
     List<Widget> children = [
       gameHeader(game, data, textTheme, context),
       statsSection(),
+      winningChancesSection(),
+      SizedBox(height: 64),
     ];
     return SingleChildScrollView(
       child: Column(children: children),
@@ -194,6 +197,55 @@ class _GameStatsState extends State<GameStats> {
             padding: EdgeInsets.all(0),
           ),
         ));
+      }
+    }
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(children: children),
+    );
+  }
+
+  Widget winningChancesSection() {
+    List<Widget> children = [
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: Text('Winning Chances', style: textTheme.subtitle2),
+      ),
+    ];
+    for (int i = 0; i < game.rounds.length; i++) {
+      if (!game.rounds[i].isPlayerSwitch) {
+        List<int> score = game.getScoreAfterRound(i);
+        List<String> scoreStrings = score.map(Util.scoreString).toList();
+        List<double> winProbs = DataStore.winProbabilities(score, game.gameOverScore);
+        children.add(
+          Stack(
+            children: <Widget>[
+              Row(
+                children: List.generate(
+                  2,
+                  (index) => Expanded(
+                    child: Container(height: 16, color: game.teamColors[index]),
+                    flex: ((winProbs[index]) * 1000).toInt(),
+                  ),
+                ),
+              ),
+              Row(
+                children: List.generate(
+                  2,
+                  (index) => Expanded(
+                    child: Container(
+                      alignment: [Alignment.centerLeft, Alignment.centerRight][index],
+                      height: 16,
+                      padding: [EdgeInsets.only(left: 4), EdgeInsets.only(right: 4)][index],
+                      child: Text(scoreStrings[index],
+                          style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       }
     }
     return Padding(

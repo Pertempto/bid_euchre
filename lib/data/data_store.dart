@@ -190,21 +190,21 @@ class DataStore {
     );
   }
 
-  static List<double> winProbabilities(Game game) {
+  static List<double> winProbabilities(List<int> score, int gameOverScore) {
     List<double> probabilities = [0.5, 0.5];
-    if (game.isFinished) {
-      probabilities[game.winningTeamIndex] = 1;
-      probabilities[1 - game.winningTeamIndex] = 0;
-      return probabilities;
-    }
-    List<int> score = game.currentScore;
+
     int scoreDelta = (score[0] - score[1]).abs();
     if (scoreDelta == 0) {
       return [0.5, 0.5];
     }
     int higherScore = max(score[0], score[1]);
-    int pointsLeftToWin = game.gameOverScore - higherScore;
+    int pointsLeftToWin = gameOverScore - higherScore;
     int winningTeamIndex = score.indexOf(higherScore);
+    if (pointsLeftToWin <= 0) {
+      probabilities[winningTeamIndex] = 1;
+      probabilities[1 - winningTeamIndex] = 0;
+      return probabilities;
+    }
     double total = 0;
     double count = 0;
     int leftToWinRadius = 5;
