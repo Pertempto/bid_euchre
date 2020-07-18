@@ -52,6 +52,8 @@ class StatsDb {
     Map<String, int> totalPointsOnBidsMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
     Map<String, int> numPointsMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
     Map<String, int> lastPlayedMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
+    Map<String, int> noPartnerMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
+    Map<String, int> madeNoPartnerMap = Map.fromIterable(playerIds, key: (id) => id, value: (id) => 0);
     for (Game g in games.where((g) => g.isFinished && g.allPlayerIds.intersection(playerIds).isNotEmpty)) {
       Set<String> gPlayerIds = g.allPlayerIds.intersection(playerIds);
       int winningTeamIndex = g.winningTeamIndex;
@@ -90,6 +92,12 @@ class StatsDb {
             }
             biddingTotalMap[bidderId] += round.bid;
             totalPointsOnBidsMap[bidderId] += round.score[round.bidderIndex % 2];
+            if (round.bid > 6) {
+              noPartnerMap[bidderId]++;
+              if (round.madeBid) {
+                madeNoPartnerMap[bidderId]++;
+              }
+            }
           }
         }
       }
@@ -180,6 +188,18 @@ class StatsDb {
           stats[playerId][statType] = StatItem(playerId, statType, ppb);
         } else if (statType == StatType.lastPlayed) {
           stats[playerId][statType] = StatItem(playerId, statType, lastPlayedMap[playerId]);
+        } else if (statType == StatType.noPartnerFrequency) {
+          double rate = 0;
+          if (numBids != 0) {
+            rate = noPartnerMap[playerId] / numBids;
+          }
+          stats[playerId][statType] = StatItem(playerId, statType, rate);
+        } else if (statType == StatType.noPartnerMadePercentage) {
+          double mbp = 0;
+          if (noPartnerMap[playerId] != 0) {
+            mbp = madeNoPartnerMap[playerId] / noPartnerMap[playerId];
+          }
+          stats[playerId][statType] = StatItem(playerId, statType, mbp);
         }
       }
     }
@@ -224,6 +244,8 @@ class StatsDb {
               'pointsOnBids': 0,
               'numPoints': 0,
               'lastPlayed': 0,
+              'noPartner': 0,
+              'madeNoPartner': 0,
             },
           );
         }
@@ -259,6 +281,12 @@ class StatsDb {
               }
               massiveMap[teamId]['biddingTotal'] += round.bid;
               massiveMap[teamId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
+              if (round.bid > 6) {
+                massiveMap[teamId]['noPartner']++;
+                if (round.madeBid) {
+                  massiveMap[teamId]['madeNoPartner']++;
+                }
+              }
             }
           }
         }
@@ -348,6 +376,18 @@ class StatsDb {
           stats[teamId][statType] = StatItem(teamId, statType, ppb);
         } else if (statType == StatType.lastPlayed) {
           stats[teamId][statType] = StatItem(teamId, statType, massiveMap[teamId]['lastPlayed']);
+        } else if (statType == StatType.noPartnerFrequency) {
+          double rate = 0;
+          if (numBids != 0) {
+            rate = massiveMap[teamId]['noPartner'] / numBids;
+          }
+          stats[teamId][statType] = StatItem(teamId, statType, rate);
+        } else if (statType == StatType.noPartnerMadePercentage) {
+          double mbp = 0;
+          if (massiveMap[teamId]['noPartner'] != 0) {
+            mbp = massiveMap[teamId]['madeNoPartner'] / massiveMap[teamId]['noPartner'];
+          }
+          stats[teamId][statType] = StatItem(teamId, statType, mbp);
         }
       }
     }
@@ -388,6 +428,10 @@ class StatsDb {
         return 'Points Per Bid';
       case (StatType.lastPlayed):
         return 'Last Played';
+      case (StatType.noPartnerFrequency):
+        return 'Slide/Loner Frequency';
+      case (StatType.noPartnerMadePercentage):
+        return 'Slider/Loner Made %';
       default:
         return '';
     }
@@ -417,6 +461,8 @@ class StatItem {
       case (StatType.madeBidPercentage):
       case (StatType.averageBid):
       case (StatType.pointsPerBid):
+      case (StatType.noPartnerFrequency):
+      case (StatType.noPartnerMadePercentage):
         return -statValue;
       case (StatType.streak):
       case (StatType.numGames):
@@ -439,6 +485,7 @@ class StatItem {
         return '${record[0]}-${record[1]}';
       case (StatType.winningPct):
       case (StatType.madeBidPercentage):
+      case (StatType.noPartnerMadePercentage):
         return ((statValue as double) * 100).toStringAsFixed(1) + '%';
       case (StatType.streak):
         if (statValue > 0) {
@@ -457,6 +504,7 @@ class StatItem {
       case (StatType.pointsPerBid):
         return (statValue as double).toStringAsFixed(2);
       case (StatType.biddingFrequency):
+      case (StatType.noPartnerFrequency):
         double biddingRate = statValue as double;
         if (biddingRate == 0) {
           return '-';
@@ -490,6 +538,8 @@ enum StatType {
   averageBid,
   pointsPerBid,
   lastPlayed,
+  noPartnerFrequency,
+  noPartnerMadePercentage,
 }
 
 class BiddingSplit {
