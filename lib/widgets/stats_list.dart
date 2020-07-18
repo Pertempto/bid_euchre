@@ -44,6 +44,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       filterText = '';
     }
     return DataStore.dataWrap((data) {
+      print('got data update in stats list...');
       Map<String, Map<StatType, StatItem>> stats;
       if (teams) {
         stats = data.statsDb
@@ -178,7 +179,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           children.add(Divider());
         }
       }
-      children.add(SizedBox(height: 64));
+      children.add(SizedBox(height: 32));
       return SingleChildScrollView(
         child: Column(children: children),
       );

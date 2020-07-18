@@ -23,7 +23,6 @@ class User {
     this.name = name;
     this.pinnedPlayerIds = [];
     doc.setData(dataMap);
-    DataStore.dataIsDirty = true;
   }
 
   Map<String, dynamic> get dataMap {
@@ -49,6 +48,5 @@ class User {
 
   void updateFirestore() {
     DataStore.usersCollection.document(userId).updateData(dataMap);
-    DataStore.dataIsDirty = true;
   }
 }

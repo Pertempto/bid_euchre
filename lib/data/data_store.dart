@@ -21,7 +21,6 @@ class DataStore {
   static String currentUserId;
   static Data lastData;
   static StatsDb lastStats;
-  static bool dataIsDirty = true;
   static const _eq = ListEquality();
   static Map<List, List> _winData = HashMap(equals: _eq.equals, hashCode: _eq.hash, isValidKey: _eq.isValidKey);
 
@@ -98,15 +97,14 @@ class DataStore {
               }
             }
             StatsDb statsDb = lastStats;
-            if (statsDb == null || dataIsDirty) {
+            if (statsDb != null) {
+              print('${hashList(games)}, ${hashList(statsDb.games)}');
+            }
+            if (statsDb == null || hashList(games) != hashList(statsDb.games)) {
               print('loading new stats db');
               statsDb = StatsDb.fromGames(games);
               statsDb.preload(filteredPlayers);
-              dataIsDirty = false;
               lastStats = statsDb;
-            }
-            if (!loaded) {
-              dataIsDirty = true;
             }
             Data data =
                 Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);

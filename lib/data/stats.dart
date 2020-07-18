@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:bideuchre/data/data_store.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
@@ -38,7 +37,6 @@ class StatsDb {
         if (stats[playerId] == null) {
           print('need another load');
           needLoad = true;
-          DataStore.dataIsDirty = true;
         }
       }
       if (!needLoad) {

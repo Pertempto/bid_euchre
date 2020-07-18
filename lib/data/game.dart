@@ -51,7 +51,6 @@ class Game {
     rounds = [Round.empty(0, 0)];
     print(dataMap);
     doc.setData(dataMap);
-    DataStore.dataIsDirty = true;
   }
 
   Map<String, dynamic> get dataMap {
@@ -199,10 +198,30 @@ class Game {
 
   void updateFirestore() {
     DataStore.gamesCollection.document(gameId).updateData(dataMap);
-    if (isFinished) {
-      DataStore.dataIsDirty = true;
-    }
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Game &&
+          runtimeType == other.runtimeType &&
+          gameId == other.gameId &&
+          userId == other.userId &&
+          gameOverScore == other.gameOverScore &&
+          initialPlayerIds == other.initialPlayerIds &&
+          rounds == other.rounds &&
+          teamColors == other.teamColors &&
+          timestamp == other.timestamp;
+
+  @override
+  int get hashCode =>
+      gameId.hashCode ^
+      userId.hashCode ^
+      gameOverScore.hashCode ^
+      initialPlayerIds.hashCode ^
+      rounds.hashCode ^
+      teamColors.hashCode ^
+      timestamp.hashCode;
 }
 
 class Round {
@@ -311,4 +330,29 @@ class Round {
     }
     return score;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Round &&
+          runtimeType == other.runtimeType &&
+          roundIndex == other.roundIndex &&
+          isPlayerSwitch == other.isPlayerSwitch &&
+          dealerIndex == other.dealerIndex &&
+          bidderIndex == other.bidderIndex &&
+          bid == other.bid &&
+          wonTricks == other.wonTricks &&
+          switchingPlayerIndex == other.switchingPlayerIndex &&
+          newPlayerId == other.newPlayerId;
+
+  @override
+  int get hashCode =>
+      roundIndex.hashCode ^
+      isPlayerSwitch.hashCode ^
+      dealerIndex.hashCode ^
+      bidderIndex.hashCode ^
+      bid.hashCode ^
+      wonTricks.hashCode ^
+      switchingPlayerIndex.hashCode ^
+      newPlayerId.hashCode;
 }

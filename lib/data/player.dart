@@ -21,7 +21,6 @@ class Player {
     ownerId = user.userId;
     this.fullName = fullName;
     doc.setData(dataMap);
-    DataStore.dataIsDirty = true;
   }
 
   Map<String, dynamic> get dataMap {
@@ -50,6 +49,5 @@ class Player {
 
   void updateFirestore() {
     DataStore.playersCollection.document(playerId).updateData(dataMap);
-    DataStore.dataIsDirty = true;
   }
 }
