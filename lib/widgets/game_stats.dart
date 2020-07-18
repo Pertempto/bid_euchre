@@ -213,7 +213,8 @@ class _GameStatsState extends State<GameStats> {
       ),
     ];
     for (int i = 0; i < game.rounds.length; i++) {
-      if (!game.rounds[i].isPlayerSwitch) {
+      Round round = game.rounds[i];
+      if (!round.isPlayerSwitch && round.isFinished) {
         List<int> score = game.getScoreAfterRound(i);
         List<String> scoreStrings = score.map(Util.scoreString).toList();
         List<double> winProbs = DataStore.winProbabilities(score, game.gameOverScore);
