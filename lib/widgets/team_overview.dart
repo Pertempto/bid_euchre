@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
-import 'game_detail.dart';
 import 'compare.dart';
+import 'game_detail.dart';
 
 class TeamOverview extends StatefulWidget {
   final String teamId;
@@ -420,7 +420,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   }
 
   Widget overviewSection() {
-    print('overview start: ${DateTime.now().millisecondsSinceEpoch}');
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
     List<Widget> children = [
@@ -483,7 +482,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         ),
       ),
     ];
-    print('overview end: ${DateTime.now().millisecondsSinceEpoch}');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }

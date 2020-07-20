@@ -6,6 +6,7 @@ class User {
   String userId;
   String name;
   List<String> pinnedPlayerIds;
+  ConfettiSettings confettiSettings;
 
   User.fromDocument(DocumentSnapshot documentSnapshot) {
     userId = documentSnapshot.documentID;
@@ -14,6 +15,11 @@ class User {
       pinnedPlayerIds = documentSnapshot.data['pinnedPlayerIds'].cast<String>();
     } else {
       pinnedPlayerIds = [];
+    }
+    if (documentSnapshot.data['confettiSettings'] != null) {
+      confettiSettings = ConfettiSettings.fromData(documentSnapshot.data['confettiSettings']);
+    } else {
+      confettiSettings = ConfettiSettings();
     }
   }
 
@@ -29,6 +35,7 @@ class User {
     return {
       'name': name,
       'pinnedPlayerIds': pinnedPlayerIds,
+      'confettiSettings': confettiSettings.dataMap,
     };
   }
 
@@ -48,5 +55,51 @@ class User {
 
   void updateFirestore() {
     DataStore.usersCollection.document(userId).updateData(dataMap);
+  }
+}
+
+class ConfettiSettings {
+  static const Map<String, String> LOCATION_NAMES = {
+    'tl': 'Top Left',
+    'tc': 'Top Center',
+    'tr': 'Top Right',
+    'bl': 'Bottom Left',
+    'bc': 'Bottom Center',
+    'br': 'Bottom Right',
+  };
+  Map<String, bool> locations;
+  double force;
+  double amount;
+  double sizeFactor;
+  double gravityFactor;
+
+  ConfettiSettings() {
+    locations = {};
+    for (String l in LOCATION_NAMES.keys) {
+      locations[l] = false;
+    }
+    locations['tc'] = true;
+    force = 1;
+    amount = 0.5;
+    sizeFactor = 1;
+    gravityFactor = 1;
+  }
+
+  ConfettiSettings.fromData(Map data) {
+    locations = data['locations'].cast<String, bool>();
+    force = data['force'];
+    amount = data['amount'];
+    sizeFactor = data['size'];
+    gravityFactor = data['gravity'];
+  }
+
+  Map get dataMap {
+    return {
+      'locations': locations,
+      'force': force,
+      'amount': amount,
+      'size': sizeFactor,
+      'gravity': gravityFactor,
+    };
   }
 }

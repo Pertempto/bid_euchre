@@ -354,7 +354,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   }
 
   Widget overviewSection() {
-    print('overview start: ${DateTime.now().millisecondsSinceEpoch}');
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
     List<Widget> children = [
@@ -417,7 +416,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         ),
       ),
     ];
-    print('overview end: ${DateTime.now().millisecondsSinceEpoch}');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 

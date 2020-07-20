@@ -5,6 +5,7 @@ import 'package:package_info/package_info.dart';
 import '../data/data_store.dart';
 import '../data/player.dart';
 import '../data/user.dart';
+import 'confetti_setup.dart';
 
 class HomeSettings extends StatefulWidget {
   HomeSettings();
@@ -49,6 +50,15 @@ class _SettingsState extends State<HomeSettings> {
         trailing: Text('v$appVersion', style: trailingStyle),
         dense: true,
         onTap: showAbout,
+      ),
+      Divider(),
+      ListTile(
+        title: Text('Confetti Settings', style: leadingStyle),
+        trailing: Icon(Icons.tune),
+        dense: true,
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ConfettiSetup()));
+        },
       ),
       Divider(),
       ListTile(

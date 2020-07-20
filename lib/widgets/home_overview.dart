@@ -40,16 +40,22 @@ class _HomeOverviewState extends State<HomeOverview> {
         dense: true,
       ),
     ];
+    int count = 0;
     for (String userId in data.friendsDb.getRequestingFriendIds(data.currentUser.userId)) {
       children.add(ListTile(
         title: Text('${data.users[userId].name} wants to be your friend!', style: textTheme.subtitle1),
         trailing: Icon(Icons.person),
         dense: true,
       ));
+      count++;
     }
     children.add(Divider());
 
-    return Column(children: children);
+    if (count > 0) {
+      return Column(children: children);
+    } else {
+      return Container();
+    }
   }
 
   Widget pinnedPlayersSection() {

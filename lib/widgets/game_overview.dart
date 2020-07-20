@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
@@ -241,12 +239,14 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
     }
 
     TextStyle headerStyle = textTheme.subtitle2;
+    List<Color> confettiColors = [
+      game.winningTeamIndex != null ? game.teamColors[game.winningTeamIndex] : Colors.white
+    ];
     return Container(
       width: double.infinity,
       height: double.infinity,
-      child: Stack(
-        children: <Widget>[
-          Container(
+      child: Util.confettiStack(
+          child: Container(
             width: double.infinity,
             child: Column(
               children: <Widget>[
@@ -302,25 +302,9 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
               ],
             ),
           ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              height: double.infinity,
-              child: ConfettiWidget(
-                confettiController: confettiController,
-                blastDirection: pi / 2,
-                emissionFrequency: 1,
-                numberOfParticles: 1,
-                maxBlastForce: 5,
-                minBlastForce: 2,
-                gravity: 0.1,
-                particleDrag: 0.05,
-                colors: [game.winningTeamIndex != null ? game.teamColors[game.winningTeamIndex] : Colors.white],
-              ),
-            ),
-          ),
-        ],
-      ),
+          controller: confettiController,
+          settings: data.currentUser.confettiSettings,
+          colors: confettiColors),
     );
   }
 

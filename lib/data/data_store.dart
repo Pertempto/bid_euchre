@@ -97,11 +97,8 @@ class DataStore {
               }
             }
             StatsDb statsDb = lastStats;
-            if (statsDb != null) {
-              print('${hashList(games)}, ${hashList(statsDb.games)}');
-            }
             if (statsDb == null || hashList(games) != hashList(statsDb.games)) {
-              print('loading new stats db');
+//              print('loading new stats db');
               statsDb = StatsDb.fromGames(games);
               statsDb.preload(filteredPlayers);
               lastStats = statsDb;
@@ -109,7 +106,7 @@ class DataStore {
             Data data =
                 Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
-              print('using last data');
+//              print('using last data');
               return callback(lastData);
             }
             lastData = data;
