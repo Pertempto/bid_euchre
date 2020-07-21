@@ -23,7 +23,7 @@ class _GamesPageState extends State<GamesPage> {
             bottom: TabBar(
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.person), text: 'Mine'),
-                Tab(icon: Icon(Icons.people), text: 'Friends'),
+                Tab(icon: Icon(Icons.people), text: 'Shared'),
               ],
             ),
           ),

@@ -224,7 +224,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         ),
         onTap: () {
           if (game.userId == data.currentUser.userId ||
-              data.friendsDb.areFriends(game.userId, data.currentUser.userId)) {
+              data.relationshipsDb.canShare(game.userId, data.currentUser.userId)) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
           } else {
             Scaffold.of(context).showSnackBar(SnackBar(

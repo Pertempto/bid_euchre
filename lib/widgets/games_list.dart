@@ -8,16 +8,16 @@ import 'game_detail.dart';
 import 'new_game.dart';
 
 class GamesList extends StatefulWidget {
-  final bool showFriendsGames;
+  final bool showSharedGames;
 
-  GamesList(this.showFriendsGames);
+  GamesList(this.showSharedGames);
 
   @override
   _GamesListState createState() => _GamesListState();
 }
 
 class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixin<GamesList> {
-  bool showFriendsGames;
+  bool showSharedGames;
   Data data;
   List<Game> filteredGames;
   TextTheme textTheme;
@@ -28,13 +28,15 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    showFriendsGames = widget.showFriendsGames;
+    showSharedGames = widget.showSharedGames;
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
       this.data = data;
-      if (showFriendsGames) {
-        filteredGames =
-            data.games.where((g) => (data.friendsDb.areFriends(g.userId, data.currentUser.userId))).toList();
+      if (showSharedGames) {
+        filteredGames = data.games
+            .where((g) => (g.userId != data.currentUser.userId &&
+                data.relationshipsDb.canShare(g.userId, data.currentUser.userId)))
+            .toList();
       } else {
         filteredGames = data.games.where((g) => (g.userId == data.currentUser.userId)).toList();
       }
@@ -45,21 +47,21 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
 
       return Stack(
         children: <Widget>[
-          if (filteredGames.isEmpty && !showFriendsGames)
+          if (filteredGames.isEmpty)
             Container(
               alignment: Alignment.center,
               width: double.infinity,
               padding: EdgeInsets.all(16),
               child: Text(
-                'Start a game to see it here!',
+                showSharedGames ? 'No shared games!' : 'Start a game to see it here!',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyText1,
               ),
             ),
           ListView.builder(
-            itemCount: showFriendsGames ? (filteredGames.length + 1) : (filteredGames.length + 2),
+            itemCount: showSharedGames ? (filteredGames.length + 1) : (filteredGames.length + 2),
             itemBuilder: (context, index) {
-              if (!showFriendsGames) {
+              if (!showSharedGames) {
                 if (index == 0) {
                   return Container(
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 0),

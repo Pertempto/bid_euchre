@@ -41,10 +41,19 @@ class _HomeOverviewState extends State<HomeOverview> {
       ),
     ];
     int count = 0;
-    for (String userId in data.friendsDb.getRequestingFriendIds(data.currentUser.userId)) {
+    for (String userId in data.relationshipsDb.getRequestingFriendIds(data.currentUser.userId)) {
       children.add(ListTile(
         title: Text('${data.users[userId].name} wants to be your friend!', style: textTheme.subtitle1),
         trailing: Icon(Icons.person),
+        dense: true,
+      ));
+      count++;
+    }
+    for (String groupId in data.relationshipsDb.getGroupInvitations(data.currentUser.userId)) {
+      String groupName = data.relationshipsDb.getGroup(groupId).name;
+      children.add(ListTile(
+        title: Text('You\'ve been invited to join $groupName!', style: textTheme.subtitle1),
+        trailing: Icon(MdiIcons.accountGroup),
         dense: true,
       ));
       count++;

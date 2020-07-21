@@ -7,7 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'authentication.dart';
-import 'friends_db.dart';
+import 'relationships.dart';
 import 'game.dart';
 import 'player.dart';
 import 'stats.dart';
@@ -15,6 +15,7 @@ import 'stats.dart';
 class DataStore {
   static CollectionReference friendsCollection = Firestore.instance.collection('friends');
   static CollectionReference gamesCollection = Firestore.instance.collection('games');
+  static CollectionReference groupsCollection = Firestore.instance.collection('groups');
   static CollectionReference playersCollection = Firestore.instance.collection('players');
   static CollectionReference usersCollection = Firestore.instance.collection('users');
   static Auth auth;
@@ -32,7 +33,7 @@ class DataStore {
         return Container();
       }
       User currentUser = users[currentUserId];
-      return _friendsWrap(allowNull, (friendsDb) {
+      return _relationshipsWrap(allowNull, (relationshipsDb) {
         return _gamesWrap(allowNull, (games) {
 //          games.forEach((g) {
 //            if (g.userId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
@@ -46,7 +47,7 @@ class DataStore {
             if (game.userId == currentUserId) {
               filteredGames.add(game);
             } else {
-              if (friendsDb.areFriends(game.userId, currentUserId)) {
+              if (relationshipsDb.canShare(game.userId, currentUserId)) {
                 filteredGames.add(game);
               }
             }
@@ -91,7 +92,7 @@ class DataStore {
               if (player.ownerId == currentUserId) {
                 filteredPlayers[playerId] = player;
               } else {
-                if (friendsDb.areFriends(player.ownerId, currentUserId)) {
+                if (relationshipsDb.canShare(player.ownerId, currentUserId)) {
                   filteredPlayers[playerId] = player;
                 }
               }
@@ -104,7 +105,7 @@ class DataStore {
               lastStats = statsDb;
             }
             Data data =
-                Data(currentUser, users, friendsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
+                Data(currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
 //              print('using last data');
               return callback(lastData);
@@ -117,17 +118,28 @@ class DataStore {
     });
   }
 
-  static StreamBuilder _friendsWrap(bool allowNull, Widget Function(FriendsDb friendsDb) callback) {
+  static StreamBuilder _relationshipsWrap(bool allowNull, Widget Function(RelationshipsDb relationshipsDb) callback) {
     return StreamBuilder<QuerySnapshot>(
       stream: friendsCollection.snapshots(),
       builder: (context, snapshot) {
-        FriendsDb friendDb;
         if (snapshot.hasData) {
-          friendDb = FriendsDb.fromSnapshot(snapshot.data);
-          return callback(friendDb);
+          return StreamBuilder<QuerySnapshot>(
+            stream: groupsCollection.snapshots(),
+            builder: (context, snapshot2) {
+              if (snapshot2.hasData) {
+                return callback(RelationshipsDb.fromSnapshot(snapshot.data, snapshot2.data));
+              } else {
+                if (allowNull) {
+                  return callback(RelationshipsDb.empty());
+                } else {
+                  return Container();
+                }
+              }
+            },
+          );
         } else {
           if (allowNull) {
-            return callback(FriendsDb.empty());
+            return callback(RelationshipsDb.empty());
           } else {
             return Container();
           }
@@ -229,7 +241,7 @@ class DataStore {
 class Data {
   final User currentUser;
   final Map<String, User> users;
-  final FriendsDb friendsDb;
+  final RelationshipsDb relationshipsDb;
   final List<Game> allGames;
   final List<Game> games;
   final Map<String, Player> allPlayers;
@@ -237,6 +249,6 @@ class Data {
   final StatsDb statsDb;
   final bool loaded;
 
-  Data(this.currentUser, this.users, this.friendsDb, this.allGames, this.games, this.allPlayers, this.players,
+  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames, this.games, this.allPlayers, this.players,
       this.statsDb, this.loaded);
 }

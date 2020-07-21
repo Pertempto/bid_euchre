@@ -3,7 +3,9 @@ import 'package:bideuchre/widgets/friends.dart';
 import 'package:bideuchre/widgets/home_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import 'groups.dart';
 import 'home_overview.dart';
 
 class HomePage extends StatefulWidget {
@@ -26,7 +28,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
       return DefaultTabController(
-        length: 3,
+        length: 4,
         child: Scaffold(
           appBar: AppBar(
             title: Text('Home'),
@@ -34,11 +36,15 @@ class _HomePageState extends State<HomePage> {
               tabs: <Widget>[
                 Tab(
                   icon: Icon(Icons.home),
-                  text: 'Overview',
+                  text: 'Home',
                 ),
                 Tab(
                   icon: Icon(Icons.people),
                   text: 'Friends',
+                ),
+                Tab(
+                  icon: Icon(MdiIcons.accountGroup),
+                  text: 'Groups',
                 ),
                 Tab(
                   icon: Icon(Icons.settings),
@@ -51,6 +57,7 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               HomeOverview(),
               FriendsPage(),
+              GroupsPage(),
               HomeSettings(),
             ],
           ),

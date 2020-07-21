@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 
 import '../data/user.dart';
 
-class RequestFriendSelection extends StatefulWidget {
+class UserSelection extends StatefulWidget {
+  final String title;
   final List<User> usersList;
 
-  RequestFriendSelection(this.usersList);
+  UserSelection(this.title, this.usersList);
 
   @override
-  _RequestFriendSelectionState createState() => _RequestFriendSelectionState();
+  _UserSelectionState createState() => _UserSelectionState();
 }
 
-class _RequestFriendSelectionState extends State<RequestFriendSelection> {
+class _UserSelectionState extends State<UserSelection> {
   List<User> usersList;
   List<User> filteredUsersList;
   TextTheme textTheme;
@@ -27,7 +28,7 @@ class _RequestFriendSelectionState extends State<RequestFriendSelection> {
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Request Friend'),
+        title: Text(widget.title),
       ),
       body: ListView.builder(
           itemCount: filteredUsersList.length + 2,
