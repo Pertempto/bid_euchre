@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
+import 'player_profile.dart';
 import 'team_profile.dart';
 
 class GameOverview extends StatefulWidget {
@@ -113,11 +114,33 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: Text(dealerName, style: textTheme.bodyText1.copyWith(color: dealerTeamColor)),
+                  child: GestureDetector(
+                    child: Text(dealerName, style: textTheme.bodyText1.copyWith(color: dealerTeamColor)),
+                    onTap: dealerName == ''
+                        ? null
+                        : () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        PlayerProfile(data.allPlayers[playerIds[round.dealerIndex]])));
+                          },
+                  ),
                   flex: 8,
                 ),
                 Expanded(
-                  child: Text(bidderName, style: textTheme.bodyText1.copyWith(color: bidderTeamColor)),
+                  child: GestureDetector(
+                    child: Text(bidderName, style: textTheme.bodyText1.copyWith(color: bidderTeamColor)),
+                    onTap: bidderName == ''
+                        ? null
+                        : () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        PlayerProfile(data.allPlayers[playerIds[round.bidderIndex]])));
+                          },
+                  ),
                   flex: 8,
                 ),
                 Expanded(
@@ -705,7 +728,7 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        Navigator.pushReplacement(
+        Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) =>

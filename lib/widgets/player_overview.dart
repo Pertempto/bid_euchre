@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
-import 'game_detail.dart';
 import 'compare.dart';
+import 'game_detail.dart';
 import 'team_profile.dart';
 
 class PlayerOverview extends StatefulWidget {
@@ -79,7 +79,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(playerStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
+              child:
+                  Text(playerStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -226,6 +227,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           ),
         ),
         onTap: () {
+          // TODO: popup bottom sheet summary of game
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
         },
       ));
