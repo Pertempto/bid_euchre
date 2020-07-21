@@ -1,7 +1,6 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
-import 'package:bideuchre/widgets/player_profile.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
+import 'team_profile.dart';
 
 class GameOverview extends StatefulWidget {
   final Game game;
@@ -705,7 +705,11 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(players[index])));
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
       },
     );
   }

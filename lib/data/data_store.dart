@@ -75,7 +75,6 @@ class DataStore {
                 }
               }
             }
-            print(_winData);
             print('done loading win data, data points: $c');
           }
           return _playersWrap(allowNull, (players, loaded) {

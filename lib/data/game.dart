@@ -27,6 +27,10 @@ class Game {
     if (data['initialPlayerIds'] != null) {
       initialPlayerIds = data['initialPlayerIds'].cast<String>();
     } else {
+      if (data['playerNames'] == null) {
+        print('can\'t get player names for game id: $gameId');
+        print(documentSnapshot.data);
+      }
       initialPlayerIds = data['playerNames'].cast<String>();
     }
     rounds = data['rounds'].map<Round>((rd) => Round.fromData(rd)).toList();

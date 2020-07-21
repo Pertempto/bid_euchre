@@ -206,8 +206,6 @@ class RelationshipsDb {
       return null;
     }
     String relationshipId = Relationship.generateGroupRelationshipId(groupId, user2Id);
-    print('relationshipId: $relationshipId');
-    print('groupRelationships: $_groupRelationships');
     return _groupRelationships[relationshipId];
   }
 

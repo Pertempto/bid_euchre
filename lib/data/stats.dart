@@ -274,7 +274,7 @@ class StatsDb {
           if (!round.isPlayerSwitch) {
             massiveMap[teamId]['numRounds']++;
             massiveMap[teamId]['numPoints'] += round.score[i];
-            if (round.bidderIndex % 2 == 0) {
+            if (round.bidderIndex % 2 == i) {
               massiveMap[teamId]['numBids']++;
               if (round.madeBid) {
                 massiveMap[teamId]['madeBids']++;
@@ -292,14 +292,12 @@ class StatsDb {
         }
       }
     }
-
     Map<String, Map<StatType, StatItem>> stats = {};
 
     for (String teamId in massiveMap.keys) {
       stats[teamId] = {};
       int wins = massiveMap[teamId]['scoreDiffs'].where((d) => (d as int) > 0).length;
       int losses = massiveMap[teamId]['scoreDiffs'].where((d) => (d as int) < 0).length;
-
       int numGames = massiveMap[teamId]['numGames'];
       int numRounds = massiveMap[teamId]['numRounds'];
       int numBids = massiveMap[teamId]['numBids'];

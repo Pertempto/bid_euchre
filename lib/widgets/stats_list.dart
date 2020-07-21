@@ -37,14 +37,12 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    print('updating list...');
     teams = widget.teams;
     textTheme = Theme.of(context).textTheme;
     if (filterText == null) {
       filterText = '';
     }
     return DataStore.dataWrap((data) {
-      print('got data update in stats list...');
       Map<String, Map<StatType, StatItem>> stats;
       if (teams) {
         stats = data.statsDb
