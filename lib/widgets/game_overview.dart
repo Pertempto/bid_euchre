@@ -377,103 +377,106 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                       topRight: Radius.circular(16),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          'Add Bid',
-                          style: textTheme.headline6,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Dealer', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            [0, 1, 2, 3],
-                            key: (i) => i,
-                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                  child: SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          width: double.infinity,
+                          child: Text(
+                            'Add Bid',
+                            style: textTheme.headline6,
+                            textAlign: TextAlign.center,
                           ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedDealerIndex = value;
-                            });
-                          },
-                          groupValue: selectedDealerIndex,
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Bidder', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            [0, 1, 2, 3],
-                            key: (i) => i,
-                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedBidderIndex = value;
-                            });
-                          },
-                          groupValue: selectedBidderIndex,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Bid', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            Round.ALL_BIDS,
-                            key: (i) => i,
-                            value: (i) {
-                              if (i == 24) {
-                                return Text('Alone');
-                              } else if (i == 12) {
-                                return Text('Slide');
-                              } else {
-                                return Text(i.toString());
-                              }
-                            },
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedBid = value;
-                            });
-                          },
-                          groupValue: selectedBid,
-                        ),
-                      ),
-                      Row(
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Spacer(),
-                          FlatButton(
-                            child: Text('Add'),
-                            onPressed: () {
-                              setState(() {
-                                lastRound.dealerIndex = selectedDealerIndex;
-                                lastRound.bidderIndex = selectedBidderIndex;
-                                lastRound.bid = selectedBid;
-                                game.updateFirestore();
+                        SizedBox(height: 16),
+                        Text('Dealer', style: textTheme.subtitle1),
+                        Container(
+                          width: double.infinity,
+                          child: CupertinoSlidingSegmentedControl(
+                            children: Map.fromIterable(
+                              [0, 1, 2, 3],
+                              key: (i) => i,
+                              value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                            ),
+                            onValueChanged: (value) {
+                              innerSetState(() {
+                                selectedDealerIndex = value;
                               });
-                              Navigator.of(context).pop();
                             },
+                            groupValue: selectedDealerIndex,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        SizedBox(height: 16),
+                        Text('Bidder', style: textTheme.subtitle1),
+                        Container(
+                          width: double.infinity,
+                          child: CupertinoSlidingSegmentedControl(
+                            children: Map.fromIterable(
+                              [0, 1, 2, 3],
+                              key: (i) => i,
+                              value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                            ),
+                            onValueChanged: (value) {
+                              innerSetState(() {
+                                selectedBidderIndex = value;
+                              });
+                            },
+                            groupValue: selectedBidderIndex,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text('Bid', style: textTheme.subtitle1),
+                        Container(
+                          width: double.infinity,
+                          child: CupertinoSlidingSegmentedControl(
+                            children: Map.fromIterable(
+                              Round.ALL_BIDS,
+                              key: (i) => i,
+                              value: (i) {
+                                if (i == 24) {
+                                  return Text('Alone');
+                                } else if (i == 12) {
+                                  return Text('Slide');
+                                } else {
+                                  return Text(i.toString());
+                                }
+                              },
+                            ),
+                            onValueChanged: (value) {
+                              innerSetState(() {
+                                selectedBid = value;
+                              });
+                            },
+                            groupValue: selectedBid,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: <Widget>[
+                            FlatButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            Spacer(),
+                            FlatButton(
+                              child: Text('Add'),
+                              onPressed: () {
+                                setState(() {
+                                  lastRound.dealerIndex = selectedDealerIndex;
+                                  lastRound.bidderIndex = selectedBidderIndex;
+                                  lastRound.bid = selectedBid;
+                                  game.updateFirestore();
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -499,57 +502,60 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                       topRight: Radius.circular(16),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          'Add Result',
-                          style: textTheme.headline6,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Won Tricks', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children:
-                              Map.fromIterable([0, 1, 2, 3, 4, 5, 6], key: (i) => i, value: (i) => Text(i.toString())),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedWonTricks = value;
-                            });
-                          },
-                          groupValue: selectedWonTricks,
-                        ),
-                      ),
-                      Row(
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
+                  child: SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          width: double.infinity,
+                          child: Text(
+                            'Add Result',
+                            style: textTheme.headline6,
+                            textAlign: TextAlign.center,
                           ),
-                          Spacer(),
-                          FlatButton(
-                            child: Text('Add'),
-                            onPressed: () {
-                              setState(() {
-                                lastRound.wonTricks = selectedWonTricks;
-                                if (!game.isFinished) {
-                                  game.rounds.add(Round.empty(game.rounds.length, (lastRound.dealerIndex + 1) % 4));
-                                }
-                                game.updateFirestore();
+                        ),
+                        SizedBox(height: 16),
+                        Text('Won Tricks', style: textTheme.subtitle1),
+                        Container(
+                          width: double.infinity,
+                          child: CupertinoSlidingSegmentedControl(
+                            children: Map.fromIterable([0, 1, 2, 3, 4, 5, 6],
+                                key: (i) => i, value: (i) => Text(i.toString())),
+                            onValueChanged: (value) {
+                              innerSetState(() {
+                                selectedWonTricks = value;
                               });
-                              Navigator.of(context).pop();
                             },
+                            groupValue: selectedWonTricks,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: <Widget>[
+                            FlatButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            Spacer(),
+                            FlatButton(
+                              child: Text('Add'),
+                              onPressed: () {
+                                setState(() {
+                                  lastRound.wonTricks = selectedWonTricks;
+                                  if (!game.isFinished) {
+                                    game.rounds.add(Round.empty(game.rounds.length, (lastRound.dealerIndex + 1) % 4));
+                                  }
+                                  game.updateFirestore();
+                                });
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -590,94 +596,96 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                     topRight: Radius.circular(16),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      width: double.infinity,
-                      child: Text(
-                        'Replace Player',
-                        style: textTheme.headline6,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Text('Old Player', style: textTheme.subtitle1),
-                    Container(
-                      width: double.infinity,
-                      child: CupertinoSlidingSegmentedControl(
-                        children: Map.fromIterable(
-                          [0, 1, 2, 3],
-                          key: (i) => i,
-                          value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          'Replace Player',
+                          style: textTheme.headline6,
+                          textAlign: TextAlign.center,
                         ),
-                        onValueChanged: (value) {
-                          innerSetState(() {
-                            selectedPlayerIndex = value;
-                          });
-                        },
-                        groupValue: selectedPlayerIndex,
                       ),
-                    ),
-                    SizedBox(height: 16),
-                    Text('New Player', style: textTheme.subtitle1),
-                    Row(
-                      children: <Widget>[
-                        Text(
-                          selectedPlayerId == null ? '' : data.allPlayers[selectedPlayerId].fullName,
-                          style: textTheme.bodyText1,
-                        ),
-                        Spacer(),
-                        OutlineButton(
-                          child: Text('Select Player'),
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()))
-                                .then((value) {
-                              innerSetState(() {
-                                selectedPlayerId = value.playerId;
-                              });
+                      SizedBox(height: 16),
+                      Text('Old Player', style: textTheme.subtitle1),
+                      Container(
+                        width: double.infinity,
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            [0, 1, 2, 3],
+                            key: (i) => i,
+                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                          ),
+                          onValueChanged: (value) {
+                            innerSetState(() {
+                              selectedPlayerIndex = value;
                             });
                           },
+                          groupValue: selectedPlayerIndex,
                         ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        FlatButton(
-                          child: Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        Spacer(),
-                        FlatButton(
-                          child: Text('Replace'),
-                          onPressed: selectedPlayerId == null
-                              ? null
-                              : () {
-                                  setState(() {
-                                    lastRound.isPlayerSwitch = true;
-                                    lastRound.switchingPlayerIndex = selectedPlayerIndex;
-                                    lastRound.newPlayerId = selectedPlayerId;
-                                    if (game.rounds.last.roundIndex != lastRound.roundIndex) {
-                                      game.rounds.add(lastRound);
-                                    }
-                                    int dealerIndex = 0;
-                                    for (Round round in game.rounds.reversed) {
-                                      if (!round.isPlayerSwitch) {
-                                        dealerIndex = (round.dealerIndex + 1) % 4;
-                                        break;
+                      ),
+                      SizedBox(height: 16),
+                      Text('New Player', style: textTheme.subtitle1),
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            selectedPlayerId == null ? '' : data.allPlayers[selectedPlayerId].fullName,
+                            style: textTheme.bodyText1,
+                          ),
+                          Spacer(),
+                          OutlineButton(
+                            child: Text('Select Player'),
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()))
+                                  .then((value) {
+                                innerSetState(() {
+                                  selectedPlayerId = value.playerId;
+                                });
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          FlatButton(
+                            child: Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Spacer(),
+                          FlatButton(
+                            child: Text('Replace'),
+                            onPressed: selectedPlayerId == null
+                                ? null
+                                : () {
+                                    setState(() {
+                                      lastRound.isPlayerSwitch = true;
+                                      lastRound.switchingPlayerIndex = selectedPlayerIndex;
+                                      lastRound.newPlayerId = selectedPlayerId;
+                                      if (game.rounds.last.roundIndex != lastRound.roundIndex) {
+                                        game.rounds.add(lastRound);
                                       }
-                                    }
-                                    game.rounds.add(Round.empty(game.rounds.length, dealerIndex));
-                                    game.updateFirestore();
-                                  });
-                                  Navigator.of(context).pop();
-                                },
-                        ),
-                      ],
-                    ),
-                  ],
+                                      int dealerIndex = 0;
+                                      for (Round round in game.rounds.reversed) {
+                                        if (!round.isPlayerSwitch) {
+                                          dealerIndex = (round.dealerIndex + 1) % 4;
+                                          break;
+                                        }
+                                      }
+                                      game.rounds.add(Round.empty(game.rounds.length, dealerIndex));
+                                      game.updateFirestore();
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -717,7 +725,9 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
 }
 
 Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
-  List<double> winProbs = DataStore.winProbabilities(game.currentScore, game.gameOverScore);
+//  List<double> winProbs = DataStore.winProbabilities(game.currentScore, game.gameOverScore);
+//TODO: use actual win probs
+  List<double> winProbs = data.statsDb.getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore);
 
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
   List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();

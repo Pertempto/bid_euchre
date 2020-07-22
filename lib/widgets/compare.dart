@@ -65,7 +65,7 @@ class _CompareState extends State<Compare> {
         }
         colors.add(color);
       }
-      stats = data.statsDb.getTeamStats(COMPARE_STATS.toSet(), (team1Ids + team2Ids).toSet());
+      stats = data.statsDb.getTeamStats(COMPARE_STATS.toSet());
       splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
       players = [
@@ -73,7 +73,7 @@ class _CompareState extends State<Compare> {
         data.players[widget.id2],
       ];
       colors = [null, null];
-      stats = data.statsDb.getPlayerStats(COMPARE_STATS.toSet(), {widget.id1, widget.id2});
+      stats = data.statsDb.getPlayerStats(COMPARE_STATS.toSet());
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
     print('colors: $colors');

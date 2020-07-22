@@ -46,10 +46,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       Map<String, Map<StatType, StatItem>> stats;
       if (teams) {
         stats = data.statsDb
-            .getTeamStats({displayStatType, StatType.numGames, StatType.lastPlayed}, data.players.keys.toSet());
+            .getTeamStats({displayStatType, StatType.numGames, StatType.lastPlayed});
       } else {
-        stats = data.statsDb
-            .getPlayerStats({displayStatType, StatType.numGames, StatType.lastPlayed}, data.players.keys.toSet());
+        stats = data.statsDb.getPlayerStats({displayStatType, StatType.numGames, StatType.lastPlayed});
       }
       List<String> ids = stats.keys.toList();
       if (!showInfrequent) {

@@ -206,6 +206,9 @@ class _GameStatsState extends State<GameStats> {
   }
 
   Widget winningChancesSection() {
+    if (game.rounds.where((r) => r.isFinished).toList().isEmpty) {
+      return Container();
+    }
     List<Widget> children = [
       Padding(
         padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -215,9 +218,12 @@ class _GameStatsState extends State<GameStats> {
     for (int i = 0; i < game.rounds.length; i++) {
       Round round = game.rounds[i];
       if (!round.isPlayerSwitch && round.isFinished) {
-        List<int> score = game.getScoreAfterRound(i);
+        List<int> score = game.getScoreAfterRound(i - 1);
         List<String> scoreStrings = score.map(Util.scoreString).toList();
-        List<double> winProbs = DataStore.winProbabilities(score, game.gameOverScore);
+//        List<double> winProbs = DataStore.winProbabilities(score, game.gameOverScore);
+        //TODO: use actual win probs
+        List<double> winProbs =
+            data.statsDb.getWinChances(game.getPlayerIdsAfterRound(i - 1), score, game.gameOverScore);
         children.add(
           Stack(
             children: <Widget>[

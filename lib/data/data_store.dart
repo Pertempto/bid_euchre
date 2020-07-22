@@ -1,15 +1,11 @@
-import 'dart:collection';
-import 'dart:math';
-
 import 'package:bideuchre/data/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'authentication.dart';
-import 'relationships.dart';
 import 'game.dart';
 import 'player.dart';
+import 'relationships.dart';
 import 'stats.dart';
 
 class DataStore {
@@ -22,8 +18,6 @@ class DataStore {
   static String currentUserId;
   static Data lastData;
   static StatsDb lastStats;
-  static const _eq = ListEquality();
-  static Map<List, List> _winData = HashMap(equals: _eq.equals, hashCode: _eq.hash, isValidKey: _eq.isValidKey);
 
   static StreamBuilder dataWrap(Widget Function(Data data) callback, {bool allowNull = false}) {
     return _usersWrap(allowNull, (users) {
@@ -52,31 +46,6 @@ class DataStore {
               }
             }
           }
-          if (_winData.isEmpty) {
-            print('loading win data...');
-            int c = 0;
-            for (Game g in games.where((g) => g.isFinished)) {
-              for (Round r in g.rounds) {
-                if (!r.isPlayerSwitch) {
-                  List<int> score = g.getScoreAfterRound(r.roundIndex - 1);
-                  int scoreDelta = (score[0] - score[1]).abs();
-                  if (scoreDelta != 0) {
-                    int higherScore = max(score[0], score[1]);
-                    int pointsLeftToWin = g.gameOverScore - higherScore;
-                    int winningTeamIndex = score.indexOf(higherScore);
-                    bool didWin = g.winningTeamIndex == winningTeamIndex;
-                    _winData.putIfAbsent([pointsLeftToWin, scoreDelta], () => [0, 0]);
-                    if (didWin) {
-                      _winData[[pointsLeftToWin, scoreDelta]][0]++;
-                    }
-                    _winData[[pointsLeftToWin, scoreDelta]][1]++;
-                    c++;
-                  }
-                }
-              }
-            }
-            print('done loading win data, data points: $c');
-          }
           return _playersWrap(allowNull, (players, loaded) {
 //            players.values.forEach((p) {
 //              if (p.ownerId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
@@ -97,14 +66,15 @@ class DataStore {
               }
             }
             StatsDb statsDb = lastStats;
-            if (statsDb == null || hashList(games) != hashList(statsDb.games)) {
-//              print('loading new stats db');
-              statsDb = StatsDb.fromGames(games);
-              statsDb.preload(filteredPlayers);
+            if (statsDb == null ||
+                hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
+                hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
+              print('loading new stats db');
+              statsDb = StatsDb.load(games, players);
               lastStats = statsDb;
             }
-            Data data =
-                Data(currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
+            Data data = Data(
+                currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
 //              print('using last data');
               return callback(lastData);
@@ -194,46 +164,6 @@ class DataStore {
         }
       },
     );
-  }
-
-  static List<double> winProbabilities(List<int> score, int gameOverScore) {
-    List<double> probabilities = [0.5, 0.5];
-
-    int scoreDelta = (score[0] - score[1]).abs();
-    if (scoreDelta == 0) {
-      return [0.5, 0.5];
-    }
-    int higherScore = max(score[0], score[1]);
-    int pointsLeftToWin = gameOverScore - higherScore;
-    int winningTeamIndex = score.indexOf(higherScore);
-    if (pointsLeftToWin <= 0) {
-      probabilities[winningTeamIndex] = 1;
-      probabilities[1 - winningTeamIndex] = 0;
-      return probabilities;
-    }
-    double total = 0;
-    double count = 0;
-    int leftToWinRadius = 5;
-    int scoreDeltaRadius = 1;
-    while (count < 20) {
-      total = 0;
-      count = 0;
-      for (List key in _winData.keys) {
-        if ((key[0] - pointsLeftToWin).abs() < leftToWinRadius && (key[1] - scoreDelta).abs() < scoreDeltaRadius) {
-          total += _winData[key][0];
-          count += _winData[key][1];
-        }
-      }
-      leftToWinRadius++;
-      scoreDeltaRadius++;
-    }
-    double winningChance = total / count;
-    if (winningChance == 1) {
-      winningChance = 0.999;
-    }
-    probabilities[winningTeamIndex] = winningChance;
-    probabilities[1 - winningTeamIndex] = 1 - winningChance;
-    return probabilities;
   }
 }
 

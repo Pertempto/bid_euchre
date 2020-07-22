@@ -36,7 +36,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     super.build(context);
     player = widget.player;
     data = DataStore.lastData;
-    playerStats = data.statsDb.getPlayerStats(StatType.values.toSet(), {player.playerId})[player.playerId];
+    playerStats = data.statsDb.getPlayerStats(StatType.values.toSet())[player.playerId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [

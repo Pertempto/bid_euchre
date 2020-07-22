@@ -156,6 +156,10 @@ class Game {
   static List<Game> gamesFromSnapshot(QuerySnapshot snapshot) {
     List<Game> games = [];
     for (DocumentSnapshot documentSnapshot in snapshot.documents) {
+      // for some reason player data is being sent to this function
+      if (documentSnapshot.data.containsKey('fullName')) {
+        return [];
+      }
       int variation = documentSnapshot.data['variation'];
       if (variation == null || variation == 1) {
         games.add(Game.fromDocument(documentSnapshot));
@@ -222,9 +226,9 @@ class Game {
       gameId.hashCode ^
       userId.hashCode ^
       gameOverScore.hashCode ^
-      initialPlayerIds.hashCode ^
-      rounds.hashCode ^
-      teamColors.hashCode ^
+      hashList(initialPlayerIds) ^
+      hashList(rounds) ^
+      hashList(teamColors) ^
       timestamp.hashCode;
 }
 

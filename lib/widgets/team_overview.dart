@@ -37,7 +37,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     print('teamId: $teamId');
     data = DataStore.lastData;
     playerIds = teamId.split(' ').toSet();
-    teamStats = data.statsDb.getTeamStats(StatType.values.toSet(), playerIds)[teamId];
+    teamStats = data.statsDb.getTeamStats(StatType.values.toSet())[teamId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
