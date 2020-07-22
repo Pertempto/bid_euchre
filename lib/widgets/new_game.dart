@@ -1,10 +1,12 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
+import 'package:bideuchre/data/stats.dart';
 import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
 import 'game_detail.dart';
@@ -73,6 +75,17 @@ class _NewGameState extends State<NewGame> {
         ));
         children.add(Divider());
       }
+      if (!initialPlayerIds.contains(null)) {
+        children.add(ListTile(
+          title: Text('Automatic Teams', style: leadingStyle),
+          trailing: Icon(MdiIcons.shuffleVariant),
+          dense: true,
+          onTap: () {
+            autoTeams();
+          },
+        ));
+        children.add(Divider());
+      }
       for (int i = 0; i < 2; i++) {
         children.add(ListTile(
           title: Text('Team ${i + 1} Color', style: leadingStyle),
@@ -131,6 +144,55 @@ class _NewGameState extends State<NewGame> {
           ),
         ),
       );
+    });
+  }
+
+  autoTeams() async {
+    setState(() {
+      initialPlayerIds.sort((a, b) {
+        double sa = 0;
+        double sb = 0;
+        if (data.statsDb.preloadedPlayers[a] != null) {
+          sa = data.statsDb.preloadedPlayers[a][StatType.rating].sortValue;
+        }
+        if (data.statsDb.preloadedPlayers[b] != null) {
+          sb = data.statsDb.preloadedPlayers[b][StatType.rating].sortValue;
+        }
+        return sa.compareTo(sb);
+      });
+      int fairestPartnerIndex = 0;
+      double smallestDiff = double.infinity;
+      for (int i = 1; i < 4; i++) {
+        List<String> oTeam = [];
+        for (int j = 1; j < 4; j++) {
+          if (j != i) {
+            oTeam.add(initialPlayerIds[j]);
+          }
+        }
+        List<double> chances = data.statsDb
+            .getWinChances([initialPlayerIds[0], oTeam[0], initialPlayerIds[i], oTeam[1]], [0, 0], gameOverScore);
+        double diff = (chances[0] - chances[1]).abs();
+        print('$i, $chances');
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          fairestPartnerIndex = i;
+        }
+      }
+      print('fairestPartnerIndex: $fairestPartnerIndex, $smallestDiff');
+      // switch two players
+      String tempId = initialPlayerIds[2];
+      initialPlayerIds[2] = initialPlayerIds[fairestPartnerIndex];
+      initialPlayerIds[fairestPartnerIndex] = tempId;
+      for (int i = 0; i < 2; i++) {
+        String teamId = Util.teamId([initialPlayerIds[i], initialPlayerIds[i + 2]]);
+        for (Game g in data.games) {
+          if (g.teamIds.contains(teamId)) {
+            int teamIndex = g.teamIds.indexOf(teamId);
+            teamColors[i] = g.teamColors[teamIndex];
+            break;
+          }
+        }
+      }
     });
   }
 
