@@ -33,7 +33,6 @@ class _CompareState extends State<Compare> {
   TextTheme textTheme;
   bool teams = false;
   List<Player> players;
-  Map<String, Map<StatType, StatItem>> stats;
   List<Map<int, BiddingSplit>> splits;
 
   @override
@@ -65,7 +64,6 @@ class _CompareState extends State<Compare> {
         }
         colors.add(color);
       }
-      stats = data.statsDb.getTeamStats(COMPARE_STATS.toSet());
       splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
       players = [
@@ -73,7 +71,6 @@ class _CompareState extends State<Compare> {
         data.players[widget.id2],
       ];
       colors = [null, null];
-      stats = data.statsDb.getPlayerStats(COMPARE_STATS.toSet());
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
     print('colors: $colors');
@@ -127,8 +124,8 @@ class _CompareState extends State<Compare> {
       child: Text('General Stats', style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w500)),
     ));
     for (StatType stat in COMPARE_STATS) {
-      StatItem stat1 = stats[widget.id1][stat];
-      StatItem stat2 = stats[widget.id2][stat];
+      StatItem stat1 = data.statsDb.getStat(widget.id1, stat);
+      StatItem stat2 = data.statsDb.getStat(widget.id2, stat);
       List<Color> colors = [Colors.blue, Colors.blue];
       if (stat1.sortValue < stat2.sortValue) {
         colors = [Colors.green, Colors.red];
@@ -172,8 +169,8 @@ class _CompareState extends State<Compare> {
       child: Text('Bidding Splits', style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w500)),
     ));
     List<int> numBids = [
-      stats[widget.id1][StatType.numBids].statValue,
-      stats[widget.id2][StatType.numBids].statValue,
+      data.statsDb.getStat(widget.id1, StatType.numBids).statValue,
+      data.statsDb.getStat(widget.id2, StatType.numBids).statValue,
     ];
     for (int bid in Round.ALL_BIDS) {
       if (splits[0][bid].count != 0 || splits[1][bid].count != 0) {

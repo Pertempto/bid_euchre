@@ -24,7 +24,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   Player player;
   Data data;
   TextTheme textTheme;
-  Map<StatType, StatItem> playerStats;
   bool partnersSortByRecord = true;
   bool opponentsSortByRecord = true;
   int numRecentBids = 0;
@@ -37,7 +36,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     super.build(context);
     player = widget.player;
     data = DataStore.lastData;
-    playerStats = data.statsDb.getPlayerStats(StatType.values.toSet())[player.playerId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
@@ -74,14 +72,14 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(playerStats[StatType.biddingRecord].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.biddingRecord).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
               child:
-                  Text(playerStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
+                  Text(data.statsDb.getStat(player.playerId, StatType.biddingFrequency).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -93,13 +91,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.averageBid].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.averageBid).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.pointsPerBid].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.pointsPerBid).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -397,13 +395,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(playerStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.record).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.streak).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -415,13 +413,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Games', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numGames).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numRounds).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -433,13 +431,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numBids).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(playerStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numPoints).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],

@@ -24,7 +24,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Data data;
   TextTheme textTheme;
   Set<String> playerIds;
-  Map<StatType, StatItem> teamStats;
   bool opponentsSortByRecord = true;
 
   @override
@@ -37,7 +36,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     print('teamId: $teamId');
     data = DataStore.lastData;
     playerIds = teamId.split(' ').toSet();
-    teamStats = data.statsDb.getTeamStats(StatType.values.toSet())[teamId];
     print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
@@ -72,13 +70,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(teamStats[StatType.biddingRecord].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.biddingRecord).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(teamStats[StatType.biddingFrequency].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.biddingFrequency).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -90,13 +88,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           children: <Widget>[
             Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.averageBid].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.averageBid).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.pointsPerBid].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.pointsPerBid).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -114,7 +112,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       columnChildren.add([Text(titles[i], style: textTheme.subtitle2)]);
     }
     Map<int, BiddingSplit> splits = data.statsDb.getTeamBiddingSplits(teamId);
-    int numBids = teamStats[StatType.numBids].statValue;
+    int numBids = data.statsDb.getStat(teamId, StatType.numBids).statValue;
     for (int bid in Round.ALL_BIDS) {
       BiddingSplit split = splits[bid];
       String rateString = '-';
@@ -433,13 +431,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(teamStats[StatType.record].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.record).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.streak].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.streak).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -451,13 +449,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           children: <Widget>[
             Expanded(child: Text('Games', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numGames].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.numGames).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numRounds].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.numRounds).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -469,13 +467,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numBids].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.numBids).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(teamStats[StatType.numPoints].toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(teamId, StatType.numPoints).toString(), style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
