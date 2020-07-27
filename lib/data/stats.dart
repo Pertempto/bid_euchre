@@ -17,16 +17,22 @@ class StatsDb {
     preloadedPlayers = getPlayerStats(StatType.values.toSet());
   }
 
-  Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId) {
+  Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {
     Map<int, BiddingSplit> splits = {};
     for (int bid in Round.ALL_BIDS) {
       splits[bid] = BiddingSplit(bid, []);
     }
+    print(playerId);
+    int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(playerId)))) {
-      for (Round r in g.rounds.where((r) => !r.isPlayerSwitch)) {
+      for (Round r in g.rounds.reversed.where((r) => !r.isPlayerSwitch)) {
         String bidderId = g.getPlayerIdsAfterRound(r.roundIndex - 1)[r.bidderIndex];
         if (bidderId == playerId) {
           splits[r.bid].rounds.add(r);
+          count++;
+          if (numRecent != 0 && count >= numRecent) {
+            return splits;
+          }
         }
       }
     }
@@ -276,7 +282,7 @@ class StatsDb {
           if (teamId == null) {
             continue;
           }
-          if (!round.isPlayerSwitch) {
+          if (!round.isPlayerSwitch && round.isFinished) {
             massiveMap[teamId]['numRounds']++;
             massiveMap[teamId]['numPoints'] += round.score[i];
             if (round.bidderIndex % 2 == i) {

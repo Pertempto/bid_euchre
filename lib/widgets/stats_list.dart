@@ -44,13 +44,15 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
     }
     return DataStore.dataWrap((data) {
       Map<String, Map<StatType, StatItem>> stats;
+      List<String> ids;
       if (teams) {
         stats = data.statsDb
             .getTeamStats({displayStatType, StatType.numGames, StatType.lastPlayed});
+        ids = stats.keys.toList();
       } else {
         stats = data.statsDb.getPlayerStats({displayStatType, StatType.numGames, StatType.lastPlayed});
+        ids = data.players.keys.toList();
       }
-      List<String> ids = stats.keys.toList();
       if (!showInfrequent) {
         ids = ids.where((id) {
           bool has5Games = stats[id][StatType.numGames].statValue >= 5;
@@ -63,7 +65,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       if (teams) {
         names = Map.fromIterable(ids, key: (id) => id, value: (id) => Util.teamName(id, data));
       } else {
-        names = Map.fromIterable(ids, key: (id) => id, value: (id) => data.players[id].fullName);
+        names = Map.fromIterable(ids, key: (id) => id, value: (id) {
+          return data.players[id].fullName;
+        });
       }
       ids.sort((a, b) {
         int statCmp = stats[a][displayStatType].sortValue.compareTo(stats[b][displayStatType].sortValue);

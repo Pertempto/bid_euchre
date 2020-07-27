@@ -178,7 +178,6 @@ class _NewGameState extends State<NewGame> {
           fairestPartnerIndex = i;
         }
       }
-      print('fairestPartnerIndex: $fairestPartnerIndex, $smallestDiff');
       // switch two players
       String tempId = initialPlayerIds[2];
       initialPlayerIds[2] = initialPlayerIds[fairestPartnerIndex];

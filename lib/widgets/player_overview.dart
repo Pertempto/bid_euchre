@@ -27,6 +27,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   Map<StatType, StatItem> playerStats;
   bool partnersSortByRecord = true;
   bool opponentsSortByRecord = true;
+  int numRecentBids = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -115,8 +116,12 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     for (int i = 0; i < titles.length; i++) {
       columnChildren.add([Text(titles[i], style: textTheme.subtitle2)]);
     }
-    Map<int, BiddingSplit> splits = data.statsDb.getPlayerBiddingSplits(player.playerId);
-    int numBids = playerStats[StatType.numBids].statValue;
+    Map<int, BiddingSplit> splits =
+        data.statsDb.getPlayerBiddingSplits(player.playerId, numRecent: numRecentBids);
+    int numBids = 0;
+    for (int bid in Round.ALL_BIDS) {
+      numBids += splits[bid].count;
+    }
     for (int bid in Round.ALL_BIDS) {
       BiddingSplit split = splits[bid];
       String rateString = '-';
@@ -145,6 +150,29 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       ListTile(
         title: Text('Bidding Splits', style: textTheme.headline6),
         dense: true,
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Text('Show: ', style: textTheme.subtitle1),
+            Spacer(),
+            DropdownButton(
+              value: numRecentBids,
+              items: [0, 10, 20, 50, 100]
+                  .map((value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(value == 0 ? 'All Time' : value.toString()),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  numRecentBids = value;
+                });
+              },
+            ),
+          ],
+        ),
       ),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
