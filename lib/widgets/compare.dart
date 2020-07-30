@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../data/data_store.dart';
 import '../data/player.dart';
 import '../util.dart';
+import 'bidding_splits_section.dart';
 import 'player_profile.dart';
 
 class Compare extends StatefulWidget {
@@ -121,7 +122,7 @@ class _CompareState extends State<Compare> {
     }
     children.add(Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Text('General Stats', style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w500)),
+      child: Text('General Stats', style: textTheme.headline6),
     ));
     for (StatType stat in COMPARE_STATS) {
       StatItem stat1 = data.statsDb.getStat(widget.id1, stat);
@@ -164,99 +165,7 @@ class _CompareState extends State<Compare> {
         ),
       ));
     }
-    children.add(Padding(
-      padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
-      child: Text('Bidding Splits', style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w500)),
-    ));
-    List<int> numBids = [
-      data.statsDb.getStat(widget.id1, StatType.numBids).statValue,
-      data.statsDb.getStat(widget.id2, StatType.numBids).statValue,
-    ];
-    for (int bid in Round.ALL_BIDS) {
-      if (splits[0][bid].count != 0 || splits[1][bid].count != 0) {
-        children.add(Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(bid.toString(), style: textTheme.subtitle2.copyWith(fontWeight: FontWeight.w600)),
-        ));
-        for (int subStatIndex = 0; subStatIndex < 3; subStatIndex++) {
-          List<double> values = [];
-          List<String> strings = [];
-          String statName = ['Frequency', 'Made %', 'Points'][subStatIndex];
-          for (int i = 0; i < 2; i++) {
-            BiddingSplit split = splits[i][bid];
-            switch (subStatIndex) {
-              case (0):
-                String rateString = '-';
-                double value = 0;
-                if (split.count != 0) {
-                  value = split.count / numBids[i];
-                  rateString = '1 in ${(numBids[i] / split.count).toStringAsFixed(1)}';
-                }
-                values.add(value);
-                strings.add(rateString);
-                break;
-              case (1):
-                String madeString = '-';
-                double value = 0;
-                if (split.count != 0) {
-                  value = split.madePct;
-                  madeString = '${(split.madePct * 100).toStringAsFixed(1)}%';
-                }
-                values.add(value);
-                strings.add(madeString);
-                break;
-              case (2):
-                String pointsString = '-';
-                double value = 0;
-                if (split.count != 0) {
-                  value = split.avgPoints;
-                  pointsString = split.avgPoints.toStringAsFixed(2);
-                }
-                values.add(value);
-                strings.add(pointsString);
-                break;
-            }
-          }
-          List<Color> colors = [Colors.blue, Colors.blue];
-          if (values[0] > values[1]) {
-            colors = [Colors.green, Colors.red];
-          } else if (values[0] < values[1]) {
-            colors = [Colors.red, Colors.green];
-          }
-          children.add(Padding(
-            padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    strings[0],
-                    textAlign: TextAlign.start,
-                    style: textTheme.bodyText1.copyWith(color: colors[0]),
-                  ),
-                  flex: 1,
-                ),
-                Expanded(
-                  child: Text(
-                    statName,
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyText2,
-                  ),
-                  flex: 2,
-                ),
-                Expanded(
-                  child: Text(
-                    strings[1],
-                    textAlign: TextAlign.end,
-                    style: textTheme.bodyText1.copyWith(color: colors[1]),
-                  ),
-                  flex: 1,
-                ),
-              ],
-            ),
-          ));
-        }
-      }
-    }
+    children.add(BiddingSplitsSection(widget.id1, id2: widget.id2));
     children.add(SizedBox(height: 64));
     return Scaffold(
       appBar: AppBar(title: Text(teams ? 'Team Comparison' : 'Player Comparison')),

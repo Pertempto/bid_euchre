@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
+import 'bidding_splits_section.dart';
 import 'compare.dart';
 import 'game_detail.dart';
 import 'team_profile.dart';
@@ -26,7 +27,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   TextTheme textTheme;
   bool partnersSortByRecord = true;
   bool opponentsSortByRecord = true;
-  int numRecentBids = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -41,17 +41,11 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
       overviewSection(),
-      Divider(),
       biddingSection(),
-      Divider(),
+      BiddingSplitsSection(player.playerId),
       gamesSection(),
-      Divider(),
       partnersSection(),
-      Divider(),
       opponentsSection(),
-      Divider(),
-      biddingSplitsSection(),
-      Divider(),
       SizedBox(height: 64),
     ];
     print('built: ${DateTime.now().millisecondsSinceEpoch}');
@@ -70,16 +64,17 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Record', style: titleStyle), flex: 5),
+            Expanded(child: Text('Made-Set', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.biddingRecord).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.biddingRecord).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
             Expanded(
-              child:
-                  Text(data.statsDb.getStat(player.playerId, StatType.biddingFrequency).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.biddingFrequency).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -91,104 +86,22 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.averageBid).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.averageBid).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.pointsPerBid).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.pointsPerBid).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
         ),
       ),
     ];
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
-  }
-
-  Widget biddingSplitsSection() {
-    List<List<Widget>> columnChildren = [];
-    List<String> titles = ['Bid', 'Count', 'Frequency', 'Made %', 'Tricks', 'Points'];
-    for (int i = 0; i < titles.length; i++) {
-      columnChildren.add([Text(titles[i], style: textTheme.subtitle2)]);
-    }
-    Map<int, BiddingSplit> splits =
-        data.statsDb.getPlayerBiddingSplits(player.playerId, numRecent: numRecentBids);
-    int numBids = 0;
-    for (int bid in Round.ALL_BIDS) {
-      numBids += splits[bid].count;
-    }
-    for (int bid in Round.ALL_BIDS) {
-      BiddingSplit split = splits[bid];
-      String rateString = '-';
-      String madeString = '-';
-      String tricksString = '-';
-      String pointsString = '-';
-      if (split.count != 0) {
-        rateString = '1 in ${(numBids / split.count).toStringAsFixed(1)}';
-        madeString = '${(split.madePct * 100).toStringAsFixed(1)}%';
-        tricksString = split.avgTricks.toStringAsFixed(2);
-        pointsString = split.avgPoints.toStringAsFixed(2);
-      }
-      List<String> row = [
-        split.bid.toString(),
-        split.count.toString(),
-        rateString,
-        madeString,
-        tricksString,
-        pointsString
-      ];
-      for (int i = 0; i < row.length; i++) {
-        columnChildren[i].add(Text(row[i]));
-      }
-    }
-    List<Widget> children = [
-      ListTile(
-        title: Text('Bidding Splits', style: textTheme.headline6),
-        dense: true,
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Text('Show: ', style: textTheme.subtitle1),
-            Spacer(),
-            DropdownButton(
-              value: numRecentBids,
-              items: [0, 10, 20, 50, 100]
-                  .map((value) => DropdownMenuItem(
-                        value: value,
-                        child: Text(value == 0 ? 'All Time' : value.toString()),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  numRecentBids = value;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: columnChildren
-                .map(
-                  (c) => Padding(
-                    padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
-                    child: Column(
-                        children: c.map((w) => Padding(padding: EdgeInsets.only(top: 4), child: w)).toList(),
-                        crossAxisAlignment: CrossAxisAlignment.end),
-                  ),
-                )
-                .toList()),
-      ),
-    ];
-
+    children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
@@ -268,6 +181,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       ),
     ));
     print('games end: ${DateTime.now().millisecondsSinceEpoch}');
+    children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
@@ -310,7 +224,9 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       }
       return -oppRecordsAgainst[a][0].compareTo(oppRecordsAgainst[b][0]);
     });
-
+    if (opponentIds.isEmpty) {
+      return Container();
+    }
     List<Widget> children = [
       ListTile(
         title: Text('Opponents', style: textTheme.headline6),
@@ -378,6 +294,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         ),
       ),
     ));
+    children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
@@ -395,13 +312,15 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.record).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.record).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.streak).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.streak).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -413,13 +332,15 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Games', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.numGames).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numGames).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.numRounds).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numRounds).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
@@ -431,19 +352,22 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.numBids).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numBids).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(player.playerId, StatType.numPoints).toString(), style: statStyle, textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(player.playerId, StatType.numPoints).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
           ],
         ),
       ),
     ];
+    children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
@@ -484,7 +408,9 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       }
       return -partnerRecords[a][0].compareTo(partnerRecords[b][0]);
     });
-
+    if (partnerIds.isEmpty) {
+      return Container();
+    }
     List<Widget> children = [
       ListTile(
         title: Text('Partners', style: textTheme.headline6),
@@ -555,7 +481,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         ),
       ),
     ));
-
+    children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }

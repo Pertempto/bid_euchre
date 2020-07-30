@@ -413,7 +413,6 @@ class StatsDb {
     for (int bid in Round.ALL_BIDS) {
       splits[bid] = BiddingSplit(bid, []);
     }
-    print(playerId);
     int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(playerId)))) {
       for (Round r in g.rounds.reversed.where((r) => !r.isPlayerSwitch)) {
@@ -430,16 +429,21 @@ class StatsDb {
     return splits;
   }
 
-  Map<int, BiddingSplit> getTeamBiddingSplits(String teamId) {
+  Map<int, BiddingSplit> getTeamBiddingSplits(String teamId, {int numRecent = 0}) {
     Map<int, BiddingSplit> splits = {};
     for (int bid in Round.ALL_BIDS) {
       splits[bid] = BiddingSplit(bid, []);
     }
+    int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && g.teamIds.contains(teamId)))) {
       int teamIndex = g.teamIds.indexOf(teamId);
       for (Round r in g.rounds.where((r) => !r.isPlayerSwitch)) {
         if (r.bidderIndex % 2 == teamIndex) {
           splits[r.bid].rounds.add(r);
+          count++;
+          if (numRecent != 0 && count >= numRecent) {
+            return splits;
+          }
         }
       }
     }
@@ -666,11 +670,14 @@ class BiddingSplit {
     return rounds.length;
   }
 
+  int get made {
+    return rounds.where((r) => r.madeBid).length;
+  }
+
   double get madePct {
     if (count == 0) {
       return double.nan;
     }
-    int made = rounds.where((r) => r.madeBid).length;
     return made / count;
   }
 }
