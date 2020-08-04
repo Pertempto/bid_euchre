@@ -13,8 +13,9 @@ import 'team_profile.dart';
 
 class GameOverview extends StatefulWidget {
   final Game game;
+  final bool isSummary;
 
-  GameOverview(this.game);
+  GameOverview(this.game, {this.isSummary = false});
 
   @override
   _GameOverviewState createState() => _GameOverviewState();
@@ -22,6 +23,7 @@ class GameOverview extends StatefulWidget {
 
 class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClientMixin<GameOverview> {
   Game game;
+  bool isSummary;
   Data data;
   ConfettiController confettiController;
   TextTheme textTheme;
@@ -46,6 +48,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     game = widget.game;
+    isSummary = widget.isSummary;
     data = DataStore.lastData;
     textTheme = Theme.of(context).textTheme;
 
@@ -116,7 +119,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                 Expanded(
                   child: GestureDetector(
                     child: Text(dealerName, style: textTheme.bodyText1.copyWith(color: dealerTeamColor)),
-                    onTap: dealerName == ''
+                    onTap: dealerName == '' || isSummary
                         ? null
                         : () {
                             Navigator.push(
@@ -131,7 +134,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                 Expanded(
                   child: GestureDetector(
                     child: Text(bidderName, style: textTheme.bodyText1.copyWith(color: bidderTeamColor)),
-                    onTap: bidderName == ''
+                    onTap: bidderName == '' || isSummary
                         ? null
                         : () {
                             Navigator.push(
@@ -168,100 +171,169 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
       rows.add(Divider());
     }
 
-    Color iconColor = Colors.blueGrey;
-    if (game.isFinished && gameIsLocked) {
-      int teamIndex = game.winningTeamIndex;
-      String winningTeamName = game.getTeamName(teamIndex, data);
-      rows.add(Padding(
-        padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
-        child: Column(
-          children: <Widget>[
-            Text(
-              '$winningTeamName won!!',
-              style: textTheme.headline5.copyWith(color: game.teamColors[teamIndex]),
-            ),
-            Stack(
-              children: <Widget>[
-                Align(
-                  alignment: Alignment.center,
-                  child: OutlineButton(
-                    child: Text('Celebrate!'),
-                    onPressed: () {
-                      confettiController.play();
-                    },
-                  ),
-                ),
-                if (game.userId == data.currentUser.userId)
+    if (isSummary) {
+      rows.add(SizedBox(height: 32));
+    } else {
+      Color iconColor = Colors.blueGrey;
+      if (game.isFinished && gameIsLocked) {
+        int teamIndex = game.winningTeamIndex;
+        String winningTeamName = game.getTeamName(teamIndex, data);
+        rows.add(Padding(
+          padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
+          child: Column(
+            children: <Widget>[
+              Text(
+                '$winningTeamName won!!',
+                style: textTheme.headline5.copyWith(color: game.teamColors[teamIndex]),
+              ),
+              Stack(
+                children: <Widget>[
                   Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: Icon(MdiIcons.lockOpen),
-                      color: iconColor,
+                    alignment: Alignment.center,
+                    child: OutlineButton(
+                      child: Text('Celebrate!'),
                       onPressed: () {
-                        setState(() {
-                          gameIsLocked = false;
-                        });
+                        confettiController.play();
                       },
                     ),
                   ),
-              ],
-            ),
-          ],
-        ),
-      ));
-    } else {
-      if (game.userId == data.currentUser.userId) {
-        rows.add(Container(
-          width: double.infinity,
-          padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-          child: Wrap(
-            alignment: WrapAlignment.end,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(Icons.undo),
-                color: iconColor,
-                onPressed: onUndoClick,
-              ),
-              IconButton(
-                icon: Icon(MdiIcons.accountSwitch),
-                color: iconColor,
-                onPressed: onSubstituteClick,
-              ),
-              IconButton(
-                icon: Icon(Icons.add),
-                color: iconColor,
-                onPressed: onAddClick,
+                  if (game.userId == data.currentUser.userId)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: Icon(MdiIcons.lockOpen),
+                        color: iconColor,
+                        onPressed: () {
+                          setState(() {
+                            gameIsLocked = false;
+                          });
+                        },
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
         ));
-        if (game.isFinished && !gameIsLocked) {
+      } else {
+        if (game.userId == data.currentUser.userId) {
           rows.add(Container(
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.end,
               children: <Widget>[
-                Spacer(),
                 IconButton(
-                  icon: Icon(Icons.lock),
+                  icon: Icon(Icons.undo),
                   color: iconColor,
-                  onPressed: () {
-                    setState(() {
-                      gameIsLocked = true;
-                    });
-                  },
+                  onPressed: onUndoClick,
+                ),
+                IconButton(
+                  icon: Icon(MdiIcons.accountSwitch),
+                  color: iconColor,
+                  onPressed: onSubstituteClick,
+                ),
+                IconButton(
+                  icon: Icon(Icons.add),
+                  color: iconColor,
+                  onPressed: onAddClick,
                 ),
               ],
             ),
           ));
+          if (game.isFinished && !gameIsLocked) {
+            rows.add(Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+              child: Row(
+                children: <Widget>[
+                  Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.lock),
+                    color: iconColor,
+                    onPressed: () {
+                      setState(() {
+                        gameIsLocked = true;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ));
+          }
+          rows.add(SizedBox(height: 16));
+        } else {
+          rows.add(SizedBox(height: 32));
         }
-        rows.add(SizedBox(height: 16));
-      } else {
-        rows.add(SizedBox(height: 32));
       }
     }
-
     TextStyle headerStyle = textTheme.subtitle2;
+    Widget body = Container(
+      width: double.infinity,
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          Material(
+            elevation: 1,
+            child: Column(
+              children: <Widget>[
+                gameHeader(game, data, textTheme, context, !isSummary),
+                Container(
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Text(game.dateString, style: textTheme.caption),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text('Dealer', style: headerStyle),
+                        flex: 8,
+                      ),
+                      Expanded(
+                        child: Text('Bidder', style: headerStyle),
+                        flex: 8,
+                      ),
+                      Expanded(
+                        child: Text('Bid', style: headerStyle, textAlign: TextAlign.center),
+                        flex: 3,
+                      ),
+                      Expanded(
+                        child: Text('Won', style: headerStyle, textAlign: TextAlign.center),
+                        flex: 5,
+                      ),
+                      Expanded(
+                        child: Text('Score', style: headerStyle, textAlign: TextAlign.center),
+                        flex: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: rows,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (isSummary) {
+      return ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+        child: body,
+      );
+    }
     List<Color> confettiColors = [
       game.winningTeamIndex != null ? game.teamColors[game.winningTeamIndex] : Colors.white
     ];
@@ -269,62 +341,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
       width: double.infinity,
       height: double.infinity,
       child: Util.confettiStack(
-          child: Container(
-            width: double.infinity,
-            child: Column(
-              children: <Widget>[
-                Material(
-                  elevation: 1,
-                  child: Column(
-                    children: <Widget>[
-                      gameHeader(game, data, textTheme, context),
-                      Container(
-                        width: double.infinity,
-                        alignment: Alignment.center,
-                        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: Text(game.dateString, style: textTheme.caption),
-                      ),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text('Dealer', style: headerStyle),
-                              flex: 8,
-                            ),
-                            Expanded(
-                              child: Text('Bidder', style: headerStyle),
-                              flex: 8,
-                            ),
-                            Expanded(
-                              child: Text('Bid', style: headerStyle, textAlign: TextAlign.center),
-                              flex: 3,
-                            ),
-                            Expanded(
-                              child: Text('Won', style: headerStyle, textAlign: TextAlign.center),
-                              flex: 5,
-                            ),
-                            Expanded(
-                              child: Text('Score', style: headerStyle, textAlign: TextAlign.center),
-                              flex: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: rows,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: body,
           controller: confettiController,
           settings: data.currentUser.confettiSettings,
           colors: confettiColors),
@@ -724,9 +741,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
   }
 }
 
-Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
-//  List<double> winProbs = DataStore.winProbabilities(game.currentScore, game.gameOverScore);
-//TODO: use actual win probs
+Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context, bool clickableTeams) {
   List<double> winProbs = data.statsDb.getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore);
 
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
@@ -738,11 +753,13 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
+        if (clickableTeams) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
+        }
       },
     );
   }

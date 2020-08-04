@@ -474,7 +474,7 @@ class StatsDb {
     List<double> winChances = ratingsToWinChances(teamRatings);
     List<double> adjWinChances = [];
     for (int i = 0; i < 2; i++) {
-      adjWinChances.add(winChances[i] * (1 / (pow(10, -(score[i] - score[1 - i]) / gameOverScore) + 1)));
+      adjWinChances.add(winChances[i] * (1 / (pow(10, -(score[i] - score[1 - i]) * 2 / gameOverScore) + 1)));
     }
     double sum = adjWinChances[0] + adjWinChances[1];
     return [adjWinChances[0] / sum, adjWinChances[1] / sum];

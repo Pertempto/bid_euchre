@@ -30,7 +30,7 @@ class _GameStatsState extends State<GameStats> {
     data = DataStore.lastData;
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
-      gameHeader(game, data, textTheme, context),
+      gameHeader(game, data, textTheme, context, true),
       statsSection(),
       winningChancesSection(),
       SizedBox(height: 64),
@@ -220,8 +220,6 @@ class _GameStatsState extends State<GameStats> {
       if (!round.isPlayerSwitch && round.isFinished) {
         List<int> score = game.getScoreAfterRound(i - 1);
         List<String> scoreStrings = score.map(Util.scoreString).toList();
-//        List<double> winProbs = DataStore.winProbabilities(score, game.gameOverScore);
-        //TODO: use actual win probs
         List<double> winProbs =
             data.statsDb.getWinChances(game.getPlayerIdsAfterRound(i - 1), score, game.gameOverScore);
         children.add(

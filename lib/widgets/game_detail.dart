@@ -18,7 +18,6 @@ class GameDetail extends StatefulWidget {
 }
 
 class _GameDetailState extends State<GameDetail> {
-
   @override
   Widget build(BuildContext context) {
     return DataStore.dataWrap((data) {
@@ -37,12 +36,15 @@ class _GameDetailState extends State<GameDetail> {
               ],
             ),
           ),
-          body: TabBarView(
-            children: <Widget>[
-              notLoaded ? Container() : GameOverview(game),
-              notLoaded ? Container() : GameStats(game),
-              notLoaded ? Container() : GameSettings(game),
-            ],
+          body: Container(
+            color: Colors.white,
+            child: TabBarView(
+              children: <Widget>[
+                notLoaded ? Container() : GameOverview(game),
+                notLoaded ? Container() : GameStats(game),
+                notLoaded ? Container() : GameSettings(game),
+              ],
+            ),
           ),
         ),
       );

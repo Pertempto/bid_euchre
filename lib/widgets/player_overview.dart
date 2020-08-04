@@ -2,6 +2,7 @@ import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/stats.dart';
+import 'package:bideuchre/widgets/game_overview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -9,7 +10,6 @@ import 'package:intl/intl.dart' as intl;
 import '../util.dart';
 import 'bidding_splits_section.dart';
 import 'compare.dart';
-import 'game_detail.dart';
 import 'team_profile.dart';
 
 class PlayerOverview extends StatefulWidget {
@@ -166,8 +166,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           ),
         ),
         onTap: () {
-          // TODO: popup bottom sheet summary of game
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            builder: (context) {
+              return GameOverview(game, isSummary: true);
+            },
+          );
         },
       ));
     }

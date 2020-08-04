@@ -9,7 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import '../util.dart';
 import 'bidding_splits_section.dart';
 import 'compare.dart';
-import 'game_detail.dart';
+import 'game_overview.dart';
 import 'player_profile.dart';
 
 class TeamOverview extends StatefulWidget {
@@ -168,7 +168,13 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         onTap: () {
           if (game.userId == data.currentUser.userId ||
               data.relationshipsDb.canShare(game.userId, data.currentUser.userId)) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (context) {
+                return GameOverview(game, isSummary: true);
+              },
+            );
           } else {
             Scaffold.of(context).showSnackBar(SnackBar(
               content: Text('You don\'t have permission to view this game!'),
