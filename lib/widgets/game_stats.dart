@@ -30,7 +30,7 @@ class _GameStatsState extends State<GameStats> {
     data = DataStore.lastData;
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
-      gameHeader(game, data, textTheme, context, true),
+      gameHeader(game, data, textTheme, context),
       statsSection(),
       winningChancesSection(),
       SizedBox(height: 64),

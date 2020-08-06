@@ -153,8 +153,8 @@ class _LoginSignupState extends State<LoginSignup> {
           hintText: 'Username',
           icon: Icon(Icons.person, color: Colors.grey),
         ),
-        validator: (value) => value.length < 5 ? 'Username is too short' : null,
-        onSaved: (value) => _name = value,
+        validator: (value) => value.trim().length < 5 ? 'Username is too short' : null,
+        onSaved: (value) => _name = value.trim(),
       ),
     );
   }

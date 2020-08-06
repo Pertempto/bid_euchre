@@ -275,9 +275,10 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
         children: <Widget>[
           Material(
             elevation: 1,
+            color: Colors.white,
             child: Column(
               children: <Widget>[
-                gameHeader(game, data, textTheme, context, !isSummary),
+                gameHeader(game, data, textTheme, context, isSummary: isSummary),
                 Container(
                   width: double.infinity,
                   alignment: Alignment.center,
@@ -657,9 +658,11 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                             onPressed: () {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()))
                                   .then((value) {
-                                innerSetState(() {
-                                  selectedPlayerId = value.playerId;
-                                });
+                                if (value != null) {
+                                  innerSetState(() {
+                                    selectedPlayerId = value.playerId;
+                                  });
+                                }
                               });
                             },
                           ),
@@ -741,7 +744,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
   }
 }
 
-Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context, bool clickableTeams) {
+Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context, {bool isSummary = false}) {
   List<double> winProbs = data.statsDb.getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore);
 
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
@@ -753,7 +756,7 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        if (clickableTeams) {
+        if (!isSummary) {
           Navigator.push(
               context,
               MaterialPageRoute(
@@ -764,6 +767,7 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
     );
   }
 
+  double percentTextPadding = isSummary ? 8 : 4;
   return Column(
     children: [
       if (!game.isFinished)
@@ -785,7 +789,10 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
                   child: Container(
                     alignment: [Alignment.centerLeft, Alignment.centerRight][index],
                     height: 16,
-                    padding: [EdgeInsets.only(left: 4), EdgeInsets.only(right: 4)][index],
+                    padding: [
+                      EdgeInsets.only(left: percentTextPadding),
+                      EdgeInsets.only(right: percentTextPadding)
+                    ][index],
                     child: Text((winProbs[index] * 100).toStringAsFixed(1) + '%',
                         style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
                   ),

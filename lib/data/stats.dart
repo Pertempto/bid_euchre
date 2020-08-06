@@ -183,12 +183,6 @@ class StatsDb {
           _teamStats[teamId][statType] = StatItem(teamId, statType, mbp);
         } else if (statType == StatType.winsMinusLosses) {
           _teamStats[teamId][statType] = StatItem(teamId, statType, wins - losses);
-        } else if (statType == StatType.rating) {
-          double rating = 0;
-          if (wins + losses > 0) {
-            rating = (wins - losses) / (wins + losses);
-          }
-          _teamStats[teamId][statType] = StatItem(teamId, statType, rating);
         }
       }
     }
@@ -214,7 +208,7 @@ class StatsDb {
         int scoreDiff = score[winningTeamIndex] - score[1 - winningTeamIndex];
         for (String playerId in g.allPlayerIds) {
           if (!numGamesMap.containsKey(playerId)) {
-            print('unknown id: $playerId');
+            print('unknown id: $playerId, game: ${g.gameId}');
             print(allPlayers.keys);
           }
           numGamesMap[playerId]++;
@@ -354,12 +348,6 @@ class StatsDb {
           _playerStats[playerId][statType] = StatItem(playerId, statType, mbp);
         } else if (statType == StatType.winsMinusLosses) {
           _playerStats[playerId][statType] = StatItem(playerId, statType, wins - losses);
-        } else if (statType == StatType.rating) {
-          double rating = 0;
-          if (wins + losses > 0) {
-            rating = (wins - losses) / (wins + losses);
-          }
-          _playerStats[playerId][statType] = StatItem(playerId, statType, rating);
         }
       }
     }
@@ -387,7 +375,6 @@ class StatsDb {
       case StatType.pointsPerBid:
       case StatType.noPartnerFrequency:
       case StatType.noPartnerMadePercentage:
-      case StatType.rating:
         return StatItem(id, statType, 0.0);
       case StatType.streak:
       case StatType.numGames:
@@ -454,15 +441,9 @@ class StatsDb {
     String teamId = Util.teamId(playerIds);
     double teamRating = 0;
     for (int i = 0; i < 2; i++) {
-//      teamRating += preloadedPlayers[playerIds[i]][StatType.rating].statValue;
-      teamRating += getStat(playerIds[i], StatType.rating).statValue;
+      teamRating += getStat(playerIds[i], StatType.winsMinusLosses).statValue;
     }
-//    if (preloadedTeams[teamId] != null) {
-//      teamRating += preloadedTeams[teamId][StatType.rating].statValue;
-//    } else {
-//      print('Could not find rating for team $teamId');
-//    }
-    teamRating += getStat(teamId, StatType.rating).statValue;
+    teamRating += getStat(teamId, StatType.winsMinusLosses).statValue;
     return teamRating;
   }
 
@@ -481,7 +462,7 @@ class StatsDb {
   }
 
   static List<double> ratingsToWinChances(List<double> teamRatings) {
-    double team1WinChance = 1 / (pow(10, ((teamRatings[1] - teamRatings[0]) / 3)) + 1);
+    double team1WinChance = 1 / (pow(10, ((teamRatings[1] - teamRatings[0]) / 40)) + 1);
     return [team1WinChance, 1 - team1WinChance];
   }
 
@@ -521,8 +502,6 @@ class StatsDb {
         return 'Slider/Loner Made %';
       case StatType.winsMinusLosses:
         return 'Wins Minus Losses';
-      case StatType.rating:
-        return 'Rating';
     }
     return '';
   }
@@ -553,7 +532,6 @@ class StatItem {
       case StatType.pointsPerBid:
       case StatType.noPartnerFrequency:
       case StatType.noPartnerMadePercentage:
-      case StatType.rating:
         return -statValue;
       case StatType.streak:
       case StatType.numGames:
@@ -614,12 +592,6 @@ class StatItem {
           s = '+' + s;
         }
         return s;
-      case StatType.rating:
-        String s = statValue.toStringAsFixed(2);
-        if (statValue > 0) {
-          s = '+' + s;
-        }
-        return s;
     }
     return '';
   }
@@ -643,7 +615,6 @@ enum StatType {
   noPartnerFrequency,
   noPartnerMadePercentage,
   winsMinusLosses,
-  rating,
 }
 
 class BiddingSplit {

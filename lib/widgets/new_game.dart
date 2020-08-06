@@ -150,8 +150,8 @@ class _NewGameState extends State<NewGame> {
   autoTeams() async {
     setState(() {
       initialPlayerIds.sort((a, b) {
-        double sa = data.statsDb.getStat(a, StatType.rating).sortValue;
-        double sb = data.statsDb.getStat(b, StatType.rating).sortValue;
+        double sa = data.statsDb.getStat(a, StatType.winsMinusLosses).sortValue;
+        double sb = data.statsDb.getStat(b, StatType.winsMinusLosses).sortValue;
         return sa.compareTo(sb);
       });
       int fairestPartnerIndex = 0;
@@ -166,7 +166,7 @@ class _NewGameState extends State<NewGame> {
         List<double> chances = data.statsDb
             .getWinChances([initialPlayerIds[0], oTeam[0], initialPlayerIds[i], oTeam[1]], [0, 0], gameOverScore);
         double diff = (chances[0] - chances[1]).abs();
-        print('$i, $chances');
+//        print('$i, $chances');
         if (diff < smallestDiff) {
           smallestDiff = diff;
           fairestPartnerIndex = i;
