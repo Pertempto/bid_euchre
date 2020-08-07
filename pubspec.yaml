@@ -36,7 +36,6 @@ dependencies:
   flutter_launcher_icons: ^0.7.3
   material_design_icons_flutter: 4.0.5345
   intl: ^0.16.1
-  confetti: ^0.5.2
   google_fonts: ^1.1.0
   percent_indicator: ^2.1.5
   package_info: '>=0.4.0+17 <2.0.0'

@@ -59,45 +59,28 @@ class User {
 }
 
 class ConfettiSettings {
-  static const Map<String, String> LOCATION_NAMES = {
-    'tl': 'Top Left',
-    'tc': 'Top Center',
-    'tr': 'Top Right',
-    'bl': 'Bottom Left',
-    'bc': 'Bottom Center',
-    'br': 'Bottom Right',
-  };
-  Map<String, bool> locations;
-  double force;
-  double amount;
+  int count;
   double sizeFactor;
   double gravityFactor;
 
   ConfettiSettings() {
-    locations = {};
-    for (String l in LOCATION_NAMES.keys) {
-      locations[l] = false;
-    }
-    locations['tc'] = true;
-    force = 1;
-    amount = 0.5;
+    count = 250;
     sizeFactor = 1;
     gravityFactor = 1;
   }
 
   ConfettiSettings.fromData(Map data) {
-    locations = data['locations'].cast<String, bool>();
-    force = data['force'];
-    amount = data['amount'];
+    count = data['count'];
+    if (count == null) {
+      count = 250;
+    }
     sizeFactor = data['size'];
     gravityFactor = data['gravity'];
   }
 
   Map get dataMap {
     return {
-      'locations': locations,
-      'force': force,
-      'amount': amount,
+      'count': count,
       'size': sizeFactor,
       'gravity': gravityFactor,
     };

@@ -1,8 +1,10 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/user.dart';
-import 'package:bideuchre/widgets/confetti_test.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import '../util.dart';
+import 'color_chooser.dart';
 
 class ConfettiSetup extends StatefulWidget {
   ConfettiSetup();
@@ -11,9 +13,22 @@ class ConfettiSetup extends StatefulWidget {
   _ConfettiSetupState createState() => _ConfettiSetupState();
 }
 
-class _ConfettiSetupState extends State<ConfettiSetup> {
+class _ConfettiSetupState extends State<ConfettiSetup> with TickerProviderStateMixin {
+  AnimationController confettiController;
   TextTheme textTheme;
   ConfettiSettings settings;
+
+  @override
+  void initState() {
+    super.initState();
+    confettiController = AnimationController(vsync: this, duration: Duration(seconds: 20));
+  }
+
+  @override
+  void dispose() {
+    confettiController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,19 +39,23 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
       }
       List<Widget> children = [
         SizedBox(height: 8),
-        locationsSection(),
-        forceSection(),
-        amountSection(),
+        countSection(),
         sizeSection(),
         gravitySection(),
         OutlineButton(
           child: Text('Test Confetti!'),
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ConfettiTest(settings)));
+            confettiController.reset();
+            confettiController.forward();
+//            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ConfettiTest(settings)));
           },
         ),
         SizedBox(height: 64),
       ];
+      List<Color> colors = [];
+      for (int i = 0; i < 10; i++) {
+        colors.add(ColorChooser.generateRandomColor());
+      }
       return Scaffold(
         appBar: AppBar(
           title: Text('Confetti Settings'),
@@ -51,81 +70,41 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
             )
           ],
         ),
-        body: SingleChildScrollView(
-          child: Column(children: children),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          child: Util.confettiStack(
+            child: SingleChildScrollView(
+              child: Column(children: children),
+            ),
+            context: context,
+            controller: confettiController,
+            settings: settings,
+            colors: colors,
+          ),
         ),
       );
     });
   }
 
-  Widget locationsSection() {
+  Widget countSection() {
     List<Widget> children = [
       ListTile(
-        title: Text('Nozzle Locations', style: textTheme.headline6),
-        dense: true,
-      ),
-    ];
-    ConfettiSettings.LOCATION_NAMES.forEach((location, locationName) {
-      children.add(CheckboxListTile(
-        dense: true,
-        title: Text(locationName),
-        value: settings.locations[location],
-        onChanged: (value) {
-          setState(() {
-            settings.locations[location] = !settings.locations[location];
-          });
-        },
-      ));
-    });
-    children.add(Divider());
-    return Column(children: children);
-  }
-
-  Widget forceSection() {
-    List<Widget> children = [
-      ListTile(
-        title: Text('Ejection Force', style: textTheme.headline6),
-        trailing:
-            Text(settings.force.toStringAsFixed(1), style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
+        title: Text('Count', style: textTheme.headline6),
+        trailing: Text(settings.count.toString(), style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
         dense: true,
       ),
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Slider.adaptive(
-          value: settings.force,
-          min: 0.1,
-          max: 2.0,
-          divisions: 19,
+          value: settings.count.toDouble(),
+          min: 25,
+          max: 1000,
+          divisions: 39,
           onChanged: (value) {
             setState(() {
-              settings.force = value;
-            });
-          },
-        ),
-      ),
-      Divider(),
-    ];
-    return Column(children: children);
-  }
-
-  Widget amountSection() {
-    List<Widget> children = [
-      ListTile(
-        title: Text('Amount', style: textTheme.headline6),
-        trailing:
-            Text(settings.amount.toStringAsFixed(2), style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
-        dense: true,
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Slider.adaptive(
-          value: settings.amount,
-          min: 0.05,
-          max: 1.0,
-          divisions: 19,
-          onChanged: (value) {
-            setState(() {
-              settings.amount = value;
+              confettiController.stop();
+              settings.count = value.toInt();
             });
           },
         ),
@@ -139,8 +118,8 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
     List<Widget> children = [
       ListTile(
         title: Text('Size', style: textTheme.headline6),
-        trailing:
-            Text(settings.sizeFactor.toStringAsFixed(1), style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
+        trailing: Text(settings.sizeFactor.toStringAsFixed(1),
+            style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
         dense: true,
       ),
       Padding(
@@ -152,6 +131,7 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
           divisions: 19,
           onChanged: (value) {
             setState(() {
+              confettiController.stop();
               settings.sizeFactor = value;
             });
           },
@@ -166,8 +146,8 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
     List<Widget> children = [
       ListTile(
         title: Text('Gravity', style: textTheme.headline6),
-        trailing:
-            Text(settings.gravityFactor.toStringAsFixed(1), style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
+        trailing: Text(settings.gravityFactor.toStringAsFixed(1),
+            style: textTheme.headline6.copyWith(fontWeight: FontWeight.w400)),
         dense: true,
       ),
       Padding(
@@ -179,6 +159,7 @@ class _ConfettiSetupState extends State<ConfettiSetup> {
           divisions: 19,
           onChanged: (value) {
             setState(() {
+              confettiController.stop();
               settings.gravityFactor = value;
             });
           },

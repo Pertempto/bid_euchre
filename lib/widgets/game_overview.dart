@@ -2,7 +2,6 @@ import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
-import 'package:confetti/confetti.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -21,11 +20,13 @@ class GameOverview extends StatefulWidget {
   _GameOverviewState createState() => _GameOverviewState();
 }
 
-class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClientMixin<GameOverview> {
+class _GameOverviewState extends State<GameOverview>
+    with AutomaticKeepAliveClientMixin<GameOverview>, TickerProviderStateMixin {
   Game game;
   bool isSummary;
   Data data;
-  ConfettiController confettiController;
+
+  AnimationController confettiController;
   TextTheme textTheme;
   bool gameIsLocked = true;
 
@@ -34,7 +35,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
 
   @override
   void initState() {
-    confettiController = ConfettiController(duration: Duration(seconds: 2));
+    confettiController = AnimationController(vsync: this, duration: Duration(seconds: 10));
     super.initState();
   }
 
@@ -193,7 +194,9 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
                     child: OutlineButton(
                       child: Text('Celebrate!'),
                       onPressed: () {
-                        confettiController.play();
+//                        confettiController.play();
+                        confettiController.reset();
+                        confettiController.forward();
                       },
                     ),
                   ),
@@ -343,6 +346,7 @@ class _GameOverviewState extends State<GameOverview> with AutomaticKeepAliveClie
       height: double.infinity,
       child: Util.confettiStack(
           child: body,
+          context: context,
           controller: confettiController,
           settings: data.currentUser.confettiSettings,
           colors: confettiColors),
