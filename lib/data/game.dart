@@ -70,9 +70,9 @@ class Game {
   }
 
   Set<String> get allPlayerIds {
-    Set<String> playerIds = {};
-    for (int i = 0; i < rounds.length; i++) {
-      playerIds.addAll(getPlayerIdsAfterRound(i));
+    Set<String> playerIds = initialPlayerIds.toSet();
+    for (Round r in rounds.where((r) => r.isPlayerSwitch)) {
+      playerIds.add(r.newPlayerId);
     }
     return playerIds;
   }

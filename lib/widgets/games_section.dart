@@ -33,6 +33,7 @@ class _GamesSectionState extends State<GamesSection>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    int start = DateTime.now().millisecondsSinceEpoch;
     id = widget.id;
     data = DataStore.lastData;
     List<Game> games = data.statsDb.getGames(id);
@@ -135,6 +136,8 @@ class _GamesSectionState extends State<GamesSection>
       ),
     ));
     children.add(Divider());
+    int end = DateTime.now().millisecondsSinceEpoch;
+    print('games build time: ${end - start}');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }

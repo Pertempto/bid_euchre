@@ -27,6 +27,7 @@ class _BiddingSectionState extends State<BiddingSection>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    int start = DateTime.now().millisecondsSinceEpoch;
     id = widget.id;
     data = DataStore.lastData;
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -99,6 +100,8 @@ class _BiddingSectionState extends State<BiddingSection>
       ),
     ];
     children.add(Divider());
+    int end = DateTime.now().millisecondsSinceEpoch;
+    print('bidding section build time: ${end - start}');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }
