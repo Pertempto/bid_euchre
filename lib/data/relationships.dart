@@ -4,25 +4,20 @@ import 'data_store.dart';
 import 'group.dart';
 
 class RelationshipsDb {
-  Map<String, Relationship> _relationships;
   Map<String, Relationship> _groupRelationships;
   Map<String, Group> _groups;
 
   RelationshipsDb.empty() {
-    _relationships = {};
     _groupRelationships = {};
     _groups = {};
   }
 
   RelationshipsDb.fromSnapshot(QuerySnapshot friendsSnapshot, QuerySnapshot groupsSnapshot) {
-    Map<String, Relationship> relationships = {};
     Map<String, Relationship> groupRelationships = {};
     Map<String, Group> groups = {};
     for (DocumentSnapshot documentSnapshot in friendsSnapshot.documents) {
       Relationship relationship = Relationship.relationshipFromDocument(documentSnapshot);
-      if (relationship.type == RelationshipType.friend) {
-        relationships[relationship.relationshipId] = relationship;
-      } else if (relationship.type == RelationshipType.group) {
+      if (relationship.type == RelationshipType.group) {
         groupRelationships[relationship.relationshipId] = relationship;
       }
     }
@@ -30,48 +25,14 @@ class RelationshipsDb {
       Group group = Group.fromDocument(documentSnapshot);
       groups[group.groupId] = group;
     }
-    _relationships = relationships;
     _groupRelationships = groupRelationships;
     _groups = groups;
-  }
-
-  bool _areFriends(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.accepted) {
-      return true;
-    }
-    return false;
-  }
-
-  void acceptFriendRequest(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
-      relationship.status = RelationshipStatus.accepted;
-      relationship.updateFirestore();
-    }
   }
 
   void acceptInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.requested) {
       relationship.status = RelationshipStatus.accepted;
-      relationship.updateFirestore();
-    }
-  }
-
-  void addFriendRequest(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship == null) {
-      relationship = Relationship(user1Id, user2Id, RelationshipStatus.requested);
-      _relationships[relationship.relationshipId] = relationship;
-      relationship.updateFirestore();
-    }
-  }
-
-  void blockFriendRequest(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
-      relationship.status = RelationshipStatus.blocked;
       relationship.updateFirestore();
     }
   }
@@ -90,10 +51,6 @@ class RelationshipsDb {
     if (user1Id == user2Id) {
       return true;
     }
-    // test if the users are friends
-    if (_areFriends(user1Id, user2Id)) {
-      return true;
-    }
     // test if the users have any groups in common
     if (getGroupIds(user1Id).toSet().intersection(getGroupIds(user2Id).toSet()).isNotEmpty) {
       return true;
@@ -101,27 +58,11 @@ class RelationshipsDb {
     return false;
   }
 
-  void cancelFriendRequest(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
-      _relationships.remove(relationship.relationshipId);
-    }
-  }
-
   void cancelInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.requested) {
       DataStore.friendsCollection.document(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
-    }
-  }
-
-  void deleteBlockedFriendRequest(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.blocked) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
-      _relationships.remove(relationship.relationshipId);
     }
   }
 
@@ -133,19 +74,11 @@ class RelationshipsDb {
     }
   }
 
-  void deleteFriend(String user1Id, String user2Id) {
-    Relationship relationship = getRelationship(user1Id, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.accepted) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
-      _relationships.remove(relationship.relationshipId);
-    }
-  }
-
   void deleteMember(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.accepted) {
       DataStore.friendsCollection.document(relationship.relationshipId).delete();
-      _relationships.remove(relationship.relationshipId);
+      _groupRelationships.remove(relationship.relationshipId);
     }
   }
 
@@ -157,16 +90,6 @@ class RelationshipsDb {
       }
     }
     return blockedGroupIds;
-  }
-
-  List<String> getBlockedUserIds(String userId) {
-    List<String> blockedUserIds = [];
-    for (Relationship relationship in _relationships.values) {
-      if (relationship.user2Id == userId && relationship.status == RelationshipStatus.blocked) {
-        blockedUserIds.add(relationship.user1Id);
-      }
-    }
-    return blockedUserIds;
   }
 
   /* Get the group with the corresponding id */
@@ -209,21 +132,6 @@ class RelationshipsDb {
     return _groupRelationships[relationshipId];
   }
 
-  /* Get the ids of all the user's friends */
-  List<String> getFriendIds(String userId) {
-    List<String> friendIds = [];
-    for (Relationship relationship in _relationships.values) {
-      if (relationship.userIds.contains(userId) && relationship.status == RelationshipStatus.accepted) {
-        if (relationship.user1Id == userId) {
-          friendIds.add(relationship.user2Id);
-        } else {
-          friendIds.add(relationship.user1Id);
-        }
-      }
-    }
-    return friendIds;
-  }
-
   List<String> getInvitedUserIds(String groupId) {
     List<String> invitedIds = [];
     for (Relationship relationship in _groupRelationships.values) {
@@ -242,36 +150,6 @@ class RelationshipsDb {
       }
     }
     return memberIds;
-  }
-
-  List<String> getPendingFriendRequestIds(String userId) {
-    List<String> userIds = [];
-    for (Relationship relationship in _relationships.values) {
-      // only if user1Id is the userId, because user1Id is the requester
-      if (relationship.user1Id == userId && relationship.status == RelationshipStatus.requested) {
-        userIds.add(relationship.user2Id);
-      }
-    }
-    return userIds;
-  }
-
-  Relationship getRelationship(String user1Id, String user2Id) {
-    if (user1Id == null || user2Id == null) {
-      return null;
-    }
-    String relationshipId = Relationship.generateRelationshipId(user1Id, user2Id);
-    return _relationships[relationshipId];
-  }
-
-  List<String> getRequestingFriendIds(String userId) {
-    List<String> userIds = [];
-    for (Relationship relationship in _relationships.values) {
-      // only if user2Id is the userId, because user1Id is the requester
-      if (relationship.user2Id == userId && relationship.status == RelationshipStatus.requested) {
-        userIds.add(relationship.user1Id);
-      }
-    }
-    return userIds;
   }
 
   void inviteUser(String groupId, String user2Id) {
