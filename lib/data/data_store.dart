@@ -66,12 +66,29 @@ class DataStore {
               }
             }
             StatsDb statsDb = lastStats;
-            if (statsDb == null ||
-                hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
-                hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
-              print('loading new stats db');
-              statsDb = StatsDb.load(games, players);
-              lastStats = statsDb;
+            if (games.isNotEmpty && players.isNotEmpty) {
+              if (statsDb == null ||
+                  hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
+                  hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
+                print(
+                    'loading new stats db ${hashList(games.where((g) => g.isFinished))}:${hashList(statsDb.allGames.where((g) => g.isFinished))} ${hashList(players.keys)}:${hashList(statsDb.allPlayers.keys)} ');
+                statsDb = StatsDb.load(games, players);
+                lastStats = statsDb;
+                int correct = 0;
+                int total = 0;
+                for (Game g in games.where((g) => g.isFinished)) {
+                  total++;
+                  if (statsDb.getWinChances(g.initialPlayerIds, [0, 0], 42)[g.winningTeamIndex] >= 0.5) {
+                    correct++;
+                  }
+                }
+                print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
+              }
+            } else {
+              if (statsDb == null) {
+                statsDb = StatsDb.load([], {});
+                lastStats = statsDb;
+              }
             }
             Data data = Data(
                 currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);

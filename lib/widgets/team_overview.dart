@@ -4,12 +4,13 @@ import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
+import 'bidding_section.dart';
 import 'bidding_splits_section.dart';
 import 'compare.dart';
-import 'game_overview.dart';
+import 'games_section.dart';
+import 'overview_section.dart';
 import 'player_profile.dart';
 
 class TeamOverview extends StatefulWidget {
@@ -35,166 +36,20 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     teamId = widget.teamId;
-    print('teamId: $teamId');
     data = DataStore.lastData;
     playerIds = teamId.split(' ').toSet();
-    print('building: ${DateTime.now().millisecondsSinceEpoch}');
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
-      overviewSection(),
-      biddingSection(),
+      OverviewSection(teamId),
+      BiddingSection(teamId),
       BiddingSplitsSection(teamId),
-      gamesSection(),
+      GamesSection(teamId),
       playersSection(),
       opponentsSection(),
       SizedBox(height: 64),
     ];
-    print('built: ${DateTime.now().millisecondsSinceEpoch}');
     return SingleChildScrollView(child: Column(children: children));
-  }
-
-  Widget biddingSection() {
-    TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
-    TextStyle statStyle = textTheme.bodyText2;
-    List<Widget> children = [
-      ListTile(
-        title: Text('Bidding', style: textTheme.headline6),
-        dense: true,
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Made-Set', style: titleStyle), flex: 5),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.biddingRecord).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 3,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Bidding Rate', style: titleStyle), flex: 5),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.biddingFrequency).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 3,
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.averageBid).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.pointsPerBid).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-          ],
-        ),
-      ),
-    ];
-    children.add(Divider());
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
-  }
-
-  Widget gamesSection() {
-    print('games start: ${DateTime.now().millisecondsSinceEpoch}');
-
-    List<Game> games = data.allGames.where((g) => g.teamIds.contains(teamId)).toList();
-
-    Map<String, String> gameStatuses = {};
-    Map<String, bool> flipScores = {};
-    for (Game game in games) {
-      List<String> teamsIds = game.teamIds;
-      flipScores[game.gameId] = teamsIds[1] == teamId;
-      if (!game.isFinished) {
-        gameStatuses[game.gameId] = 'In Progress';
-      } else {
-        if (teamsIds[game.winningTeamIndex] == teamId) {
-          gameStatuses[game.gameId] = 'Won';
-        } else {
-          gameStatuses[game.gameId] = 'Lost';
-        }
-      }
-    }
-
-    List<Widget> children = [
-      ListTile(
-        title: Text('Games', style: textTheme.headline6),
-        dense: true,
-      ),
-    ];
-    List<Widget> horizontalScrollChildren = [SizedBox(width: 2)];
-    for (Game game in games) {
-      List<int> score = game.currentScore;
-      List<Widget> scoreChildren = [
-        Text(Util.scoreString(score[0]), style: textTheme.headline4.copyWith(color: game.teamColors[0])),
-        Padding(padding: EdgeInsets.fromLTRB(1, 0, 1, 0), child: Text('-', style: textTheme.headline5)),
-        Text(Util.scoreString(score[1]), style: textTheme.headline4.copyWith(color: game.teamColors[1])),
-      ];
-      if (flipScores[game.gameId]) {
-        scoreChildren = scoreChildren.reversed.toList();
-      }
-      DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
-      String dateString = intl.DateFormat.yMd().format(date);
-      String timeString = intl.DateFormat.jm().format(date);
-      horizontalScrollChildren.add(GestureDetector(
-        child: Card(
-          child: Container(
-            constraints: BoxConstraints(
-              minWidth: 100,
-            ),
-            margin: EdgeInsets.all(8),
-            child: Column(
-              children: <Widget>[
-                Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
-                Row(children: scoreChildren),
-                Text(dateString, style: textTheme.caption),
-                Text(timeString, style: textTheme.caption),
-              ],
-            ),
-          ),
-        ),
-        onTap: () {
-          if (game.userId == data.currentUser.userId ||
-              data.relationshipsDb.canShare(game.userId, data.currentUser.userId)) {
-            showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (context) {
-                return GameOverview(game, isSummary: true);
-              },
-            );
-          } else {
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text('You don\'t have permission to view this game!'),
-            ));
-          }
-        },
-      ));
-    }
-    children.add(SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-        child: Row(
-          children: horizontalScrollChildren,
-        ),
-      ),
-    ));
-    print('games end: ${DateTime.now().millisecondsSinceEpoch}');
-    children.add(Divider());
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 
   Widget opponentsSection() {
@@ -369,79 +224,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         ),
       ),
     ));
-    children.add(Divider());
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
-  }
-
-  Widget overviewSection() {
-    TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
-    TextStyle statStyle = textTheme.bodyText2;
-    List<Widget> children = [
-      ListTile(
-        title: Text('Overview', style: textTheme.headline6),
-        dense: true,
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Record', style: titleStyle), flex: 5),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.record).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 3,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Streak', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.streak).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Games', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.numGames).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.numRounds).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Bids', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.numBids).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Points', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(teamId, StatType.numPoints).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-          ],
-        ),
-      ),
-    ];
     children.add(Divider());
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }

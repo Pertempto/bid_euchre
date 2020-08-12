@@ -23,6 +23,7 @@ class _GameDetailState extends State<GameDetail> {
     return DataStore.dataWrap((data) {
       Game game = data.games.firstWhere((g) => g.gameId == widget.game.gameId, orElse: () => null);
       bool notLoaded = !data.loaded || game == null;
+      Widget loadingWidget = Center(child: CircularProgressIndicator());
       return DefaultTabController(
         length: 3,
         child: Scaffold(
@@ -40,9 +41,9 @@ class _GameDetailState extends State<GameDetail> {
             color: Colors.white,
             child: TabBarView(
               children: <Widget>[
-                notLoaded ? Container() : GameOverview(game),
-                notLoaded ? Container() : GameStats(game),
-                notLoaded ? Container() : GameSettings(game),
+                notLoaded ? loadingWidget : GameOverview(game),
+                notLoaded ? loadingWidget : GameStats(game),
+                notLoaded ? loadingWidget : GameSettings(game),
               ],
             ),
           ),

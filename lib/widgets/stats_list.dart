@@ -19,7 +19,7 @@ class StatsList extends StatefulWidget {
 
 class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixin<StatsList> {
   bool teams;
-  StatType displayStatType = StatType.winsMinusLosses;
+  StatType displayStatType = StatType.overallRating;
   bool showInfrequent = false;
   String filterText;
   TextEditingController searchController;

@@ -150,8 +150,8 @@ class _NewGameState extends State<NewGame> {
   autoTeams() async {
     setState(() {
       initialPlayerIds.sort((a, b) {
-        double sa = data.statsDb.getStat(a, StatType.winsMinusLosses).sortValue;
-        double sb = data.statsDb.getStat(b, StatType.winsMinusLosses).sortValue;
+        double sa = data.statsDb.getStat(a, StatType.overallRating).sortValue;
+        double sb = data.statsDb.getStat(b, StatType.overallRating).sortValue;
         return sa.compareTo(sb);
       });
       int fairestPartnerIndex = 0;

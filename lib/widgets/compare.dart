@@ -21,15 +21,18 @@ class Compare extends StatefulWidget {
 
 class _CompareState extends State<Compare> {
   static const List<StatType> COMPARE_STATS = [
+    StatType.overallRating,
     StatType.record,
     StatType.numGames,
     StatType.streak,
     StatType.avgScoreDiff,
+    StatType.bidderRating,
     StatType.numBids,
     StatType.madeBidPercentage,
     StatType.biddingFrequency,
     StatType.averageBid,
     StatType.pointsPerBid,
+    StatType.settingPct,
   ];
   TextTheme textTheme;
   bool teams = false;
