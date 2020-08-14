@@ -139,6 +139,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           lastSortValue = statItem.sortValue;
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
+          Color color = data.statsDb.getColor(id);
           children.add(GestureDetector(
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 4, 16, 4),
@@ -156,7 +157,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                     ),
                   ),
                   Expanded(
-                    child: Text(names[id], style: textTheme.bodyText1.copyWith(fontWeight: FontWeight.w400)),
+                    child: Text(names[id], style: textTheme.bodyText1.copyWith(color: color)),
                     flex: 4,
                   ),
                   Expanded(

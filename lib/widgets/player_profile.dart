@@ -63,8 +63,7 @@ class _PlayerProfileState extends State<PlayerProfile> {
           content: Text('Can\'t compare a player with themself!'),
         ));
       } else {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Compare(player.playerId, compare.playerId)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Compare(player.playerId, compare.playerId)));
       }
     }
   }

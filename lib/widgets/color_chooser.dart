@@ -24,7 +24,7 @@ class ColorChooser extends StatelessWidget {
     Colors.blueGrey,
     Colors.brown,
   ];
-  static const int NUM_SHADES = 6;
+  static const int NUM_SHADES = 5;
   final Color selectedColor;
 
   ColorChooser(this.selectedColor);
@@ -63,8 +63,8 @@ class ColorChooser extends StatelessWidget {
             return CustomPaint(
               painter: ExPainter(color),
               child: Container(
-                height: width / 6,
-                width: width / 6,
+                height: width / NUM_SHADES,
+                width: width / NUM_SHADES,
               ),
             );
           }

@@ -178,13 +178,12 @@ class _NewGameState extends State<NewGame> {
       initialPlayerIds[fairestPartnerIndex] = tempId;
       for (int i = 0; i < 2; i++) {
         String teamId = Util.teamId([initialPlayerIds[i], initialPlayerIds[i + 2]]);
-        for (Game g in data.games) {
-          if (g.teamIds.contains(teamId)) {
-            int teamIndex = g.teamIds.indexOf(teamId);
-            teamColors[i] = g.teamColors[teamIndex];
-            break;
-          }
+        Color teamColor = data.statsDb.getColor(teamId);
+        // replace the old generic blue and green
+        if (teamColor.value == 0xff007aff || teamColor.value == 0xff34c759) {
+          teamColor = ColorChooser.generateRandomColor();
         }
+        teamColors[i] = teamColor;
       }
     });
   }
@@ -198,13 +197,12 @@ class _NewGameState extends State<NewGame> {
         String partnerId = initialPlayerIds[(playerIndex + 2) % 4];
         if (partnerId != null) {
           String teamId = Util.teamId([player.playerId, partnerId]);
-          for (Game g in data.games) {
-            if (g.teamIds.contains(teamId)) {
-              int teamIndex = g.teamIds.indexOf(teamId);
-              teamColors[playerIndex % 2] = g.teamColors[teamIndex];
-              break;
-            }
+          Color teamColor = data.statsDb.getColor(teamId);
+          // replace the old generic blue and green
+          if (teamColor.value == 0xff007aff || teamColor.value == 0xff34c759) {
+            teamColor = ColorChooser.generateRandomColor();
           }
+          teamColors[playerIndex % 2] = teamColor;
         }
       });
     }

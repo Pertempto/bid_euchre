@@ -127,6 +127,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       if (oPlayer != null) {
         List<int> record = oppRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
+        Color color = data.statsDb.getColor(oPlayerId);
         horizontalScrollChildren.add(
           GestureDetector(
             child: Card(
@@ -137,7 +138,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(oPlayer.shortName, style: textTheme.bodyText1),
+                    Text(oPlayer.shortName, style: textTheme.bodyText1.copyWith(color: color)),
                     Text(recordString, style: textTheme.bodyText2),
                   ],
                 ),
@@ -238,6 +239,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       if (partner != null) {
         List<int> record = partnerRecords[partnerId];
         String recordString = '${record[0]}-${record[1]}';
+        Color color = data.statsDb.getColor(Util.teamId([player.playerId, partnerId]));
         horizontalScrollChildren.add(
           GestureDetector(
             child: Card(
@@ -248,7 +250,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(partner.shortName, style: textTheme.bodyText1),
+                    Text(partner.shortName, style: textTheme.bodyText1.copyWith(color: color)),
                     Text(recordString, style: textTheme.bodyText2),
                   ],
                 ),

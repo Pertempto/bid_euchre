@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
@@ -336,6 +337,55 @@ class StatsDb {
       return [];
     }
     return allGames.where((g) => _gamesMap[id].contains(g.gameId)).toList();
+  }
+
+  Color getColor(String id) {
+    if (_gamesMap[id] == null || _gamesMap[id].isEmpty) {
+      return Colors.black;
+    }
+    if (id.contains(' ')) {
+      Game lastGame = allGames.firstWhere((g) => g.gameId == _gamesMap[id].last);
+      List<String> teamIds = lastGame.teamIds;
+      if (teamIds.contains(id)) {
+        return lastGame.teamColors[teamIds.indexOf(id)];
+      }
+    } else {
+      Map<String, Color> teamColors = {};
+      Map<String, int> numGames = {};
+      List<Game> games = getGames(id);
+      for (Game game in games) {
+        for (int i = 0; i < 2; i++) {
+          if (game.allTeamsPlayerIds[i].contains(id)) {
+            String teamId = game.teamIds[i];
+            if (teamId != null) {
+              if (teamColors[teamId] == null) {
+                numGames[teamId] = 0;
+                teamColors[teamId] = game.teamColors[i];
+              }
+              numGames[teamId]++;
+            }
+          }
+        }
+      }
+      if (numGames.isEmpty) {
+        // the player has been in games, but only played partial parts
+        Game game = games[0];
+        for (int i = 0; i < 2; i++) {
+          if (game.allTeamsPlayerIds[i].contains(id)) {
+            return game.teamColors[i];
+          }
+        }
+      } else {
+//        print('$teamColors, $numGames');
+        int maxGames = numGames.values.reduce(max);
+        for (String teamId in numGames.keys) {
+          if (numGames[teamId] == maxGames) {
+            return teamColors[teamId];
+          }
+        }
+      }
+    }
+    return Colors.black;
   }
 
   Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {

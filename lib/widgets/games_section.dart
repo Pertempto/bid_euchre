@@ -130,6 +130,7 @@ class _GamesSectionState extends State<GamesSection>
                   },
                 );
               } else {
+                print(game.gameId);
                 Scaffold.of(context).showSnackBar(SnackBar(
                   content: Text('You don\'t have permission to view this game!'),
                 ));

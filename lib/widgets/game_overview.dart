@@ -749,7 +749,8 @@ class _GameOverviewState extends State<GameOverview>
 }
 
 Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context, {bool isSummary = false}) {
-  List<double> winProbs = data.statsDb.getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore, beforeGameId: game.gameId);
+  List<double> winProbs = data.statsDb
+      .getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore, beforeGameId: game.gameId);
 
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
   List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();

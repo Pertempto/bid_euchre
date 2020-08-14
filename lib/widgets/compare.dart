@@ -76,7 +76,6 @@ class _CompareState extends State<Compare> {
       colors = [null, null];
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
-    print('colors: $colors');
     Widget playerTitle(int index) {
       return GestureDetector(
         child: Text(players[index].shortName, style: textTheme.headline5.copyWith(color: colors[index % 2])),

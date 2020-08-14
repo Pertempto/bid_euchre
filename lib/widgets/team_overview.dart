@@ -159,6 +159,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (player != null) {
         List<int> record = playerRecordsAgainst[playerId];
         String recordString = '${record[0]}-${record[1]}';
+        Color color = data.statsDb.getColor(playerId);
         playersScrollChildren.add(
           Card(
             child: Container(
@@ -168,7 +169,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
               margin: EdgeInsets.all(8),
               child: Column(
                 children: <Widget>[
-                  Text(player.shortName, style: textTheme.bodyText1),
+                  Text(player.shortName, style: textTheme.bodyText1.copyWith(color: color)),
                   Text(recordString, style: textTheme.bodyText2),
                 ],
               ),
@@ -192,6 +193,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (teamName != null) {
         List<int> record = teamRecordsAgainst[oTeamId];
         String recordString = '${record[0]}-${record[1]}';
+        Color color = data.statsDb.getColor(oTeamId);
         teamsScrollChildren.add(
           GestureDetector(
             child: Card(
@@ -202,7 +204,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(teamName, style: textTheme.bodyText1),
+                    Text(teamName, style: textTheme.bodyText1.copyWith(color: color)),
                     Text(recordString, style: textTheme.bodyText2),
                   ],
                 ),
@@ -242,6 +244,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       Player player = data.players[playerId];
       if (player != null) {
         StatItem record = data.statsDb.getStat(playerId, StatType.record);
+        Color color = data.statsDb.getColor(playerId);
         horizontalScrollChildren.add(
           GestureDetector(
             child: Card(
@@ -252,7 +255,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(player.fullName, style: textTheme.bodyText1),
+                    Text(player.fullName, style: textTheme.bodyText1.copyWith(color: color)),
                     Text(record.toString(), style: textTheme.bodyText2),
                   ],
                 ),
