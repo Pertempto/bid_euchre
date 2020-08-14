@@ -32,6 +32,7 @@ class _OverviewSectionState extends State<OverviewSection>
     TextTheme textTheme = Theme.of(context).textTheme;
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
+    double overallRating = data.statsDb.getStat(id, StatType.overallRating).statValue;
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -41,18 +42,24 @@ class _OverviewSectionState extends State<OverviewSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Overall Rating', style: titleStyle), flex: 5),
+            Text('Overall Rating', style: titleStyle),
+            Spacer(),
+            Text(data.statsDb.getStat(id, StatType.overallRating).toString(),
+                style: statStyle, textAlign: TextAlign.end),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 2, 16, 8),
+        child: Row(
+          children: <Widget>[
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.overallRating).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 3,
+              child: Container(height: 4, color: Colors.green),
+              flex: (overallRating * 10).round(),
             ),
-            Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.record).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 3,
+              child: Container(height: 4),
+              flex: ((100 - overallRating) * 10).round(),
             ),
           ],
         ),
@@ -61,18 +68,18 @@ class _OverviewSectionState extends State<OverviewSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Avg Score Diff', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.avgScoreDiff).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Streak', style: titleStyle), flex: 6),
             Expanded(
               child: Text(data.statsDb.getStat(id, StatType.streak).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
+            ),
+            Expanded(child: Container(), flex: 1),
+            Expanded(child: Text('Record', style: titleStyle), flex: 5),
+            Expanded(
+              child: Text(data.statsDb.getStat(id, StatType.record).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
+              flex: 3,
             ),
           ],
         ),

@@ -221,7 +221,7 @@ class _GameStatsState extends State<GameStats> {
         List<int> score = game.getScoreAfterRound(i - 1);
         List<String> scoreStrings = score.map(Util.scoreString).toList();
         List<double> winProbs =
-            data.statsDb.getWinChances(game.getPlayerIdsAfterRound(i - 1), score, game.gameOverScore);
+            data.statsDb.getWinChances(game.getPlayerIdsAfterRound(i - 1), score, game.gameOverScore, beforeGameId: game.gameId);
         children.add(
           Stack(
             children: <Widget>[

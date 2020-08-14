@@ -34,7 +34,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    int start = DateTime.now().millisecondsSinceEpoch;
     player = widget.player;
     data = DataStore.lastData;
     textTheme = Theme.of(context).textTheme;
@@ -48,8 +47,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       opponentsSection(),
       SizedBox(height: 64),
     ];
-    int end = DateTime.now().millisecondsSinceEpoch;
-    print('player overview build time: ${end - start}');
     return SingleChildScrollView(child: Column(children: children));
   }
 

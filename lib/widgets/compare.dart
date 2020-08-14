@@ -25,7 +25,6 @@ class _CompareState extends State<Compare> {
     StatType.record,
     StatType.numGames,
     StatType.streak,
-    StatType.avgScoreDiff,
     StatType.bidderRating,
     StatType.numBids,
     StatType.madeBidPercentage,

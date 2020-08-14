@@ -51,7 +51,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       if (!showInfrequent) {
         ids = ids.where((id) {
-          bool has5Games = data.statsDb.getStat(id, StatType.numGames).statValue >= 5;
+          bool has5Games = data.statsDb.getStat(id, StatType.numGames).statValue >= StatsDb.MIN_GAMES;
           DateTime lastPlayed =
               DateTime.fromMillisecondsSinceEpoch(data.statsDb.getStat(id, StatType.lastPlayed).statValue);
           bool playedIn60Days = DateTime.now().subtract(Duration(days: 60)).isBefore(lastPlayed);
