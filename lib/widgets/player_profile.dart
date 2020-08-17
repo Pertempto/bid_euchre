@@ -1,4 +1,5 @@
 import 'package:bideuchre/widgets/compare.dart';
+import 'package:bideuchre/widgets/entity_stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -26,13 +27,14 @@ class _PlayerProfileState extends State<PlayerProfile> {
     Data data = DataStore.lastData;
     player = data.players[widget.player.playerId];
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(player == null ? 'Loading...' : player.fullName),
           bottom: TabBar(
             tabs: <Widget>[
               Tab(icon: Icon(Icons.person), text: 'Overview'),
+              Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
               Tab(icon: Icon(Icons.settings), text: 'Settings'),
             ],
           ),
@@ -48,6 +50,7 @@ class _PlayerProfileState extends State<PlayerProfile> {
         body: TabBarView(
           children: <Widget>[
             player == null ? Container() : PlayerOverview(player),
+            player == null ? Container() : EntityStats(player.playerId),
             player == null ? Container() : PlayerSettings(player),
           ],
         ),

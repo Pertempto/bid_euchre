@@ -1,9 +1,9 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/stats.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_circular_chart/flutter_circular_chart.dart';
 import 'package:intl/intl.dart';
 
 class BiddingSplitsSection extends StatefulWidget {
@@ -26,6 +26,7 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
     12: Colors.lightBlue,
     24: Colors.deepPurple,
   };
+  static const double PIE_THICKNESS = 30;
   static final NumberFormat decimalFormat = NumberFormat('###.#');
 
   String id1;
@@ -36,10 +37,6 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
   List<int> totalMade;
   List<int> totalBids;
   List<Map<int, BiddingSplit>> splits;
-  final List<GlobalKey<AnimatedCircularChartState>> _chartKeys = [
-    GlobalKey<AnimatedCircularChartState>(),
-    GlobalKey<AnimatedCircularChartState>()
-  ];
 
   bool get wantKeepAlive => true;
 
@@ -87,10 +84,6 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
             setState(() {
               numRecentBids = value;
               getSplits();
-              _chartKeys[0].currentState.updateData([CircularStackEntry(getChartData(0))]);
-              if (isCompare) {
-                _chartKeys[1].currentState.updateData([CircularStackEntry(getChartData(1))]);
-              }
             });
           },
         ),
@@ -108,10 +101,6 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
           onValueChanged: (value) {
             setState(() {
               displayMode = value;
-              _chartKeys[0].currentState.updateData([CircularStackEntry(getChartData(0))]);
-              if (isCompare) {
-                _chartKeys[1].currentState.updateData([CircularStackEntry(getChartData(1))]);
-              }
             });
           },
         ),
@@ -122,66 +111,66 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
     List<Widget> bars = [];
     for (int i = 0; i < 2; i++) {
       if (ids[i] != null) {
-        charts.add(AnimatedCircularChart(
-          key: _chartKeys[i],
-          size: Size(chartSize, chartSize),
-          initialChartData: [CircularStackEntry(getChartData(i))],
-          chartType: CircularChartType.Pie,
-        ));
-        bars.add(Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(
-            children: splits[i].keys.where((bid) => splits[i][bid].count > 0).map((bid) {
-              double statDouble;
-              String statString;
-              switch (displayMode) {
-                case DisplayMode.madePercentage:
-                  statDouble = splits[i][bid].madePct;
-                  statString = decimalFormat.format(splits[i][bid].madePct * 100) + '%';
-                  break;
-                case DisplayMode.made:
-                  statDouble = splits[i][bid].made / totalMade[i];
-                  statString = splits[i][bid].made.toString();
-                  break;
-                case DisplayMode.count:
-                  statDouble = splits[i][bid].count / totalBids[i];
-                  statString = splits[i][bid].count.toString();
-                  break;
-              }
-              return Padding(
-                padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
-                child: Column(
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Text(bid.toString(), style: textTheme.bodyText2),
-                        Spacer(),
-                        Text(statString, style: textTheme.bodyText2),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Container(height: 12, color: BID_COLORS[bid]),
-                          flex: (statDouble * 1000).toInt(),
-                        ),
-                        Expanded(
-                          child: Container(height: 12, color: Colors.grey),
-                          flex: ((1 - statDouble) * 1000).toInt(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+        charts.add(PieChart(
+          PieChartData(
+            sections: getChartData(i),
+            centerSpaceRadius: (chartSize * 0.4) - PIE_THICKNESS,
+            sectionsSpace: 0,
+            startDegreeOffset: 270,
+            borderData: FlBorderData(show: false),
           ),
+        ));
+        bars.add(Column(
+          children: splits[i].keys.where((bid) => splits[i][bid].count > 0).map((bid) {
+            double statDouble;
+            String statString;
+            switch (displayMode) {
+              case DisplayMode.madePercentage:
+                statDouble = splits[i][bid].madePct;
+                statString = decimalFormat.format(splits[i][bid].madePct * 100) + '%';
+                break;
+              case DisplayMode.made:
+                statDouble = splits[i][bid].made / totalMade[i];
+                statString = splits[i][bid].made.toString();
+                break;
+              case DisplayMode.count:
+                statDouble = splits[i][bid].count / totalBids[i];
+                statString = splits[i][bid].count.toString();
+                break;
+            }
+            return Padding(
+              padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(bid.toString(), style: textTheme.bodyText2),
+                      Spacer(),
+                      Text(statString, style: textTheme.bodyText2),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(height: 12, color: BID_COLORS[bid]),
+                        flex: (statDouble * 1000).toInt(),
+                      ),
+                      Expanded(
+                        child: Container(height: 12, color: Colors.grey),
+                        flex: ((1 - statDouble) * 1000).toInt(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ));
       }
     }
     if (isCompare) {
       children.add(Padding(
-        padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Column(
           children: <Widget>[
             Row(
@@ -200,6 +189,7 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
                 Expanded(
                   child: bars[0],
                 ),
+                SizedBox(width: 16),
                 Expanded(
                   child: bars[1],
                 ),
@@ -210,12 +200,13 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
       ));
     } else {
       children.add(Padding(
-        padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
             Expanded(
               child: charts[0],
             ),
+            SizedBox(width: 16),
             Expanded(
               child: bars[0],
             ),
@@ -248,8 +239,8 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
     }
   }
 
-  List<CircularSegmentEntry> getChartData(int i) {
-    List<CircularSegmentEntry> chartData = [];
+  List<PieChartSectionData> getChartData(int i) {
+    List<PieChartSectionData> chartData = [];
     for (int bid in Round.ALL_BIDS) {
       double statDouble;
       switch (displayMode) {
@@ -266,7 +257,14 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
           statDouble = splits[i][bid].count / totalBids[i];
           break;
       }
-      chartData.add(CircularSegmentEntry(statDouble, BID_COLORS[bid], rankKey: bid.toString()));
+
+      chartData.add(PieChartSectionData(
+        value: statDouble,
+        color: BID_COLORS[bid],
+        radius: PIE_THICKNESS,
+        title: bid.toString(),
+        showTitle: false,
+      ));
     }
     return chartData;
   }

@@ -5,11 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../util.dart';
-import 'bidding_section.dart';
-import 'bidding_splits_section.dart';
-import 'compare.dart';
 import 'games_section.dart';
 import 'overview_section.dart';
+import 'player_profile.dart';
 import 'team_profile.dart';
 
 class PlayerOverview extends StatefulWidget {
@@ -40,8 +38,6 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
       OverviewSection(player.playerId),
-      BiddingSection(player.playerId),
-      BiddingSplitsSection(player.playerId),
       GamesSection(player.playerId),
       partnersSection(),
       opponentsSection(),
@@ -145,7 +141,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
               ),
             ),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => Compare(player.playerId, oPlayerId)));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
             },
           ),
         );

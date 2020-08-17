@@ -1,4 +1,3 @@
-import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -56,16 +55,7 @@ class _CompareState extends State<Compare> {
       ];
       colors = [];
       for (int i = 0; i < 2; i++) {
-        Color color;
-        String teamId = Util.teamId([players[i].playerId, players[i + 2].playerId]);
-        for (Game g in data.games) {
-          if (g.teamIds.contains(teamId)) {
-            int teamIndex = g.teamIds.indexOf(teamId);
-            color = g.teamColors[teamIndex];
-            break;
-          }
-        }
-        colors.add(color);
+        colors.add(data.statsDb.getColor(Util.teamId([players[i].playerId, players[i + 2].playerId])));
       }
       splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
@@ -73,7 +63,10 @@ class _CompareState extends State<Compare> {
         data.players[widget.id1],
         data.players[widget.id2],
       ];
-      colors = [null, null];
+      colors = [];
+      for (int i = 0; i < 2; i++) {
+        colors.add(data.statsDb.getColor(players[i].playerId));
+      }
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
     Widget playerTitle(int index) {

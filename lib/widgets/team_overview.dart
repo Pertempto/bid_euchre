@@ -6,12 +6,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../util.dart';
-import 'bidding_section.dart';
-import 'bidding_splits_section.dart';
-import 'compare.dart';
 import 'games_section.dart';
 import 'overview_section.dart';
 import 'player_profile.dart';
+import 'team_profile.dart';
 
 class TeamOverview extends StatefulWidget {
   final String teamId;
@@ -42,8 +40,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
       OverviewSection(teamId),
-      BiddingSection(teamId),
-      BiddingSplitsSection(teamId),
       GamesSection(teamId),
       playersSection(),
       opponentsSection(),
@@ -154,26 +150,31 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       ),
     ];
     List<Widget> playersScrollChildren = [SizedBox(width: 2)];
-    for (String playerId in oPlayerIds) {
-      Player player = data.players[playerId];
-      if (player != null) {
-        List<int> record = playerRecordsAgainst[playerId];
+    for (String oPlayerId in oPlayerIds) {
+      Player oPlayer = data.players[oPlayerId];
+      if (oPlayer != null) {
+        List<int> record = playerRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getColor(playerId);
+        Color color = data.statsDb.getColor(oPlayerId);
         playersScrollChildren.add(
-          Card(
-            child: Container(
-              constraints: BoxConstraints(
-                minWidth: 50,
-              ),
-              margin: EdgeInsets.all(8),
-              child: Column(
-                children: <Widget>[
-                  Text(player.shortName, style: textTheme.bodyText1.copyWith(color: color)),
-                  Text(recordString, style: textTheme.bodyText2),
-                ],
+          GestureDetector(
+            child: Card(
+              child: Container(
+                constraints: BoxConstraints(
+                  minWidth: 50,
+                ),
+                margin: EdgeInsets.all(8),
+                child: Column(
+                  children: <Widget>[
+                    Text(oPlayer.shortName, style: textTheme.bodyText1.copyWith(color: color)),
+                    Text(recordString, style: textTheme.bodyText2),
+                  ],
+                ),
               ),
             ),
+            onTap: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
+            },
           ),
         );
       }
@@ -211,7 +212,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
               ),
             ),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => Compare(teamId, oTeamId)));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamProfile(oTeamId)));
             },
           ),
         );
@@ -262,10 +263,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
               ),
             ),
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => PlayerProfile(player)),
-              );
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(player)));
             },
           ),
         );
