@@ -74,15 +74,40 @@ class DataStore {
                     'loading new stats db ${hashList(games.where((g) => g.isFinished))}:${hashList(statsDb.allGames.where((g) => g.isFinished))} ${hashList(players.keys)}:${hashList(statsDb.allPlayers.keys)} ');
                 statsDb = StatsDb.load(games, players);
                 lastStats = statsDb;
-//                int correct = 0;
-//                int total = 0;
-//                for (Game g in games.where((g) => g.isFinished)) {
-//                  total++;
-//                  if (statsDb.getWinChances(g.initialPlayerIds, [0, 0], 42)[g.winningTeamIndex] >= 0.5) {
-//                    correct++;
+//                Random rnd = Random();
+//                for (int i = 0; i <= 0; i++) {
+//                  if (i % 100 == 0) {
+//                    print(i / 10);
+//                  }
+//                  List<double> f = [];
+//                  double t = 1;
+//                  for (int j = 0; j < 3; j++) {
+//                    double n;
+//                    if (j < 2) {
+//                      n = ((rnd.nextDouble() * t * 1000).floor() / 1000.0 - 0.5) / 2 + 0.5;
+//                    } else {
+//                      n = (rnd.nextDouble() * t * 1000).floor() / 1000.0;
+//                    }
+//                    t -= n;
+//                    f.add(n);
+//                  }
+//                  f.add(t);
+//                  statsDb = StatsDb.load(games, players, factors: f);
+//                  lastStats = statsDb;
+//                  int correct = 0;
+//                  int total = 0;
+//                  for (Game g in games.where((g) => g.isFinished)) {
+//                    total++;
+//                    if (statsDb.getWinChances(g.initialPlayerIds, [0, 0], 42,
+//                        beforeGameId: g.gameId)[g.winningTeamIndex] >=
+//                        0.5) {
+//                      correct++;
+//                    }
+//                  }
+//                  if (correct >= 140) {
+//                    print('$f $correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
 //                  }
 //                }
-//                print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
               }
             } else {
               if (statsDb == null) {

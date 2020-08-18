@@ -9,6 +9,7 @@ import 'player.dart';
 
 class StatsDb {
   static const int MIN_GAMES = 5;
+  static const double UNKNOWN_PLAYER_RATING = 50;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, Map<StatType, StatItem>> _playerStats;
@@ -16,8 +17,9 @@ class StatsDb {
   Map<String, List<String>> _gamesMap;
   Map<String, Map<String, double>> _ratingsHistory;
   Map<String, Map<String, double>> _bidderRatingsHistory;
+  List<double> factors;
 
-  StatsDb.load(this.allGames, this.allPlayers) {
+  StatsDb.load(this.allGames, this.allPlayers, {this.factors}) {
     _loadStats();
   }
 
@@ -26,6 +28,23 @@ class StatsDb {
     _gamesMap = {};
     _ratingsHistory = {};
     _bidderRatingsHistory = {};
+//    int count = 0;
+//    int total = 0;
+//    double pts = 0;
+//    for (Game g in allGames.where((g) => g.isFinished)) {
+//      for (Round r in g.rounds.where((r) => !r.isPlayerSwitch && r.isFinished)) {
+//        total++;
+//        pts += r.score[r.bidderIndex % 2] / 4;
+//        if (!r.madeBid) {
+//          count++;
+//        }
+//      }
+//    }
+//    String pct = (count / total * 100).toStringAsFixed(2) + ' %';
+//    print('set bids: $count/$total $pct');
+//    String a = (pts / total).toStringAsFixed(2);
+//    print('pts: $a');
+
     // only finished games for now
     for (Game g in allGames.reversed.where((g) => g.isFinished)) {
       List<Set<String>> teamsPlayerIds = g.allTeamsPlayerIds;
@@ -38,6 +57,7 @@ class StatsDb {
             teamId,
             () => {
               'scoreDiffs': [],
+              'difficulties': [],
               'numGames': 0,
               'numRounds': 0,
               'numBids': 0,
@@ -61,6 +81,7 @@ class StatsDb {
           playerId,
           () => {
             'scoreDiffs': [],
+            'difficulties': [],
             'numGames': 0,
             'numRounds': 0,
             'numBids': 0,
@@ -81,13 +102,22 @@ class StatsDb {
       int winningTeamIndex = g.winningTeamIndex;
       List<int> score = g.currentScore;
       int scoreDiff = score[winningTeamIndex] - score[1 - winningTeamIndex];
+      List<double> adjustedTeamRatings = [];
+      for (int i = 0; i < 2; i++) {
+        double teamRating = getRatingBeforeGame(teamIds[i], g.gameId) / 2;
+        teamRating += getRatingBeforeGame(g.initialPlayerIds[i], g.gameId) / 4;
+        teamRating += getRatingBeforeGame(g.initialPlayerIds[i + 2], g.gameId) / 4;
+        adjustedTeamRatings.add(teamRating);
+      }
       for (String teamId in teamIds.where((id) => id != null)) {
         if (g.isFinished) {
           massiveMap[teamId]['numGames']++;
           if (teamIds[winningTeamIndex] == teamId) {
             massiveMap[teamId]['scoreDiffs'].add(scoreDiff);
+            massiveMap[teamId]['difficulties'].add(adjustedTeamRatings[1 - winningTeamIndex]);
           } else {
             massiveMap[teamId]['scoreDiffs'].add(-scoreDiff);
+            massiveMap[teamId]['difficulties'].add(adjustedTeamRatings[winningTeamIndex]);
           }
         }
         massiveMap[teamId]['lastPlayed'] = max(massiveMap[teamId]['lastPlayed'] as int, g.timestamp);
@@ -98,8 +128,10 @@ class StatsDb {
           if (g.fullGamePlayerIds.contains(playerId)) {
             if (g.allTeamsPlayerIds[winningTeamIndex].contains(playerId)) {
               massiveMap[playerId]['scoreDiffs'].add(scoreDiff);
+              massiveMap[playerId]['difficulties'].add(adjustedTeamRatings[1 - winningTeamIndex]);
             } else {
               massiveMap[playerId]['scoreDiffs'].add(-scoreDiff);
+              massiveMap[playerId]['difficulties'].add(adjustedTeamRatings[winningTeamIndex]);
             }
           }
         }
@@ -281,6 +313,13 @@ class StatsDb {
         } else if (statType == StatType.overallRating) {
           double overall = calculateOverallRating(id, massiveMap);
           statItem = StatItem(id, statType, overall);
+        } else if (statType == StatType.difficultyRating) {
+          double avg = 0;
+          List<double> difficulties = massiveMap[id]['difficulties'].cast<double>();
+          if (difficulties.isNotEmpty) {
+            avg = difficulties.reduce((a, b) => a + b) / difficulties.length;
+          }
+          statItem = StatItem(id, statType, avg);
         }
         if (id.contains(' ')) {
           _teamStats.putIfAbsent(id, () => {});
@@ -313,7 +352,7 @@ class StatsDb {
   double calculateOverallRating(String id, Map<String, Map> massiveMap) {
     int numBids = massiveMap[id]['numBids'];
     int numRounds = massiveMap[id]['numRounds'];
-    double bidderRating = 50;
+    double bidderRating = 0;
     if (numRounds != 0) {
       double biddingPointsPerRound = 0;
       if (numBids != 0) {
@@ -336,19 +375,25 @@ class StatsDb {
 
     int numSets = massiveMap[id]['setOpponents'];
     int numOBids = massiveMap[id]['numOBids'];
-    double settingRating = 50;
+    double settingRating = 0;
     if (numOBids != 0) {
       settingRating = (numSets / numOBids) / 0.25 * 100;
     }
-//          print('$bidderRating, $winningRating, $settingRating');
-    return bidderRating * 0.6 + winningRating * 0.35 + settingRating * 0.05;
-  }
 
-  List<Game> getGames(String id) {
-    if (_gamesMap[id] == null) {
-      return [];
+    double difficultyRating = 50;
+    List<double> difficulties = massiveMap[id]['difficulties'].cast<double>();
+    if (difficulties.isNotEmpty) {
+      difficultyRating = difficulties.reduce((a, b) => a + b) / difficulties.length;
     }
-    return allGames.where((g) => _gamesMap[id].contains(g.gameId)).toList();
+
+//    print('$bidderRating, $winningRating, $settingRating, $difficultyRating');
+    List<double> f = [0.6, 0.25, 0.1, 0.05];
+    // check for custom factors
+    if (factors != null) {
+      f = factors;
+    }
+    double ovr = bidderRating * f[0] + winningRating * f[1] + settingRating * f[2] + difficultyRating * f[3];
+    return max(min(ovr, 100), 0);
   }
 
   double getBidderRatingAfterGame(String id, String gameId) {
@@ -404,6 +449,29 @@ class StatsDb {
     return Colors.black;
   }
 
+  List<Game> getGames(String id, {String beforeGameId}) {
+    if (_gamesMap[id] == null) {
+      return [];
+    }
+    List<Game> games = allGames.where((g) => _gamesMap[id].contains(g.gameId)).toList();
+    if (beforeGameId == null) {
+      return games;
+    } else {
+      bool haveFoundStart = false;
+      List<Game> beforeGames = [];
+      for (Game game in games) {
+        if (haveFoundStart) {
+          beforeGames.add(game);
+        } else {
+          if (game.gameId == beforeGameId) {
+            haveFoundStart = true;
+          }
+        }
+      }
+      return beforeGames;
+    }
+  }
+
   Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {
     Map<int, BiddingSplit> splits = {};
     for (int bid in Round.ALL_BIDS) {
@@ -430,17 +498,14 @@ class StatsDb {
   }
 
   double getRatingBeforeGame(String id, String gameId) {
-    if (!_gamesMap[id].contains(gameId)) {
-      if (id.contains(' ')) {
-        return _teamStats[id][StatType.overallRating].statValue;
-      } else {
-        return _playerStats[id][StatType.overallRating].statValue;
-      }
+    if (_ratingsHistory[id] == null || _ratingsHistory[id].isEmpty) {
+      return UNKNOWN_PLAYER_RATING;
     }
     int index = _gamesMap[id].indexOf(gameId) - 1;
     if (index < 0) {
-      return 50;
+      index = _gamesMap[id].length - 1;
     }
+//    print('$id, $gameId, ${_ratingsHistory[id]}');
     String lastGameId = _gamesMap[id][index];
     return _ratingsHistory[id][lastGameId];
   }
@@ -469,6 +534,7 @@ class StatsDb {
       case StatType.bidderRating:
       case StatType.settingPct:
       case StatType.overallRating:
+      case StatType.difficultyRating:
         return StatItem(id, statType, 0.0);
       case StatType.streak:
       case StatType.numGames:
@@ -516,31 +582,26 @@ class StatsDb {
     List<double> teamRatings = [];
     for (int i = 0; i < 2; i++) {
       String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
-      double teamRating;
-      if (_teamStats[teamId] == null || _teamStats[teamId][StatType.numGames].statValue < MIN_GAMES) {
-        teamRating = 0;
-        for (int j = 0; j < 2; j++) {
-          String playerId = currentPlayerIds[i + j * 2];
-          if (_playerStats[playerId] == null || _playerStats[playerId][StatType.numGames].statValue == 0) {
-            teamRating += 50;
-          } else {
-            if (beforeGameId != null) {
-              teamRating += getRatingBeforeGame(playerId, beforeGameId) / 2;
-            } else {
-              teamRating += _playerStats[playerId][StatType.overallRating].statValue / 2;
-            }
-          }
-        }
+      double teamRating = 0;
+      if (beforeGameId != null) {
+        teamRating += getRatingBeforeGame(teamId, beforeGameId);
       } else {
+        teamRating += _teamStats[teamId][StatType.overallRating].statValue;
+      }
+      double totalPlayerRating = 0;
+      for (int j = 0; j < 2; j++) {
+        String playerId = currentPlayerIds[i + j * 2];
         if (beforeGameId != null) {
-          teamRating = getRatingBeforeGame(teamId, beforeGameId);
+          totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
         } else {
-          teamRating = _teamStats[teamId][StatType.overallRating].statValue;
+          totalPlayerRating += _playerStats[playerId][StatType.overallRating].statValue;
         }
       }
+      totalPlayerRating /= 2;
+      teamRating *= 0.5;
+      teamRating += 0.5 * totalPlayerRating;
       teamRatings.add(teamRating);
     }
-//    print(teamRatings);
     List<double> winChances = ratingsToWinChances(teamRatings);
     List<double> adjWinChances = [];
     for (int i = 0; i < 2; i++) {
@@ -605,6 +666,8 @@ class StatsDb {
         return 'Setting Percentage';
       case StatType.overallRating:
         return 'Overall Rating';
+      case StatType.difficultyRating:
+        return 'Difficulty Rating';
     }
     return '';
   }
@@ -637,6 +700,7 @@ class StatItem {
       case StatType.bidderRating:
       case StatType.settingPct:
       case StatType.overallRating:
+      case StatType.difficultyRating:
         return -statValue;
       case StatType.streak:
       case StatType.numGames:
@@ -680,6 +744,7 @@ class StatItem {
         return '$statValue';
       case StatType.averageBid:
       case StatType.pointsPerBid:
+      case StatType.difficultyRating:
         return (statValue as double).toStringAsFixed(2);
       case StatType.bidderRating:
       case StatType.overallRating:
@@ -731,6 +796,7 @@ enum StatType {
   bidderRating,
   settingPct,
   overallRating,
+  difficultyRating,
 }
 
 class BiddingSplit {
