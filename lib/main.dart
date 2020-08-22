@@ -1,4 +1,3 @@
-import 'package:bideuchre/widgets/stats.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -8,6 +7,7 @@ import 'data/root_page.dart';
 import 'widgets/games.dart';
 import 'widgets/home.dart';
 import 'widgets/login_signup.dart';
+import 'widgets/stats.dart';
 
 void main() {
   runApp(MyApp());

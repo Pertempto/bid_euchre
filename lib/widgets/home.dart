@@ -1,11 +1,11 @@
 import 'package:bideuchre/data/data_store.dart';
-import 'package:bideuchre/widgets/home_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'groups.dart';
 import 'home_overview.dart';
+import 'home_settings.dart';
 
 class HomePage extends StatefulWidget {
   HomePage();

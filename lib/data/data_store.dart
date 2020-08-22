@@ -1,4 +1,3 @@
-import 'package:bideuchre/data/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 
@@ -7,6 +6,7 @@ import 'game.dart';
 import 'player.dart';
 import 'relationships.dart';
 import 'stats.dart';
+import 'user.dart';
 
 class DataStore {
   static CollectionReference friendsCollection = Firestore.instance.collection('friends');

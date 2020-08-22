@@ -744,10 +744,10 @@ class StatItem {
         return '$statValue';
       case StatType.averageBid:
       case StatType.pointsPerBid:
-      case StatType.difficultyRating:
         return (statValue as double).toStringAsFixed(2);
       case StatType.bidderRating:
       case StatType.overallRating:
+      case StatType.difficultyRating:
         return (statValue as double).toStringAsFixed(1);
       case StatType.biddingFrequency:
       case StatType.noPartnerFrequency:
