@@ -31,8 +31,8 @@ class _GameStatsState extends State<GameStats> {
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       gameHeader(game, data, textTheme, context),
-      statsSection(),
       winningChancesSection(),
+      statsSection(),
       SizedBox(height: 64),
     ];
     return SingleChildScrollView(
@@ -206,53 +206,15 @@ class _GameStatsState extends State<GameStats> {
   }
 
   Widget winningChancesSection() {
-    if (game.rounds.where((r) => r.isFinished).toList().isEmpty) {
-      return Container();
-    }
+    List<double> winProbs =
+        data.statsDb.getWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
     List<Widget> children = [
       Padding(
         padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-        child: Text('Winning Chances', style: textTheme.subtitle2),
+        child: Text('Pre-Game Winning Chances', style: textTheme.subtitle2),
       ),
+      Util.winProbsBar(winProbs, game.teamColors, context),
     ];
-    for (int i = 0; i < game.rounds.length; i++) {
-      Round round = game.rounds[i];
-      if (!round.isPlayerSwitch && round.isFinished) {
-        List<int> score = game.getScoreAfterRound(i - 1);
-        List<String> scoreStrings = score.map(Util.scoreString).toList();
-        List<double> winProbs =
-            data.statsDb.getWinChances(game.getPlayerIdsAfterRound(i - 1), score, game.gameOverScore, beforeGameId: game.gameId);
-        children.add(
-          Stack(
-            children: <Widget>[
-              Row(
-                children: List.generate(
-                  2,
-                  (index) => Expanded(
-                    child: Container(height: 16, color: game.teamColors[index]),
-                    flex: ((winProbs[index]) * 1000).toInt(),
-                  ),
-                ),
-              ),
-              Row(
-                children: List.generate(
-                  2,
-                  (index) => Expanded(
-                    child: Container(
-                      alignment: [Alignment.centerLeft, Alignment.centerRight][index],
-                      height: 16,
-                      padding: [EdgeInsets.only(left: 4), EdgeInsets.only(right: 4)][index],
-                      child: Text(scoreStrings[index],
-                          style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      }
-    }
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Column(children: children),

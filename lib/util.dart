@@ -36,11 +36,12 @@ class Util {
     return playerNames.join(' & ');
   }
 
-  static Widget confettiStack({Widget child,
-    BuildContext context,
-    AnimationController controller,
-    ConfettiSettings settings,
-    List<Color> colors}) {
+  static Widget confettiStack(
+      {Widget child,
+      BuildContext context,
+      AnimationController controller,
+      ConfettiSettings settings,
+      List<Color> colors}) {
     bool hasListener = false;
     Size screenSize = MediaQuery.of(context).size;
     Random rand = Random();
@@ -93,5 +94,40 @@ class Util {
         children: children,
       );
     });
+  }
+
+  static Widget winProbsBar(List<double> winProbs, List<Color> teamColors, BuildContext context) {
+    TextTheme textTheme = Theme
+        .of(context)
+        .textTheme;
+    return Stack(
+      children: <Widget>[
+        Row(
+          children: List.generate(
+            2,
+                (index) =>
+                Expanded(
+                  child: Container(height: 16, color: teamColors[index]),
+                  flex: ((winProbs[index]) * 1000).toInt(),
+                ),
+          ),
+        ),
+        Row(
+          children: List.generate(
+            2,
+                (index) =>
+                Expanded(
+                  child: Container(
+                    alignment: [Alignment.centerLeft, Alignment.centerRight][index],
+                    height: 16,
+                    padding: [EdgeInsets.only(left: 4), EdgeInsets.only(right: 4)][index],
+                    child: Text((winProbs[index] * 100).toStringAsFixed(1) + '%',
+                        style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
+                  ),
+                ),
+          ),
+        ),
+      ],
+    );
   }
 }

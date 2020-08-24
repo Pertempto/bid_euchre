@@ -120,7 +120,7 @@ class _GameOverviewState extends State<GameOverview>
                 Expanded(
                   child: GestureDetector(
                     child: Text(dealerName, style: textTheme.bodyText1.copyWith(color: dealerTeamColor)),
-                    onTap: dealerName == '' || isSummary
+                    onTap: dealerName == ''
                         ? null
                         : () {
                             Navigator.push(
@@ -135,7 +135,7 @@ class _GameOverviewState extends State<GameOverview>
                 Expanded(
                   child: GestureDetector(
                     child: Text(bidderName, style: textTheme.bodyText1.copyWith(color: bidderTeamColor)),
-                    onTap: bidderName == '' || isSummary
+                    onTap: bidderName == ''
                         ? null
                         : () {
                             Navigator.push(
@@ -281,7 +281,7 @@ class _GameOverviewState extends State<GameOverview>
             color: Colors.white,
             child: Column(
               children: <Widget>[
-                gameHeader(game, data, textTheme, context, isSummary: isSummary),
+                gameHeader(game, data, textTheme, context),
                 Container(
                   width: double.infinity,
                   alignment: Alignment.center,
@@ -748,10 +748,7 @@ class _GameOverviewState extends State<GameOverview>
   }
 }
 
-Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context, {bool isSummary = false}) {
-  List<double> winProbs = data.statsDb
-      .getWinChances(game.currentPlayerIds, game.currentScore, game.gameOverScore, beforeGameId: game.gameId);
-
+Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
   List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
   List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();
   Widget playerTitle(int index) {
@@ -761,51 +758,17 @@ Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext contex
         style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
       ),
       onTap: () {
-        if (!isSummary) {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
-        }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
       },
     );
   }
 
-  double percentTextPadding = isSummary ? 8 : 4;
   return Column(
     children: [
-      if (!game.isFinished)
-        Stack(
-          children: <Widget>[
-            Row(
-              children: List.generate(
-                2,
-                (index) => Expanded(
-                  child: Container(height: 16, color: game.teamColors[index]),
-                  flex: ((winProbs[index]) * 1000).toInt(),
-                ),
-              ),
-            ),
-            Row(
-              children: List.generate(
-                2,
-                (index) => Expanded(
-                  child: Container(
-                    alignment: [Alignment.centerLeft, Alignment.centerRight][index],
-                    height: 16,
-                    padding: [
-                      EdgeInsets.only(left: percentTextPadding),
-                      EdgeInsets.only(right: percentTextPadding)
-                    ][index],
-                    child: Text((winProbs[index] * 100).toStringAsFixed(1) + '%',
-                        style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       Container(
         padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: Row(
