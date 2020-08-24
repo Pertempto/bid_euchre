@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -402,13 +403,14 @@ class StatsDb {
 
   Color getColor(String id) {
     if (_gamesMap[id] == null || _gamesMap[id].isEmpty) {
-      return Colors.black;
+      // return random color for new team
+      return ColorChooser.generateRandomColor(seed: id.hashCode);
     }
     if (id.contains(' ')) {
       Game lastGame = allGames.firstWhere((g) => g.gameId == _gamesMap[id].last);
       List<String> teamIds = lastGame.teamIds;
       if (teamIds.contains(id)) {
-        return lastGame.teamColors[teamIds.indexOf(id)];
+        return Util.checkColor(lastGame.teamColors[teamIds.indexOf(id)], id);
       }
     } else {
       Map<String, Color> teamColors = {};
@@ -433,7 +435,7 @@ class StatsDb {
         Game game = games[0];
         for (int i = 0; i < 2; i++) {
           if (game.allTeamsPlayerIds[i].contains(id)) {
-            return game.teamColors[i];
+            return Util.checkColor(game.teamColors[i], id);
           }
         }
       } else {
@@ -441,7 +443,7 @@ class StatsDb {
         int maxGames = numGames.values.reduce(max);
         for (String teamId in numGames.keys) {
           if (numGames[teamId] == maxGames) {
-            return teamColors[teamId];
+            return Util.checkColor(teamColors[teamId], teamId);
           }
         }
       }
@@ -479,7 +481,7 @@ class StatsDb {
     }
     int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(playerId)))) {
-      for (Round r in g.rounds.reversed.where((r) => !r.isPlayerSwitch)) {
+      for (Round r in g.rounds.reversed.where((r) => !r.isPlayerSwitch && r.isFinished)) {
         String bidderId = g.getPlayerIdsAfterRound(r.roundIndex - 1)[r.bidderIndex];
         if (bidderId == playerId) {
           splits[r.bid].rounds.add(r);
@@ -586,7 +588,11 @@ class StatsDb {
       if (beforeGameId != null) {
         teamRating += getRatingBeforeGame(teamId, beforeGameId);
       } else {
-        teamRating += _teamStats[teamId][StatType.overallRating].statValue;
+        if (_teamStats[teamId] == null) {
+          teamRating += UNKNOWN_PLAYER_RATING;
+        } else {
+          teamRating += _teamStats[teamId][StatType.overallRating].statValue;
+        }
       }
       double totalPlayerRating = 0;
       for (int j = 0; j < 2; j++) {
@@ -594,7 +600,11 @@ class StatsDb {
         if (beforeGameId != null) {
           totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
         } else {
-          totalPlayerRating += _playerStats[playerId][StatType.overallRating].statValue;
+          if (_playerStats[playerId] == null) {
+            totalPlayerRating += UNKNOWN_PLAYER_RATING;
+          } else {
+            totalPlayerRating += _playerStats[playerId][StatType.overallRating].statValue;
+          }
         }
       }
       totalPlayerRating /= 2;

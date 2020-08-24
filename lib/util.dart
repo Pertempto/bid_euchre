@@ -6,8 +6,17 @@ import 'package:flutter/widgets.dart';
 import 'data/data_store.dart';
 import 'data/player.dart';
 import 'data/user.dart';
+import 'widgets/color_chooser.dart';
 
 class Util {
+  static Color checkColor(Color color, String id) {
+    // replace the old generic blue and green
+    if (color.value == 0xff007aff || color.value == 0xff34c759) {
+      color = ColorChooser.generateRandomColor(seed: id.hashCode);
+    }
+    return color;
+  }
+
   static String scoreString(int score) {
     return score < 0 ? '($score)' : '$score';
   }
@@ -20,19 +29,18 @@ class Util {
   static String teamName(String teamId, Data data) {
     List<Player> players = teamId.split(' ').map((id) => data.allPlayers[id]).toList();
     if (players.contains(null)) {
-      return null;
+      return '';
     }
     List<String> playerNames = players.map((p) => p.shortName).toList();
     playerNames.sort();
     return playerNames.join(' & ');
   }
 
-  static Widget confettiStack(
-      {Widget child,
-      BuildContext context,
-      AnimationController controller,
-      ConfettiSettings settings,
-      List<Color> colors}) {
+  static Widget confettiStack({Widget child,
+    BuildContext context,
+    AnimationController controller,
+    ConfettiSettings settings,
+    List<Color> colors}) {
     bool hasListener = false;
     Size screenSize = MediaQuery.of(context).size;
     Random rand = Random();

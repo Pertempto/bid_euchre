@@ -2,11 +2,9 @@ import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/stats.dart';
-import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
 import 'game_detail.dart';
@@ -34,7 +32,6 @@ class _NewGameState extends State<NewGame> {
         Game copyGame = widget.copyGame;
         if (copyGame == null) {
           initialPlayerIds = [null, null, null, null];
-          teamColors = [ColorChooser.generateRandomColor(), ColorChooser.generateRandomColor()];
           gameOverScore = 42;
         } else {
           initialPlayerIds = copyGame.currentPlayerIds;
@@ -44,9 +41,13 @@ class _NewGameState extends State<NewGame> {
               initialPlayerIds[i] = null;
             }
           }
-          teamColors = copyGame.teamColors;
           gameOverScore = copyGame.gameOverScore;
         }
+        updateTeamColors();
+      }
+      List<List<String>> teamCombos = [];
+      if (!initialPlayerIds.contains(null)) {
+        teamCombos = getTeamCombos();
       }
       TextTheme textTheme = Theme.of(context).textTheme;
       TextStyle leadingStyle = textTheme.headline6;
@@ -77,24 +78,84 @@ class _NewGameState extends State<NewGame> {
       }
       if (!initialPlayerIds.contains(null)) {
         children.add(ListTile(
-          title: Text('Automatic Teams', style: leadingStyle),
-          trailing: Icon(MdiIcons.shuffleVariant),
+          title: Text('Team Combos', style: leadingStyle),
           dense: true,
-          onTap: () {
-            autoTeams();
-          },
         ));
-        children.add(Divider());
-      }
-      for (int i = 0; i < 2; i++) {
-        children.add(ListTile(
-          title: Text('Team ${i + 1} Color', style: leadingStyle),
-          trailing: Container(color: teamColors[i], height: 32, width: 32),
-          dense: true,
-          onTap: () {
-            selectTeamColor(i);
-          },
-        ));
+        List<Widget> comboWidgets = [];
+        for (List<String> playerIds in teamCombos) {
+          String team1Id = Util.teamId([playerIds[0], playerIds[2]]);
+          String team2Id = Util.teamId([playerIds[1], playerIds[3]]);
+          List<Color> teamColors = [data.statsDb.getColor(team1Id), data.statsDb.getColor(team2Id)];
+          List<double> winProbs = data.statsDb.getWinChances(playerIds, [0, 0], gameOverScore);
+          comboWidgets.add(GestureDetector(
+            onTap: () {
+              setState(() {
+                initialPlayerIds = playerIds;
+                updateTeamColors();
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(Util.teamName(team1Id, data),
+                            style: textTheme.bodyText1.copyWith(color: teamColors[0])),
+                        flex: 4,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'vs',
+                          style: textTheme.bodyText1,
+                          textAlign: TextAlign.center,
+                        ),
+                        flex: 1,
+                      ),
+                      Expanded(
+                        child: Text(
+                          Util.teamName(team2Id, data),
+                          style: textTheme.bodyText1.copyWith(color: teamColors[1]),
+                          textAlign: TextAlign.end,
+                        ),
+                        flex: 4,
+                      ),
+                    ],
+                  ),
+                  Stack(
+                    children: <Widget>[
+                      Row(
+                        children: List.generate(
+                          2,
+                          (index) => Expanded(
+                            child: Container(height: 16, color: teamColors[index]),
+                            flex: ((winProbs[index]) * 1000).toInt(),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: List.generate(
+                          2,
+                          (index) => Expanded(
+                            child: Container(
+                              alignment: [Alignment.centerLeft, Alignment.centerRight][index],
+                              height: 16,
+                              padding: [EdgeInsets.only(left: 4), EdgeInsets.only(right: 4)][index],
+                              child: Text((winProbs[index] * 100).toStringAsFixed(1) + '%',
+                                  style: textTheme.bodyText2.copyWith(color: Colors.white, fontSize: 12)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ));
+        }
+        children.add(Column(children: comboWidgets));
         children.add(Divider());
       }
       children.add(
@@ -147,74 +208,68 @@ class _NewGameState extends State<NewGame> {
     });
   }
 
-  autoTeams() async {
-    setState(() {
-      initialPlayerIds.sort((a, b) {
-        double sa = data.statsDb.getStat(a, StatType.overallRating).sortValue;
-        double sb = data.statsDb.getStat(b, StatType.overallRating).sortValue;
-        return sa.compareTo(sb);
-      });
-      int fairestPartnerIndex = 0;
-      double smallestDiff = double.infinity;
-      for (int i = 1; i < 4; i++) {
-        List<String> oTeam = [];
-        for (int j = 1; j < 4; j++) {
-          if (j != i) {
-            oTeam.add(initialPlayerIds[j]);
-          }
-        }
-        List<double> chances = data.statsDb
-            .getWinChances([initialPlayerIds[0], oTeam[0], initialPlayerIds[i], oTeam[1]], [0, 0], gameOverScore);
-        double diff = (chances[0] - chances[1]).abs();
-//        print('$i, $chances');
-        if (diff < smallestDiff) {
-          smallestDiff = diff;
-          fairestPartnerIndex = i;
-        }
-      }
-      // switch two players
-      String tempId = initialPlayerIds[2];
-      initialPlayerIds[2] = initialPlayerIds[fairestPartnerIndex];
-      initialPlayerIds[fairestPartnerIndex] = tempId;
-      for (int i = 0; i < 2; i++) {
-        String teamId = Util.teamId([initialPlayerIds[i], initialPlayerIds[i + 2]]);
-        Color teamColor = data.statsDb.getColor(teamId);
-        // replace the old generic blue and green
-        if (teamColor.value == 0xff007aff || teamColor.value == 0xff34c759) {
-          teamColor = ColorChooser.generateRandomColor();
-        }
-        teamColors[i] = teamColor;
-      }
+  List<List<String>> getTeamCombos() {
+    List<List<String>> combos = [];
+    List<String> sortedPlayerIds = initialPlayerIds.toList();
+    sortedPlayerIds.sort((a, b) {
+      double sa = data.statsDb
+          .getStat(a, StatType.overallRating)
+          .sortValue;
+      double sb = data.statsDb
+          .getStat(b, StatType.overallRating)
+          .sortValue;
+      return sa.compareTo(sb);
     });
+    Map<String, double> diffMap = {};
+    for (int i = 0; i < 3; i++) {
+      List<String> playerIds = [];
+      switch (i) {
+        case 0:
+          playerIds = [sortedPlayerIds[0], sortedPlayerIds[2], sortedPlayerIds[1], sortedPlayerIds[3]];
+          break;
+        case 1:
+          playerIds = [sortedPlayerIds[0], sortedPlayerIds[1], sortedPlayerIds[2], sortedPlayerIds[3]];
+          break;
+        case 2:
+          playerIds = [sortedPlayerIds[0], sortedPlayerIds[1], sortedPlayerIds[3], sortedPlayerIds[2]];
+          break;
+      }
+      List<double> chances = data.statsDb.getWinChances(playerIds, [0, 0], gameOverScore);
+      // put the team with the better chances first
+      if (chances[0] < chances[1]) {
+        String tempId = playerIds[0];
+        playerIds[0] = playerIds[1];
+        playerIds[1] = tempId;
+        tempId = playerIds[2];
+        playerIds[2] = playerIds[3];
+        playerIds[3] = tempId;
+      }
+      combos.add(playerIds);
+      diffMap[playerIds.toString()] = (chances[0] - chances[1]).abs();
+    }
+    combos.sort((a, b) => diffMap[a.toString()].compareTo(diffMap[b.toString()]));
+    return combos;
   }
 
   selectPlayer(int playerIndex) async {
     Player player = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()));
     if (player != null) {
       setState(() {
-        print('player: $player');
+        print('player name: ${player.fullName}');
         initialPlayerIds[playerIndex] = player.playerId;
-        String partnerId = initialPlayerIds[(playerIndex + 2) % 4];
-        if (partnerId != null) {
-          String teamId = Util.teamId([player.playerId, partnerId]);
-          Color teamColor = data.statsDb.getColor(teamId);
-          // replace the old generic blue and green
-          if (teamColor.value == 0xff007aff || teamColor.value == 0xff34c759) {
-            teamColor = ColorChooser.generateRandomColor();
-          }
-          teamColors[playerIndex % 2] = teamColor;
-        }
+        updateTeamColors();
       });
     }
   }
 
-  selectTeamColor(int teamIndex) async {
-    Color teamColor =
-        await Navigator.push(context, MaterialPageRoute(builder: (context) => ColorChooser(teamColors[teamIndex])));
-    if (teamColor != null) {
-      setState(() {
-        teamColors[teamIndex] = teamColor;
-      });
+  updateTeamColors() {
+    teamColors = [Colors.black, Colors.black];
+    for (int i = 0; i < 2; i++) {
+      if (initialPlayerIds[i] != null && initialPlayerIds[i + 2] != null) {
+        String teamId = Util.teamId([initialPlayerIds[i], initialPlayerIds[i + 2]]);
+        Color teamColor = data.statsDb.getColor(teamId);
+        teamColors[i] = teamColor;
+      }
     }
   }
 }

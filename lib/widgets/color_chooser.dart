@@ -81,8 +81,11 @@ class ColorChooser extends StatelessWidget {
     );
   }
 
-  static Color generateRandomColor() {
+  static Color generateRandomColor({int seed}) {
     Random rnd = Random();
+    if (seed != null) {
+      rnd = Random(seed);
+    }
     while (true) {
       int index = rnd.nextInt(COLOR_SWATCHES.length);
       ColorSwatch swatch = COLOR_SWATCHES[index];
