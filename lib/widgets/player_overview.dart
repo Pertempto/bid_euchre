@@ -125,8 +125,9 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         String recordString = '${record[0]}-${record[1]}';
         Color color = data.statsDb.getColor(oPlayerId);
         horizontalScrollChildren.add(
-          GestureDetector(
-            child: Card(
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 50,
@@ -139,10 +140,10 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                   ],
                 ),
               ),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
+              },
             ),
-            onTap: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
-            },
           ),
         );
       }
@@ -237,8 +238,9 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         String recordString = '${record[0]}-${record[1]}';
         Color color = data.statsDb.getColor(Util.teamId([player.playerId, partnerId]));
         horizontalScrollChildren.add(
-          GestureDetector(
-            child: Card(
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 50,
@@ -251,13 +253,13 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                   ],
                 ),
               ),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => TeamProfile(Util.teamId([player.playerId, partnerId]))),
+                );
+              },
             ),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => TeamProfile(Util.teamId([player.playerId, partnerId]))),
-              );
-            },
           ),
         );
       }

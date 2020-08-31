@@ -101,8 +101,9 @@ class _GamesSectionState extends State<GamesSection>
           String timeString = intl.DateFormat.jm().format(date);
           double rating = data.statsDb.getRatingAfterGame(id, game.gameId);
           String ratingString = 'OVR: ${rating.toStringAsFixed(1)}';
-          return GestureDetector(
-            child: Card(
+          return Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 100,
@@ -118,24 +119,24 @@ class _GamesSectionState extends State<GamesSection>
                   ],
                 ),
               ),
+              onTap: () {
+                if (game.userId == data.currentUser.userId ||
+                    data.relationshipsDb.canShare(game.userId, data.currentUser.userId)) {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) {
+                      return GameOverview(game, isSummary: true);
+                    },
+                  );
+                } else {
+                  print(game.gameId);
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text('You don\'t have permission to view this game!'),
+                  ));
+                }
+              },
             ),
-            onTap: () {
-              if (game.userId == data.currentUser.userId ||
-                  data.relationshipsDb.canShare(game.userId, data.currentUser.userId)) {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) {
-                    return GameOverview(game, isSummary: true);
-                  },
-                );
-              } else {
-                print(game.gameId);
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text('You don\'t have permission to view this game!'),
-                ));
-              }
-            },
           );
         },
         scrollDirection: Axis.horizontal,

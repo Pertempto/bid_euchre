@@ -157,8 +157,12 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         String recordString = '${record[0]}-${record[1]}';
         Color color = data.statsDb.getColor(oPlayerId);
         playersScrollChildren.add(
-          GestureDetector(
-            child: Card(
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
+              },
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 50,
@@ -172,9 +176,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
                 ),
               ),
             ),
-            onTap: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(oPlayer)));
-            },
           ),
         );
       }
@@ -196,8 +197,12 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         String recordString = '${record[0]}-${record[1]}';
         Color color = data.statsDb.getColor(oTeamId);
         teamsScrollChildren.add(
-          GestureDetector(
-            child: Card(
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamProfile(oTeamId)));
+              },
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 50,
@@ -211,9 +216,6 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
                 ),
               ),
             ),
-            onTap: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TeamProfile(oTeamId)));
-            },
           ),
         );
       }
@@ -247,8 +249,9 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
         StatItem record = data.statsDb.getStat(playerId, StatType.record);
         Color color = data.statsDb.getColor(playerId);
         horizontalScrollChildren.add(
-          GestureDetector(
-            child: Card(
+          Card(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 50,
@@ -261,10 +264,10 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
                   ],
                 ),
               ),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(player)));
+              },
             ),
-            onTap: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerProfile(player)));
-            },
           ),
         );
       }

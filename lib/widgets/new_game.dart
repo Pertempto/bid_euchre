@@ -87,7 +87,7 @@ class _NewGameState extends State<NewGame> {
           String team2Id = Util.teamId([playerIds[1], playerIds[3]]);
           List<Color> teamColors = [data.statsDb.getColor(team1Id), data.statsDb.getColor(team2Id)];
           List<double> winProbs = data.statsDb.getWinChances(playerIds, [0, 0], gameOverScore);
-          comboWidgets.add(GestureDetector(
+          comboWidgets.add(InkWell(
             onTap: () {
               setState(() {
                 initialPlayerIds = playerIds;
@@ -186,12 +186,8 @@ class _NewGameState extends State<NewGame> {
     List<List<String>> combos = [];
     List<String> sortedPlayerIds = initialPlayerIds.toList();
     sortedPlayerIds.sort((a, b) {
-      double sa = data.statsDb
-          .getStat(a, StatType.overallRating)
-          .sortValue;
-      double sb = data.statsDb
-          .getStat(b, StatType.overallRating)
-          .sortValue;
+      double sa = data.statsDb.getStat(a, StatType.overallRating).sortValue;
+      double sb = data.statsDb.getStat(b, StatType.overallRating).sortValue;
       return sa.compareTo(sb);
     });
     Map<String, double> diffMap = {};

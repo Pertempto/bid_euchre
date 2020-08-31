@@ -126,9 +126,13 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
         ],
       ),
     ));
-    return GestureDetector(
-      child: Card(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+        },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -137,9 +141,6 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
           ),
         ),
       ),
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
-      },
     );
   }
 }
