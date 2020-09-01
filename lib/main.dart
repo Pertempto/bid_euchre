@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -10,11 +11,11 @@ import 'widgets/login_signup.dart';
 import 'widgets/stats.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,15 +46,13 @@ class MyApp extends StatelessWidget {
           bodyText1: TextStyle(fontSize: 16.0),
         ),
       ),
-      home: Root(Auth()),
+      home: Root(),
     );
   }
 }
 
 class Root extends StatefulWidget {
-  final Auth auth;
-
-  Root(this.auth);
+  Root();
 
   @override
   _RootState createState() => _RootState();
@@ -61,6 +60,8 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root> {
   AuthStatus authStatus = AuthStatus.NOT_DETERMINED;
+  bool inited = false;
+  Auth auth;
   final List<RootPage> pages = [
     RootPage('Home', Icons.home, HomePage()),
     RootPage('Games', MdiIcons.cardsPlayingOutline, GamesPage()),
@@ -68,27 +69,44 @@ class _RootState extends State<Root> {
   ];
   int _currentIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    widget.auth.onStateChanged((user) {
-      if (user == null) {
-        DataStore.currentUserId = null;
-      } else {
-        DataStore.currentUserId = user.uid;
-      }
-      setState(() {
-        authStatus = user?.uid == null ? AuthStatus.NOT_LOGGED_IN : AuthStatus.LOGGED_IN;
+  void initializeFlutterFire() async {
+    await Firebase.initializeApp();
+    setState(() {
+      inited = true;
+      auth = Auth();
+      DataStore.auth = auth;
+      auth.onStateChanged((user) {
+        if (user == null) {
+          DataStore.currentUserId = null;
+        } else {
+          DataStore.currentUserId = user.uid;
+        }
+        setState(() {
+          authStatus = user?.uid == null ? AuthStatus.NOT_LOGGED_IN : AuthStatus.LOGGED_IN;
+        });
       });
     });
   }
 
   @override
+  void initState() {
+    initializeFlutterFire();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    DataStore.auth = widget.auth;
+    if (!inited) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Loading'),
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     switch (authStatus) {
       case AuthStatus.NOT_LOGGED_IN:
-        return LoginSignup(widget.auth);
+        return LoginSignup();
       case AuthStatus.LOGGED_IN:
         return Scaffold(
           body: IndexedStack(
@@ -106,7 +124,7 @@ class _RootState extends State<Root> {
           ),
         );
       default:
-        // loading for a fraction of second, show blank screen
+      // loading for a fraction of second, show blank screen
         return Scaffold(
           body: Container(),
         );

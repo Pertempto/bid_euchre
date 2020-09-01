@@ -143,7 +143,7 @@ class _GameSettingsState extends State<GameSettings> {
                     textColor: Colors.red,
                     child: Text('Delete'),
                     onPressed: () {
-                      DataStore.gamesCollection.document(game.gameId).delete();
+                      DataStore.gamesCollection.doc(game.gameId).delete();
                       Navigator.of(context).pop(); // close dialog
                       Navigator.of(context).pop(); // close game detail page
                     },

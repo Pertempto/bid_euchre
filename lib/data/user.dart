@@ -9,26 +9,27 @@ class User {
   ConfettiSettings confettiSettings;
 
   User.fromDocument(DocumentSnapshot documentSnapshot) {
-    userId = documentSnapshot.documentID;
-    name = documentSnapshot.data['name'];
-    if (documentSnapshot.data['pinnedPlayerIds'] != null) {
-      pinnedPlayerIds = documentSnapshot.data['pinnedPlayerIds'].cast<String>();
+    userId = documentSnapshot.id;
+    name = documentSnapshot.data()['name'];
+    if (documentSnapshot.data()['pinnedPlayerIds'] != null) {
+      pinnedPlayerIds = documentSnapshot.data()['pinnedPlayerIds'].cast<String>();
     } else {
       pinnedPlayerIds = [];
     }
-    if (documentSnapshot.data['confettiSettings'] != null) {
-      confettiSettings = ConfettiSettings.fromData(documentSnapshot.data['confettiSettings']);
+    if (documentSnapshot.data()['confettiSettings'] != null) {
+      confettiSettings = ConfettiSettings.fromData(documentSnapshot.data()['confettiSettings']);
     } else {
       confettiSettings = ConfettiSettings();
     }
   }
 
   User.newUser(String userId, String name) {
-    DocumentReference doc = DataStore.usersCollection.document(userId);
+    DocumentReference doc = DataStore.usersCollection.doc(userId);
     this.userId = userId;
     this.name = name;
     this.pinnedPlayerIds = [];
-    doc.setData(dataMap);
+    this.confettiSettings = ConfettiSettings();
+    doc.set(dataMap);
   }
 
   Map<String, dynamic> get dataMap {
@@ -41,7 +42,7 @@ class User {
 
   static Map<String, User> usersFromSnapshot(QuerySnapshot snapshot) {
     Map<String, User> users = {};
-    for (DocumentSnapshot documentSnapshot in snapshot.documents) {
+    for (DocumentSnapshot documentSnapshot in snapshot.docs) {
       User user = User.fromDocument(documentSnapshot);
       users[user.userId] = user;
     }
@@ -54,7 +55,7 @@ class User {
   }
 
   void updateFirestore() {
-    DataStore.usersCollection.document(userId).updateData(dataMap);
+    DataStore.usersCollection.doc(userId).update(dataMap);
   }
 }
 

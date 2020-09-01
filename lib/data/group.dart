@@ -7,17 +7,17 @@ class Group {
   String name;
 
   Group.fromDocument(DocumentSnapshot documentSnapshot) {
-    groupId = documentSnapshot.documentID;
-    adminId = documentSnapshot.data['adminId'];
-    name = documentSnapshot.data['name'];
+    groupId = documentSnapshot.id;
+    adminId = documentSnapshot.data()['adminId'];
+    name = documentSnapshot.data()['name'];
   }
 
   Group.newGroup(String adminId, String name) {
-    DocumentReference doc = DataStore.groupsCollection.document();
-    this.groupId = doc.documentID;
+    DocumentReference doc = DataStore.groupsCollection.doc();
+    this.groupId = doc.id;
     this.adminId = adminId;
     this.name = name;
-    doc.setData(dataMap);
+    doc.set(dataMap);
   }
 
   Map<String, dynamic> get dataMap {
@@ -28,6 +28,6 @@ class Group {
   }
 
   void updateFirestore() {
-    DataStore.groupsCollection.document(groupId).updateData(dataMap);
+    DataStore.groupsCollection.doc(groupId).update(dataMap);
   }
 }

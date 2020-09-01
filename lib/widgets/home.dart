@@ -26,6 +26,16 @@ class _HomePageState extends State<HomePage> {
           body: Center(child: CircularProgressIndicator()),
         );
       }
+      if (data.currentUser == null) {
+        print('unknown user id: ${DataStore.currentUserId}, logging out...');
+        DataStore.auth.signOut();
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Home'),
+          ),
+          body: Center(child: Text('Error signing in!')),
+        );
+      }
       return DefaultTabController(
         length: 3,
         child: Scaffold(

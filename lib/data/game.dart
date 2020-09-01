@@ -17,8 +17,8 @@ class Game {
   int timestamp;
 
   Game.fromDocument(DocumentSnapshot documentSnapshot) {
-    gameId = documentSnapshot.documentID;
-    Map data = documentSnapshot.data;
+    gameId = documentSnapshot.id;
+    Map data = documentSnapshot.data();
     userId = data['userId'];
     gameOverScore = data['gameOverScore'];
     if (gameOverScore == null) {
@@ -45,8 +45,8 @@ class Game {
   }
 
   Game.newGame(User user, List<String> initialPlayerIds, List<Color> teamColors, int gameOverScore) {
-    DocumentReference doc = DataStore.gamesCollection.document();
-    gameId = doc.documentID;
+    DocumentReference doc = DataStore.gamesCollection.doc();
+    gameId = doc.id;
     userId = user.userId;
     this.initialPlayerIds = initialPlayerIds;
     this.teamColors = teamColors;
@@ -54,7 +54,7 @@ class Game {
     timestamp = DateTime.now().millisecondsSinceEpoch;
     rounds = [Round.empty(0, 0)];
     print(dataMap);
-    doc.setData(dataMap);
+    doc.set(dataMap);
   }
 
   Map<String, dynamic> get dataMap {
@@ -155,12 +155,12 @@ class Game {
 
   static List<Game> gamesFromSnapshot(QuerySnapshot snapshot) {
     List<Game> games = [];
-    for (DocumentSnapshot documentSnapshot in snapshot.documents) {
+    for (DocumentSnapshot documentSnapshot in snapshot.docs) {
       // for some reason player data is being sent to this function
-      if (documentSnapshot.data.containsKey('fullName')) {
+      if (documentSnapshot.data().containsKey('fullName')) {
         return [];
       }
-      int variation = documentSnapshot.data['variation'];
+      int variation = documentSnapshot.data()['variation'];
       if (variation == null || variation == 1) {
         games.add(Game.fromDocument(documentSnapshot));
       }
@@ -205,7 +205,7 @@ class Game {
   }
 
   void updateFirestore() {
-    DataStore.gamesCollection.document(gameId).updateData(dataMap);
+    DataStore.gamesCollection.doc(gameId).update(dataMap);
   }
 
   @override

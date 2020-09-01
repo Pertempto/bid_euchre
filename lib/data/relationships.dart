@@ -15,13 +15,13 @@ class RelationshipsDb {
   RelationshipsDb.fromSnapshot(QuerySnapshot friendsSnapshot, QuerySnapshot groupsSnapshot) {
     Map<String, Relationship> groupRelationships = {};
     Map<String, Group> groups = {};
-    for (DocumentSnapshot documentSnapshot in friendsSnapshot.documents) {
+    for (DocumentSnapshot documentSnapshot in friendsSnapshot.docs) {
       Relationship relationship = Relationship.relationshipFromDocument(documentSnapshot);
       if (relationship.type == RelationshipType.group) {
         groupRelationships[relationship.relationshipId] = relationship;
       }
     }
-    for (DocumentSnapshot documentSnapshot in groupsSnapshot.documents) {
+    for (DocumentSnapshot documentSnapshot in groupsSnapshot.docs) {
       Group group = Group.fromDocument(documentSnapshot);
       groups[group.groupId] = group;
     }
@@ -61,7 +61,7 @@ class RelationshipsDb {
   void cancelInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.requested) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
+      DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
   }
@@ -69,7 +69,7 @@ class RelationshipsDb {
   void deleteBlockedInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.blocked) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
+      DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
   }
@@ -77,7 +77,7 @@ class RelationshipsDb {
   void deleteMember(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship != null && relationship.status == RelationshipStatus.accepted) {
-      DataStore.friendsCollection.document(relationship.relationshipId).delete();
+      DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
   }
@@ -204,7 +204,7 @@ class Relationship {
   }
 
   static Relationship relationshipFromDocument(DocumentSnapshot documentSnapshot) {
-    Map data = documentSnapshot.data;
+    Map data = documentSnapshot.data();
     return Relationship(
       data['user1Id'],
       data['user2Id'],
@@ -223,7 +223,7 @@ class Relationship {
   }
 
   void updateFirestore() {
-    DataStore.friendsCollection.document(relationshipId).setData(dataMap);
+    DataStore.friendsCollection.doc(relationshipId).set(dataMap);
   }
 }
 

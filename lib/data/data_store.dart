@@ -9,11 +9,11 @@ import 'stats.dart';
 import 'user.dart';
 
 class DataStore {
-  static CollectionReference friendsCollection = Firestore.instance.collection('friends');
-  static CollectionReference gamesCollection = Firestore.instance.collection('games');
-  static CollectionReference groupsCollection = Firestore.instance.collection('groups');
-  static CollectionReference playersCollection = Firestore.instance.collection('players');
-  static CollectionReference usersCollection = Firestore.instance.collection('users');
+  static CollectionReference friendsCollection = FirebaseFirestore.instance.collection('friends');
+  static CollectionReference gamesCollection = FirebaseFirestore.instance.collection('games');
+  static CollectionReference groupsCollection = FirebaseFirestore.instance.collection('groups');
+  static CollectionReference playersCollection = FirebaseFirestore.instance.collection('players');
+  static CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
   static Auth auth;
   static String currentUserId;
   static Data lastData;

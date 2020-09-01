@@ -1,13 +1,11 @@
 /* Code modified from https://medium.com/flutterpub/flutter-how-to-do-user-login-with-firebase-a6af760b14d5 */
+import 'package:bideuchre/data/data_store.dart';
 import 'package:flutter/material.dart';
 
-import '../data/authentication.dart';
 import '../data/user.dart';
 
 class LoginSignup extends StatefulWidget {
-  final Auth auth;
-
-  LoginSignup(this.auth);
+  LoginSignup();
 
   @override
   State<StatefulWidget> createState() => _LoginSignupState();
@@ -239,7 +237,7 @@ class _LoginSignupState extends State<LoginSignup> {
       String userId = '';
       try {
         if (_isLoginForm) {
-          userId = await widget.auth.signIn(_email, _password);
+          userId = await DataStore.auth.signIn(_email, _password);
         } else {
           if (_password != _confirmPassword) {
             setState(() {
@@ -247,11 +245,18 @@ class _LoginSignupState extends State<LoginSignup> {
               _errorMessage = 'Passwords do not match!';
             });
           } else {
-            userId = await widget.auth.signUp(_email, _password);
+            print('trying to create new user...');
+            userId = await DataStore.auth.signUp(_email, _password);
+            print('userId: $userId');
             User.newUser(userId, _name);
+            print('created user!!');
           }
         }
       } catch (e) {
+        if (e.runtimeType == NoSuchMethodError) {
+          throw e;
+        }
+        print('error message: ${e.code}, ${e.message}');
         setState(() {
           _isLoading = false;
           switch (e.code) {

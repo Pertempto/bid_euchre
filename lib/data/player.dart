@@ -9,18 +9,18 @@ class Player {
   String fullName;
 
   Player.fromDocument(DocumentSnapshot documentSnapshot) {
-    playerId = documentSnapshot.documentID;
-    Map data = documentSnapshot.data;
+    playerId = documentSnapshot.id;
+    Map data = documentSnapshot.data();
     ownerId = data['ownerId'];
     fullName = data['fullName'];
   }
 
   Player.newPlayer(User user, String fullName) {
-    DocumentReference doc = DataStore.playersCollection.document();
-    playerId = doc.documentID;
+    DocumentReference doc = DataStore.playersCollection.doc();
+    playerId = doc.id;
     ownerId = user.userId;
     this.fullName = fullName;
-    doc.setData(dataMap);
+    doc.set(dataMap);
   }
 
   Map<String, dynamic> get dataMap {
@@ -40,7 +40,7 @@ class Player {
 
   static Map<String, Player> playersFromSnapshot(QuerySnapshot snapshot) {
     Map<String, Player> players = {};
-    for (DocumentSnapshot documentSnapshot in snapshot.documents) {
+    for (DocumentSnapshot documentSnapshot in snapshot.docs) {
       Player player = Player.fromDocument(documentSnapshot);
       players[player.playerId] = player;
     }
@@ -48,6 +48,6 @@ class Player {
   }
 
   void updateFirestore() {
-    DataStore.playersCollection.document(playerId).updateData(dataMap);
+    DataStore.playersCollection.doc(playerId).update(dataMap);
   }
 }
