@@ -71,6 +71,7 @@ class StatsDb {
               'madeNoPartner': 0,
               'numOBids': 0,
               'setOpponents': 0,
+              'oPointsOnBids': 0,
             },
           );
           _gamesMap.putIfAbsent(teamId, () => []);
@@ -95,6 +96,7 @@ class StatsDb {
             'madeNoPartner': 0,
             'numOBids': 0,
             'setOpponents': 0,
+            'oPointsOnBids': 0,
           },
         );
         _gamesMap.putIfAbsent(playerId, () => []);
@@ -162,6 +164,7 @@ class StatsDb {
               }
             } else {
               massiveMap[teamId]['numOBids']++;
+              massiveMap[teamId]['oPointsOnBids'] += round.score[round.bidderIndex % 2];
               if (!round.madeBid) {
                 massiveMap[teamId]['setOpponents']++;
               }
@@ -187,6 +190,8 @@ class StatsDb {
           }
           massiveMap[bidderId]['biddingTotal'] += round.bid;
           massiveMap[bidderId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
+          massiveMap[rPlayerIds[(round.bidderIndex + 1) % 4]]['oPointsOnBids'] += round.score[round.bidderIndex % 2];
+          massiveMap[rPlayerIds[(round.bidderIndex + 3) % 4]]['oPointsOnBids'] += round.score[round.bidderIndex % 2];
           if (round.bid > 6) {
             massiveMap[bidderId]['noPartner']++;
             if (round.madeBid) {
@@ -301,7 +306,7 @@ class StatsDb {
         } else if (statType == StatType.wins) {
           statItem = StatItem(id, statType, wins);
         } else if (statType == StatType.losses) {
-          statItem = StatItem(id, statType, wins);
+          statItem = StatItem(id, statType, losses);
         } else if (statType == StatType.bidderRating) {
           statItem = StatItem(id, statType, calculateBidderRating(id, massiveMap));
         } else if (statType == StatType.settingPct) {
@@ -321,6 +326,8 @@ class StatsDb {
             avg = difficulties.reduce((a, b) => a + b) / difficulties.length;
           }
           statItem = StatItem(id, statType, avg);
+        } else if (statType == StatType.oBidderRating) {
+          statItem = StatItem(id, statType, calculateOBidderRating(id, massiveMap));
         }
         if (id.contains(' ')) {
           _teamStats.putIfAbsent(id, () => {});
@@ -333,9 +340,12 @@ class StatsDb {
     }
   }
 
-  double calculateBidderRating(String id, Map<String, Map> massiveMap) {
+  static double calculateBidderRating(String id, Map<String, Map> massiveMap) {
     int numBids = massiveMap[id]['numBids'];
     int numRounds = massiveMap[id]['numRounds'];
+    if (numRounds == 0) {
+      return 0;
+    }
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
       double ppb = massiveMap[id]['pointsOnBids'] / numBids;
@@ -350,50 +360,27 @@ class StatsDb {
     return rating;
   }
 
-  double calculateOverallRating(String id, Map<String, Map> massiveMap) {
-    int numBids = massiveMap[id]['numBids'];
+  static double calculateOBidderRating(String id, Map<String, Map> massiveMap) {
+    int numBids = massiveMap[id]['numOBids'];
     int numRounds = massiveMap[id]['numRounds'];
-    double bidderRating = 0;
-    if (numRounds != 0) {
-      double biddingPointsPerRound = 0;
-      if (numBids != 0) {
-        double ppb = massiveMap[id]['pointsOnBids'] / numBids;
-        biddingPointsPerRound = ppb * numBids / numRounds;
-      }
-      if (id.contains(' ')) {
-        bidderRating = biddingPointsPerRound / 3.0 * 100;
-      } else {
-        bidderRating = biddingPointsPerRound / 1.5 * 100;
-      }
+    double biddingPointsPerRound = 0;
+    if (numBids != 0) {
+      double ppb = massiveMap[id]['oPointsOnBids'] / numBids;
+      biddingPointsPerRound = ppb * numBids / numRounds;
     }
+    double rating = biddingPointsPerRound / 3.0 * 100;
+    return rating;
+  }
 
+  static double calculateOverallRating(String id, Map<String, Map> massiveMap) {
+    double bidderRating = calculateBidderRating(id, massiveMap);
     int wins = massiveMap[id]['scoreDiffs'].where((d) => (d as int) > 0).length;
     int losses = massiveMap[id]['scoreDiffs'].where((d) => (d as int) < 0).length;
     double winningRating = 50;
     if (wins + losses != 0) {
       winningRating = wins / (wins + losses) * 100;
     }
-
-    int numSets = massiveMap[id]['setOpponents'];
-    int numOBids = massiveMap[id]['numOBids'];
-    double settingRating = 0;
-    if (numOBids != 0) {
-      settingRating = (numSets / numOBids) / 0.25 * 100;
-    }
-
-    double difficultyRating = 50;
-    List<double> difficulties = massiveMap[id]['difficulties'].cast<double>();
-    if (difficulties.isNotEmpty) {
-      difficultyRating = difficulties.reduce((a, b) => a + b) / difficulties.length;
-    }
-
-//    print('$bidderRating, $winningRating, $settingRating, $difficultyRating');
-    List<double> f = [0.6, 0.25, 0.1, 0.05];
-    // check for custom factors
-    if (factors != null) {
-      f = factors;
-    }
-    double ovr = bidderRating * f[0] + winningRating * f[1] + settingRating * f[2] + difficultyRating * f[3];
+    double ovr = bidderRating * 0.7 + winningRating * 0.3;
     return max(min(ovr, 100), 0);
   }
 
@@ -537,6 +524,7 @@ class StatsDb {
       case StatType.settingPct:
       case StatType.overallRating:
       case StatType.difficultyRating:
+      case StatType.oBidderRating:
         return StatItem(id, statType, 0.0);
       case StatType.streak:
       case StatType.numGames:
@@ -678,6 +666,8 @@ class StatsDb {
         return 'Overall Rating';
       case StatType.difficultyRating:
         return 'Difficulty Rating';
+      case StatType.oBidderRating:
+        return 'Opponents Bidder Rating';
     }
     return '';
   }
@@ -722,6 +712,8 @@ class StatItem {
       case StatType.wins:
       case StatType.losses:
         return -statValue.toDouble();
+      case StatType.oBidderRating:
+        return statValue;
     }
     return 0;
   }
@@ -758,6 +750,7 @@ class StatItem {
       case StatType.bidderRating:
       case StatType.overallRating:
       case StatType.difficultyRating:
+      case StatType.oBidderRating:
         return (statValue as double).toStringAsFixed(1);
       case StatType.biddingFrequency:
       case StatType.noPartnerFrequency:
@@ -807,6 +800,7 @@ enum StatType {
   settingPct,
   overallRating,
   difficultyRating,
+  oBidderRating,
 }
 
 class BiddingSplit {
