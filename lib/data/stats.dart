@@ -16,35 +16,18 @@ class StatsDb {
   Map<String, Player> allPlayers;
   Map<String, Map<StatType, StatItem>> _playerStats;
   Map<String, Map<StatType, StatItem>> _teamStats;
-  Map<String, List<Map>> _gamesStatsMap;
-  Map<String, List<String>> _gamesMap;
-  List<double> factors;
+  Map<String, List<Map>> _entitiesGameStats;
+  Map<String, List<String>> _entitiesGameIdsHistories;
 
-  StatsDb.load(this.allGames, this.allPlayers, {this.factors}) {
+  StatsDb.load(this.allGames, this.allPlayers) {
     _loadStats();
   }
 
   _loadStats() {
-    _gamesMap = {};
-    _gamesStatsMap = {};
-//    int count = 0;
-//    int total = 0;
-//    double pts = 0;
-//    for (Game g in allGames.where((g) => g.isFinished)) {
-//      for (Round r in g.rounds.where((r) => !r.isPlayerSwitch && r.isFinished)) {
-//        total++;
-//        pts += r.score[r.bidderIndex % 2] / 4;
-//        if (!r.madeBid) {
-//          count++;
-//        }
-//      }
-//    }
-//    String pct = (count / total * 100).toStringAsFixed(2) + ' %';
-//    print('set bids: $count/$total $pct');
-//    String a = (pts / total).toStringAsFixed(2);
-//    print('pts: $a');
+    _entitiesGameIdsHistories = {};
+    _entitiesGameStats = {};
 
-    Set<String> allIds = {};
+    Set<String> allEntityIds = {};
 
     // only finished games for now
     for (Game g in allGames.reversed.where((g) => g.isFinished)) {
@@ -59,7 +42,7 @@ class StatsDb {
       }
       Set<String> ids = g.allPlayerIds.toSet();
       ids.addAll(teamIds.where((id) => id != null));
-      allIds.addAll(ids);
+      allEntityIds.addAll(ids);
       for (String id in ids) {
         gameStatsMap.putIfAbsent(
           id,
@@ -176,17 +159,17 @@ class StatsDb {
         }
       }
       for (String id in ids) {
-        _gamesMap.putIfAbsent(id, () => []);
-        _gamesMap[id].add(g.gameId);
-        _gamesStatsMap.putIfAbsent(id, () => []);
-        _gamesStatsMap[id].add(gameStatsMap[id]);
+        _entitiesGameIdsHistories.putIfAbsent(id, () => []);
+        _entitiesGameIdsHistories[id].add(g.gameId);
+        _entitiesGameStats.putIfAbsent(id, () => []);
+        _entitiesGameStats[id].add(gameStatsMap[id]);
       }
     }
 
     _teamStats = {};
     _playerStats = {};
-    for (String id in allIds) {
-      List<Map> gamesStats = _gamesStatsMap[id];
+    for (String id in allEntityIds) {
+      List<Map> gamesStats = _entitiesGameStats[id];
       List<Map> recentGamesStats = gamesStats.sublist(max(0, gamesStats.length - NUM_RECENT_GAMES), gamesStats.length);
       Record record = calculateRecord(gamesStats);
       int numGames = combineStatFromGamesStats(gamesStats, 'numGames');
@@ -285,15 +268,15 @@ class StatsDb {
     }
   }
 
-  static double calculateBidderRating(List<Map> gamesStatMaps, bool isTeam) {
-    int numBids = combineStatFromGamesStats(gamesStatMaps, 'numBids');
-    int numRounds = combineStatFromGamesStats(gamesStatMaps, 'numRounds');
+  static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
+    int numBids = combineStatFromGamesStats(gamesStats, 'numBids');
+    int numRounds = combineStatFromGamesStats(gamesStats, 'numRounds');
     if (numRounds == 0) {
       return 0;
     }
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStatFromGamesStats(gamesStatMaps, 'pointsOnBids') / numBids;
+      double ppb = combineStatFromGamesStats(gamesStats, 'pointsOnBids') / numBids;
       biddingPointsPerRound = ppb * numBids / numRounds;
     }
     double rating;
@@ -305,12 +288,12 @@ class StatsDb {
     return rating;
   }
 
-  static double calculateOBidderRating(List<Map> gamesStatMaps) {
-    int numBids = combineStatFromGamesStats(gamesStatMaps, 'numBids');
-    int numRounds = combineStatFromGamesStats(gamesStatMaps, 'numRounds');
+  static double calculateOBidderRating(List<Map> gamesStats) {
+    int numBids = combineStatFromGamesStats(gamesStats, 'numBids');
+    int numRounds = combineStatFromGamesStats(gamesStats, 'numRounds');
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStatFromGamesStats(gamesStatMaps, 'pointsOnBids') / numBids;
+      double ppb = combineStatFromGamesStats(gamesStats, 'pointsOnBids') / numBids;
       biddingPointsPerRound = ppb * numBids / numRounds;
     }
     double rating = biddingPointsPerRound / 3.0 * 100;
@@ -325,7 +308,7 @@ class StatsDb {
       winningRating = record.winningPct * 100;
     }
     double ovr = bidderRating * 0.7 + winningRating * 0.3;
-    return max(min(ovr, 100), 0);
+    return ovr;
   }
 
   static Record calculateRecord(List<Map> gamesStats) {
@@ -371,18 +354,18 @@ class StatsDb {
   }
 
   double getBidderRatingAfterGame(String id, String gameId) {
-    int endIndex = _gamesMap[id].indexOf(gameId) + 1;
+    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
     int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateBidderRating(_gamesStatsMap[id].sublist(startIndex, endIndex), id.contains(' '));
+    return calculateBidderRating(_entitiesGameStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
   Color getColor(String id) {
-    if (_gamesMap[id] == null || _gamesMap[id].isEmpty) {
+    if (_entitiesGameIdsHistories[id] == null || _entitiesGameIdsHistories[id].isEmpty) {
       // return random color for new team
       return ColorChooser.generateRandomColor(seed: id.hashCode);
     }
     if (id.contains(' ')) {
-      Game lastGame = allGames.firstWhere((g) => g.gameId == _gamesMap[id].last);
+      Game lastGame = allGames.firstWhere((g) => g.gameId == _entitiesGameIdsHistories[id].last);
       List<String> teamIds = lastGame.teamIds;
       if (teamIds.contains(id)) {
         return Util.checkColor(lastGame.teamColors[teamIds.indexOf(id)], id);
@@ -427,10 +410,10 @@ class StatsDb {
   }
 
   List<Game> getGames(String id, {String beforeGameId}) {
-    if (_gamesMap[id] == null) {
+    if (_entitiesGameIdsHistories[id] == null) {
       return [];
     }
-    List<Game> games = allGames.where((g) => _gamesMap[id].contains(g.gameId)).toList();
+    List<Game> games = allGames.where((g) => _entitiesGameIdsHistories[id].contains(g.gameId)).toList();
     if (beforeGameId == null) {
       return games;
     } else {
@@ -471,21 +454,21 @@ class StatsDb {
   }
 
   double getRatingAfterGame(String id, String gameId) {
-    int endIndex = _gamesMap[id].indexOf(gameId) + 1;
+    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
     int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateOverallRating(_gamesStatsMap[id].sublist(startIndex, endIndex), id.contains(' '));
+    return calculateOverallRating(_entitiesGameStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
   double getRatingBeforeGame(String id, String gameId) {
-    if (!_gamesMap.containsKey(id)) {
+    if (!_entitiesGameIdsHistories.containsKey(id)) {
       return UNKNOWN_PLAYER_RATING;
     }
-    int endIndex = _gamesMap[id].indexOf(gameId);
+    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId);
     if (endIndex <= 0) {
       return UNKNOWN_PLAYER_RATING;
     }
     int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateOverallRating(_gamesStatsMap[id].sublist(startIndex, endIndex), id.contains(' '));
+    return calculateOverallRating(_entitiesGameStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
   StatItem getStat(String id, StatType statType) {
@@ -849,3 +832,4 @@ class Record {
     return '$wins-$losses';
   }
 }
+

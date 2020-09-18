@@ -41,6 +41,7 @@ class _TrendsSectionState extends State<TrendsSection>
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();
     }
+    int numGames = min(games.length, StatsDb.NUM_RECENT_GAMES);
     TextTheme textTheme = Theme.of(context).textTheme;
     List<Widget> children = [];
     Color color = data.statsDb.getColor(id);
@@ -75,15 +76,15 @@ class _TrendsSectionState extends State<TrendsSection>
                   StatType stat = displayStat;
                   return LineChartBarData(
                     show: stat == displayStat,
-                    spots: List.generate(StatsDb.MIN_GAMES, (index) {
+                    spots: List.generate(numGames, (index) {
                       double rating = data.statsDb.getRatingAfterGame(id, games[index].gameId);
                       if (stat == StatType.overallRating) {
                         rating = data.statsDb.getRatingAfterGame(id, games[index].gameId);
                       } else if (stat == StatType.bidderRating) {
                         rating = data.statsDb.getBidderRatingAfterGame(id, games[index].gameId);
                       }
-                      rating = (min(max(rating, 0), 100) * 10).round() / 10.0;
-                      return FlSpot((StatsDb.MIN_GAMES - index).toDouble(), rating);
+                      rating = (rating * 10).round() / 10.0;
+                      return FlSpot((numGames - index).toDouble(), rating);
                     }),
                     colors: [color],
                     barWidth: 4,
