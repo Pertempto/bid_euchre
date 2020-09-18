@@ -32,7 +32,9 @@ class _OverviewSectionState extends State<OverviewSection>
     TextTheme textTheme = Theme.of(context).textTheme;
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
-    double overallRating = data.statsDb.getStat(id, StatType.overallRating).statValue;
+    StatItem overallRating = data.statsDb.getStat(id, StatType.overallRating);
+    StatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating);
+    Record recentRecord = data.statsDb.getStat(id, StatType.recentRecord).statValue as Record;
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -44,22 +46,71 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Text('Overall Rating', style: titleStyle),
             Spacer(),
-            Text(data.statsDb.getStat(id, StatType.overallRating).toString(),
-                style: statStyle, textAlign: TextAlign.end),
+            Text(overallRating.toString(), style: statStyle, textAlign: TextAlign.end),
           ],
         ),
       ),
       Padding(
-        padding: EdgeInsets.fromLTRB(16, 2, 16, 8),
+        padding: EdgeInsets.fromLTRB(16, 2, 16, 4),
         child: Row(
           children: <Widget>[
             Expanded(
               child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
-              flex: (overallRating * 10).round(),
+              flex: (overallRating.statValue * 10).round(),
             ),
             Expanded(
               child: Container(height: 4),
-              flex: ((100 - overallRating) * 10).round(),
+              flex: ((100 - overallRating.statValue) * 10).round(),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Text('Bidder Rating', style: titleStyle),
+            Spacer(),
+            Text(bidderRating.toString(), style: statStyle, textAlign: TextAlign.end),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 2, 16, 4),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
+              flex: (bidderRating.statValue * 10).round(),
+            ),
+            Expanded(
+              child: Container(height: 4),
+              flex: ((100 - bidderRating.statValue) * 10).round(),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Text('Recent Record', style: titleStyle),
+            Spacer(),
+            Text(recentRecord.toString(), style: statStyle, textAlign: TextAlign.end),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 2, 16, 4),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
+              flex: recentRecord.wins,
+            ),
+            Expanded(
+              child: Container(height: 4),
+              flex: recentRecord.losses,
             ),
           ],
         ),
