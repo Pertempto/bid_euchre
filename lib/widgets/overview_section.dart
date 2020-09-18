@@ -54,7 +54,7 @@ class _OverviewSectionState extends State<OverviewSection>
         child: Row(
           children: <Widget>[
             Expanded(
-              child: Container(height: 4, color: data.statsDb.getColor(id)),
+              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
               flex: (overallRating * 10).round(),
             ),
             Expanded(

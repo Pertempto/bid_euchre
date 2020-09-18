@@ -72,7 +72,7 @@ class _HomeOverviewState extends State<HomeOverview> {
     ];
     for (String playerId in data.currentUser.pinnedPlayerIds) {
       Player player = data.players[playerId];
-      Color color = data.statsDb.getColor(playerId);
+      Color color = data.statsDb.getEntityColor(playerId);
       if (player != null) {
         children.add(ListTile(
           title: Text(player.fullName, style: textTheme.bodyText1.copyWith(color: color)),

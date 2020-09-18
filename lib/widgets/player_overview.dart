@@ -123,7 +123,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       if (oPlayer != null) {
         List<int> record = oppRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getColor(oPlayerId);
+        Color color = data.statsDb.getEntityColor(oPlayerId);
         horizontalScrollChildren.add(
           Card(
             child: InkWell(
@@ -236,7 +236,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
       if (partner != null) {
         List<int> record = partnerRecords[partnerId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getColor(Util.teamId([player.playerId, partnerId]));
+        Color color = data.statsDb.getEntityColor(Util.teamId([player.playerId, partnerId]));
         horizontalScrollChildren.add(
           Card(
             child: InkWell(

@@ -155,7 +155,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (oPlayer != null) {
         List<int> record = playerRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getColor(oPlayerId);
+        Color color = data.statsDb.getEntityColor(oPlayerId);
         playersScrollChildren.add(
           Card(
             child: InkWell(
@@ -195,7 +195,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (teamName != null) {
         List<int> record = teamRecordsAgainst[oTeamId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getColor(oTeamId);
+        Color color = data.statsDb.getEntityColor(oTeamId);
         teamsScrollChildren.add(
           Card(
             child: InkWell(
@@ -247,7 +247,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       Player player = data.players[playerId];
       if (player != null) {
         StatItem record = data.statsDb.getStat(playerId, StatType.record);
-        Color color = data.statsDb.getColor(playerId);
+        Color color = data.statsDb.getEntityColor(playerId);
         horizontalScrollChildren.add(
           Card(
             child: InkWell(

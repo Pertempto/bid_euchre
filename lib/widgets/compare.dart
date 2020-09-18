@@ -55,7 +55,7 @@ class _CompareState extends State<Compare> {
       ];
       colors = [];
       for (int i = 0; i < 2; i++) {
-        colors.add(data.statsDb.getColor(Util.teamId([players[i].playerId, players[i + 2].playerId])));
+        colors.add(data.statsDb.getEntityColor(Util.teamId([players[i].playerId, players[i + 2].playerId])));
       }
       splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
@@ -65,7 +65,7 @@ class _CompareState extends State<Compare> {
       ];
       colors = [];
       for (int i = 0; i < 2; i++) {
-        colors.add(data.statsDb.getColor(players[i].playerId));
+        colors.add(data.statsDb.getEntityColor(players[i].playerId));
       }
       splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }

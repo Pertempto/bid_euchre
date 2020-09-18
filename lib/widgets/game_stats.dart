@@ -341,7 +341,7 @@ class _GameStatsState extends State<GameStats> {
 
   Widget winningChancesSection() {
     List<double> winProbs =
-        data.statsDb.getWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
+        data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
     List<Widget> children = [
       Padding(
         padding: EdgeInsets.fromLTRB(16, 8, 16, 4),

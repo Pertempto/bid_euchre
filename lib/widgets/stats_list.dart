@@ -139,7 +139,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           lastSortValue = statItem.sortValue;
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
-          Color color = data.statsDb.getColor(id);
+          Color color = data.statsDb.getEntityColor(id);
           children.add(GestureDetector(
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 4, 16, 4),

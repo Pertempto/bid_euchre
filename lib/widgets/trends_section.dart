@@ -37,14 +37,14 @@ class _TrendsSectionState extends State<TrendsSection>
     super.build(context);
     id = widget.id;
     data = DataStore.lastData;
-    List<Game> games = data.statsDb.getGames(id);
+    List<Game> games = data.statsDb.getEntityGames(id);
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();
     }
     int numGames = min(games.length, StatsDb.NUM_RECENT_GAMES);
     TextTheme textTheme = Theme.of(context).textTheme;
     List<Widget> children = [];
-    Color color = data.statsDb.getColor(id);
+    Color color = data.statsDb.getEntityColor(id);
     children.add(ListTile(
       title: Text('Recent Trends', style: textTheme.headline6),
       dense: true,

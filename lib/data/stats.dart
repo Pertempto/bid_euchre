@@ -172,9 +172,9 @@ class StatsDb {
       List<Map> gamesStats = _entitiesGameStats[id];
       List<Map> recentGamesStats = gamesStats.sublist(max(0, gamesStats.length - NUM_RECENT_GAMES), gamesStats.length);
       Record record = calculateRecord(gamesStats);
-      int numGames = combineStatFromGamesStats(gamesStats, 'numGames');
-      int numRounds = combineStatFromGamesStats(gamesStats, 'numRounds');
-      int numBids = combineStatFromGamesStats(gamesStats, 'numBids');
+      int numGames = combineStat(gamesStats, 'numGames');
+      int numRounds = combineStat(gamesStats, 'numRounds');
+      int numBids = combineStat(gamesStats, 'numBids');
       for (StatType statType in StatType.values) {
         StatItem statItem;
         if (statType == StatType.record) {
@@ -190,7 +190,7 @@ class StatsDb {
         } else if (statType == StatType.numBids) {
           statItem = StatItem(id, statType, numBids);
         } else if (statType == StatType.numPoints) {
-          statItem = StatItem(id, statType, combineStatFromGamesStats(gamesStats, 'numPoints'));
+          statItem = StatItem(id, statType, combineStat(gamesStats, 'numPoints'));
         } else if (statType == StatType.biddingFrequency) {
           double biddingRate = 0;
           if (numRounds != 0) {
@@ -198,25 +198,25 @@ class StatsDb {
           }
           statItem = StatItem(id, statType, biddingRate);
         } else if (statType == StatType.biddingRecord) {
-          int made = combineStatFromGamesStats(gamesStats, 'madeBids');
+          int made = combineStat(gamesStats, 'madeBids');
           int set = numBids - made;
           statItem = StatItem(id, statType, Record(made, set));
         } else if (statType == StatType.madeBidPercentage) {
           double mbp = 0;
           if (numBids != 0) {
-            mbp = combineStatFromGamesStats(gamesStats, 'madeBids') / numBids;
+            mbp = combineStat(gamesStats, 'madeBids') / numBids;
           }
           statItem = StatItem(id, statType, mbp);
         } else if (statType == StatType.averageBid) {
           double avgBid = 0;
           if (numBids != 0) {
-            avgBid = combineStatFromGamesStats(gamesStats, 'biddingTotal') / numBids;
+            avgBid = combineStat(gamesStats, 'biddingTotal') / numBids;
           }
           statItem = StatItem(id, statType, avgBid);
         } else if (statType == StatType.pointsPerBid) {
           double ppb = 0;
           if (numBids != 0) {
-            ppb = combineStatFromGamesStats(gamesStats, 'pointsOnBids') / numBids;
+            ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
           }
           statItem = StatItem(id, statType, ppb);
         } else if (statType == StatType.lastPlayed) {
@@ -224,14 +224,14 @@ class StatsDb {
         } else if (statType == StatType.noPartnerFrequency) {
           double rate = 0;
           if (numBids != 0) {
-            rate = combineStatFromGamesStats(gamesStats, 'noPartner') / numBids;
+            rate = combineStat(gamesStats, 'noPartner') / numBids;
           }
           statItem = StatItem(id, statType, rate);
         } else if (statType == StatType.noPartnerMadePercentage) {
           double mbp = 0;
-          int numNoPartnerBids = combineStatFromGamesStats(gamesStats, 'noPartner');
+          int numNoPartnerBids = combineStat(gamesStats, 'noPartner');
           if (numNoPartnerBids != 0) {
-            mbp = combineStatFromGamesStats(gamesStats, 'madeNoPartner') / numNoPartnerBids;
+            mbp = combineStat(gamesStats, 'madeNoPartner') / numNoPartnerBids;
           }
           statItem = StatItem(id, statType, mbp);
         } else if (statType == StatType.winsMinusLosses) {
@@ -243,10 +243,10 @@ class StatsDb {
         } else if (statType == StatType.bidderRating) {
           statItem = StatItem(id, statType, calculateBidderRating(recentGamesStats, id.contains(' ')));
         } else if (statType == StatType.settingPct) {
-          int numOBids = combineStatFromGamesStats(gamesStats, 'numOBids');
+          int numOBids = combineStat(gamesStats, 'numOBids');
           double sp = 0;
           if (numOBids != 0) {
-            sp = combineStatFromGamesStats(gamesStats, 'setOpponents') / numOBids;
+            sp = combineStat(gamesStats, 'setOpponents') / numOBids;
           }
           statItem = StatItem(id, statType, sp);
         } else if (statType == StatType.overallRating) {
@@ -269,14 +269,14 @@ class StatsDb {
   }
 
   static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
-    int numBids = combineStatFromGamesStats(gamesStats, 'numBids');
-    int numRounds = combineStatFromGamesStats(gamesStats, 'numRounds');
+    int numBids = combineStat(gamesStats, 'numBids');
+    int numRounds = combineStat(gamesStats, 'numRounds');
     if (numRounds == 0) {
       return 0;
     }
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStatFromGamesStats(gamesStats, 'pointsOnBids') / numBids;
+      double ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
       biddingPointsPerRound = ppb * numBids / numRounds;
     }
     double rating;
@@ -289,11 +289,11 @@ class StatsDb {
   }
 
   static double calculateOBidderRating(List<Map> gamesStats) {
-    int numBids = combineStatFromGamesStats(gamesStats, 'numBids');
-    int numRounds = combineStatFromGamesStats(gamesStats, 'numRounds');
+    int numBids = combineStat(gamesStats, 'numBids');
+    int numRounds = combineStat(gamesStats, 'numRounds');
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStatFromGamesStats(gamesStats, 'pointsOnBids') / numBids;
+      double ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
       biddingPointsPerRound = ppb * numBids / numRounds;
     }
     double rating = biddingPointsPerRound / 3.0 * 100;
@@ -345,7 +345,55 @@ class StatsDb {
     return streak;
   }
 
-  static int combineStatFromGamesStats(List<Map> gamesStats, String statName) {
+  List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore,
+      {String beforeGameId}) {
+    List<double> teamRatings = [];
+    for (int i = 0; i < 2; i++) {
+      String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
+      double teamRating = 0;
+      if (beforeGameId != null) {
+        teamRating += getRatingBeforeGame(teamId, beforeGameId);
+      } else {
+        if (_teamStats[teamId] == null) {
+          teamRating += UNKNOWN_PLAYER_RATING;
+        } else {
+          teamRating += _teamStats[teamId][StatType.overallRating].statValue;
+        }
+      }
+      double totalPlayerRating = 0;
+      for (int j = 0; j < 2; j++) {
+        String playerId = currentPlayerIds[i + j * 2];
+        if (beforeGameId != null) {
+          totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
+        } else {
+          if (_playerStats[playerId] == null) {
+            totalPlayerRating += UNKNOWN_PLAYER_RATING;
+          } else {
+            totalPlayerRating += _playerStats[playerId][StatType.overallRating].statValue;
+          }
+        }
+      }
+      totalPlayerRating /= 2;
+      teamRating *= 0.5;
+      teamRating += 0.5 * totalPlayerRating;
+      teamRatings.add(teamRating);
+    }
+    List<double> winChances = ratingsToWinChances(teamRatings);
+    List<double> adjWinChances = [];
+    for (int i = 0; i < 2; i++) {
+      double chance = winChances[i];
+      // used desmos regression to find these coeffiecients
+      chance *= (1 / (pow(10, -(score[i] - score[1 - i]) / gameOverScore * 1.943) + 1));
+      double sPct = max(score[i] / gameOverScore, 0);
+      // used desmos regression to find these coeffiecients
+      chance *= 0.716 * pow(sPct, 3) - 0.771 * pow(sPct, 2) + 0.565 * sPct + 0.3321;
+      adjWinChances.add(chance);
+    }
+    double sum = adjWinChances[0] + adjWinChances[1];
+    return [adjWinChances[0] / sum, adjWinChances[1] / sum];
+  }
+
+  static int combineStat(List<Map> gamesStats, String statName) {
     int combinedStatValue = 0;
     for (Map gameStatMap in gamesStats) {
       combinedStatValue += gameStatMap[statName];
@@ -359,7 +407,7 @@ class StatsDb {
     return calculateBidderRating(_entitiesGameStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
-  Color getColor(String id) {
+  Color getEntityColor(String id) {
     if (_entitiesGameIdsHistories[id] == null || _entitiesGameIdsHistories[id].isEmpty) {
       // return random color for new team
       return ColorChooser.generateRandomColor(seed: id.hashCode);
@@ -373,7 +421,7 @@ class StatsDb {
     } else {
       Map<String, Color> teamColors = {};
       Map<String, int> numGames = {};
-      List<Game> games = getGames(id);
+      List<Game> games = getEntityGames(id);
       for (Game game in games) {
         for (int i = 0; i < 2; i++) {
           if (game.allTeamsPlayerIds[i].contains(id)) {
@@ -409,7 +457,7 @@ class StatsDb {
     return Colors.black;
   }
 
-  List<Game> getGames(String id, {String beforeGameId}) {
+  List<Game> getEntityGames(String id, {String beforeGameId}) {
     if (_entitiesGameIdsHistories[id] == null) {
       return [];
     }
@@ -538,53 +586,6 @@ class StatsDb {
       List<String> ids = id.split(' ');
       return playerIds.intersection(ids.toSet()).length == 2;
     }).toList();
-  }
-
-  List<double> getWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore, {String beforeGameId}) {
-    List<double> teamRatings = [];
-    for (int i = 0; i < 2; i++) {
-      String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
-      double teamRating = 0;
-      if (beforeGameId != null) {
-        teamRating += getRatingBeforeGame(teamId, beforeGameId);
-      } else {
-        if (_teamStats[teamId] == null) {
-          teamRating += UNKNOWN_PLAYER_RATING;
-        } else {
-          teamRating += _teamStats[teamId][StatType.overallRating].statValue;
-        }
-      }
-      double totalPlayerRating = 0;
-      for (int j = 0; j < 2; j++) {
-        String playerId = currentPlayerIds[i + j * 2];
-        if (beforeGameId != null) {
-          totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
-        } else {
-          if (_playerStats[playerId] == null) {
-            totalPlayerRating += UNKNOWN_PLAYER_RATING;
-          } else {
-            totalPlayerRating += _playerStats[playerId][StatType.overallRating].statValue;
-          }
-        }
-      }
-      totalPlayerRating /= 2;
-      teamRating *= 0.5;
-      teamRating += 0.5 * totalPlayerRating;
-      teamRatings.add(teamRating);
-    }
-    List<double> winChances = ratingsToWinChances(teamRatings);
-    List<double> adjWinChances = [];
-    for (int i = 0; i < 2; i++) {
-      double chance = winChances[i];
-      // used desmos regression to find these coeffiecients
-      chance *= (1 / (pow(10, -(score[i] - score[1 - i]) / gameOverScore * 1.943) + 1));
-      double sPct = max(score[i] / gameOverScore, 0);
-      // used desmos regression to find these coeffiecients
-      chance *= 0.716 * pow(sPct, 3) - 0.771 * pow(sPct, 2) + 0.565 * sPct + 0.3321;
-      adjWinChances.add(chance);
-    }
-    double sum = adjWinChances[0] + adjWinChances[1];
-    return [adjWinChances[0] / sum, adjWinChances[1] / sum];
   }
 
   static List<double> ratingsToWinChances(List<double> teamRatings) {

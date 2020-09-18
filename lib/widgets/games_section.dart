@@ -35,7 +35,7 @@ class _GamesSectionState extends State<GamesSection>
     super.build(context);
     id = widget.id;
     data = DataStore.lastData;
-    List<Game> games = data.statsDb.getGames(id);
+    List<Game> games = data.statsDb.getEntityGames(id);
     if (games.isEmpty) {
       return Container();
     }
