@@ -1,4 +1,6 @@
 import 'package:bideuchre/data/data_store.dart';
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:bideuchre/widgets/stat_selection.dart';
 import 'package:flutter/cupertino.dart';
@@ -51,9 +53,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       if (!showInfrequent) {
         ids = ids.where((id) {
-          bool has5Games = data.statsDb.getStat(id, StatType.numGames).statValue >= StatsDb.MIN_GAMES;
-          DateTime lastPlayed =
-              DateTime.fromMillisecondsSinceEpoch(data.statsDb.getStat(id, StatType.lastPlayed).statValue);
+          bool has5Games = (data.statsDb.getStat(id, StatType.numGames) as IntStatItem).value >= StatsDb.MIN_GAMES;
+          DateTime lastPlayed = DateTime.fromMillisecondsSinceEpoch(
+              (data.statsDb.getStat(id, StatType.lastPlayed) as LastPlayedStatItem).lastPlayedTimestamp);
           bool playedIn60Days = DateTime.now().subtract(Duration(days: 60)).isBefore(lastPlayed);
           return has5Games && playedIn60Days;
         }).toList();
@@ -81,7 +83,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
 
       List<Widget> children = [
         ExpansionTile(
-          title: Text(StatsDb.statName(displayStatType), style: textTheme.headline6),
+          title: Text(StatItem.getStatName(displayStatType), style: textTheme.headline6),
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),

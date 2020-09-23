@@ -1,3 +1,5 @@
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,6 @@ class _CompareState extends State<Compare> {
     StatType.biddingFrequency,
     StatType.averageBid,
     StatType.pointsPerBid,
-    StatType.settingPct,
   ];
   TextTheme textTheme;
   bool teams = false;
@@ -141,7 +142,7 @@ class _CompareState extends State<Compare> {
             ),
             Expanded(
               child: Text(
-                StatsDb.statName(stat),
+                stat1.statName,
                 textAlign: TextAlign.center,
                 style: textTheme.bodyText2,
               ),

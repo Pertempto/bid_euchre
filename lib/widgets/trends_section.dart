@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:bideuchre/data/stats.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,7 +43,7 @@ class _TrendsSectionState extends State<TrendsSection>
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();
     }
-    int numGames = min(games.length, StatsDb.NUM_RECENT_GAMES);
+    int numGames = min(games.length, RecentRecordStatItem.NUM_RECENT_GAMES);
     TextTheme textTheme = Theme.of(context).textTheme;
     List<Widget> children = [];
     Color color = data.statsDb.getEntityColor(id);
@@ -54,7 +56,7 @@ class _TrendsSectionState extends State<TrendsSection>
       padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: CupertinoSlidingSegmentedControl(
         groupValue: displayStat,
-        children: Map.fromIterable(SELECTABLE_STATS, value: (n) => Text(StatsDb.statName(n))),
+        children: Map.fromIterable(SELECTABLE_STATS, value: (st) => Text(StatItem.getStatName(st))),
         onValueChanged: (value) {
           setState(() {
             displayStat = value;

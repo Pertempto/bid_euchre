@@ -1,5 +1,6 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/stat_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -87,6 +88,11 @@ class _GamesSectionState extends State<GamesSection>
             return Container(width: 16);
           }
           Game game = games[index - 1];
+          TextStyle gameStatusTextStyle = textTheme.bodyText1;
+          // highlight games that are included in recent game stats
+          if (index - 1 < RecentRecordStatItem.NUM_RECENT_GAMES) {
+            gameStatusTextStyle = gameStatusTextStyle.copyWith(color: data.statsDb.getEntityColor(id));
+          }
           List<int> score = game.currentScore;
           List<Widget> scoreChildren = [
             Text(Util.scoreString(score[0]), style: textTheme.headline4.copyWith(color: game.teamColors[0])),
@@ -111,7 +117,7 @@ class _GamesSectionState extends State<GamesSection>
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
+                    Text(gameStatuses[game.gameId], style: gameStatusTextStyle),
                     Row(children: scoreChildren),
                     Text(ratingString, style: textTheme.bodyText2),
                     Text(dateString, style: textTheme.caption),

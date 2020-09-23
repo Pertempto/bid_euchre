@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:bideuchre/data/stats.dart';
+import 'package:bideuchre/data/stat_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -299,7 +299,7 @@ class _GameStatsState extends State<GameStats> {
     List<String> playerIds = playerStats.keys.toList();
     Map<String, double> playerBidderRatings = {};
     for (String playerId in playerIds) {
-      playerBidderRatings[playerId] = StatsDb.calculateBidderRating([playerStats[playerId]], false);
+      playerBidderRatings[playerId] = BidderRatingStatItem.calculateBidderRating([playerStats[playerId]], false);
     }
     playerIds.sort((a, b) {
       return -playerBidderRatings[a].compareTo(playerBidderRatings[b]);

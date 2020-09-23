@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
+import 'game_detail.dart';
 import 'player_profile.dart';
 import 'team_profile.dart';
 
@@ -173,7 +174,15 @@ class _GameOverviewState extends State<GameOverview>
     }
 
     if (isSummary) {
-      rows.add(SizedBox(height: 32));
+      rows.add(Padding(
+        padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
+        child: OutlineButton(
+          child: Text('Open Game'),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
+          },
+        ),
+      ));
     } else {
       Color iconColor = Colors.blueGrey;
       if (game.isFinished && gameIsLocked) {

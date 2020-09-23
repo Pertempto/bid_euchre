@@ -1,7 +1,8 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
-import 'package:bideuchre/data/stats.dart';
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

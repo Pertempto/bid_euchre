@@ -2,15 +2,15 @@ import 'dart:math';
 
 import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
 import 'game.dart';
 import 'player.dart';
+import 'stat_item.dart';
+import 'stat_type.dart';
 
 class StatsDb {
   static const int MIN_GAMES = 5;
-  static const int NUM_RECENT_GAMES = 20;
   static const double DEFAULT_RATING = 50;
   List<Game> allGames;
   Map<String, Player> allPlayers;
@@ -157,67 +157,6 @@ class StatsDb {
     }
   }
 
-  static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
-    int numBids = combineStat(gamesStats, 'numBids');
-    int numRounds = combineStat(gamesStats, 'numRounds');
-    if (numRounds == 0) {
-      return 0;
-    }
-    double biddingPointsPerRound = 0;
-    if (numBids != 0) {
-      double ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
-      biddingPointsPerRound = ppb * numBids / numRounds;
-    }
-    double rating;
-    if (isTeam) {
-      rating = biddingPointsPerRound / 3.0 * 100;
-    } else {
-      rating = biddingPointsPerRound / 1.5 * 100;
-    }
-    return rating;
-  }
-
-  static double calculateOverallRating(List<Map> gamesStats, bool isTeam) {
-    double bidderRating = calculateBidderRating(gamesStats, isTeam);
-    Record record = calculateRecord(gamesStats);
-    double winningRating = 50;
-    if (record.totalGames != 0) {
-      winningRating = record.winningPct * 100;
-    }
-    double ovr = bidderRating * 0.7 + winningRating * 0.3;
-    return ovr;
-  }
-
-  static Record calculateRecord(List<Map> gamesStats) {
-    List<int> recentDiffs = gamesStats.map((gameStats) => gameStats['scoreDiff']).toList().cast<int>();
-    int wins = recentDiffs.where((d) => d > 0).length;
-    int losses = recentDiffs.where((d) => d < 0).length;
-    return Record(wins, losses);
-  }
-
-  static int calculateStreak(List<Map> gamesStats) {
-    int streak = 0;
-    for (int scoreDiff in gamesStats
-        .map((gameStats) => gameStats['scoreDiff'])
-        .toList()
-        .reversed) {
-      if (scoreDiff > 0) {
-        if (streak >= 0) {
-          streak++;
-        } else {
-          break;
-        }
-      } else {
-        if (streak <= 0) {
-          streak--;
-        } else {
-          break;
-        }
-      }
-    }
-    return streak;
-  }
-
   List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore,
       {String beforeGameId}) {
     List<double> teamRatings = [];
@@ -227,7 +166,7 @@ class StatsDb {
       if (beforeGameId != null) {
         teamRating += getRatingBeforeGame(teamId, beforeGameId);
       } else {
-        teamRating += getStat(teamId, StatType.overallRating).statValue;
+        teamRating += (getStat(teamId, StatType.overallRating) as RatingStatItem).rating;
       }
       double totalPlayerRating = 0;
       for (int j = 0; j < 2; j++) {
@@ -235,7 +174,7 @@ class StatsDb {
         if (beforeGameId != null) {
           totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
         } else {
-          totalPlayerRating += getStat(playerId, StatType.overallRating).statValue;
+          totalPlayerRating += (getStat(playerId, StatType.overallRating) as RatingStatItem).rating;
         }
       }
       totalPlayerRating /= 2;
@@ -258,18 +197,11 @@ class StatsDb {
     return [adjWinChances[0] / sum, adjWinChances[1] / sum];
   }
 
-  static int combineStat(List<Map> gamesStats, String statName) {
-    int combinedStatValue = 0;
-    for (Map gameStatMap in gamesStats) {
-      combinedStatValue += gameStatMap[statName];
-    }
-    return combinedStatValue;
-  }
-
   double getBidderRatingAfterGame(String id, String gameId) {
     int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
-    int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateBidderRating(_entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
+    return BidderRatingStatItem.calculateBidderRating(
+        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
   Color getEntityColor(String id) {
@@ -368,8 +300,9 @@ class StatsDb {
 
   double getRatingAfterGame(String id, String gameId) {
     int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
-    int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateOverallRating(_entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
+    return OverallRatingStatItem.calculateOverallRating(
+        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
   double getRatingBeforeGame(String id, String gameId) {
@@ -380,131 +313,20 @@ class StatsDb {
     if (endIndex <= 0) {
       return DEFAULT_RATING;
     }
-    int startIndex = max(0, endIndex - NUM_RECENT_GAMES);
-    return calculateOverallRating(_entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
+    return OverallRatingStatItem.calculateOverallRating(
+        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
   }
 
-  StatItem getStat(String id, StatType statType, {bool recentGamesOnly = false}) {
-    if (!_entitiesGamesStats.containsKey(id)) {
-      switch (statType) {
-        case StatType.record:
-        case StatType.biddingRecord:
-        case StatType.recentRecord:
-          return StatItem(id, statType, Record(0, 0));
-        case StatType.winningPct:
-        case StatType.biddingFrequency:
-        case StatType.madeBidPercentage:
-        case StatType.averageBid:
-        case StatType.pointsPerBid:
-        case StatType.noPartnerFrequency:
-        case StatType.noPartnerMadePercentage:
-        case StatType.bidderRating:
-        case StatType.settingPct:
-          return StatItem(id, statType, 0.0);
-        case StatType.overallRating:
-          return StatItem(id, statType, DEFAULT_RATING);
-        case StatType.streak:
-        case StatType.numGames:
-        case StatType.numRounds:
-        case StatType.numBids:
-        case StatType.numPoints:
-        case StatType.lastPlayed:
-        case StatType.winsMinusLosses:
-        case StatType.wins:
-        case StatType.losses:
-          return StatItem(id, statType, 0);
-      }
-      return StatItem(id, statType, 0);
+  StatItem getStat(String entityId, StatType statType, {bool recentGamesOnly = false}) {
+    if (!_entitiesGamesStats.containsKey(entityId)) {
+      return StatItem.empty(entityId, statType);
     }
-    List<Map> gamesStats = _entitiesGamesStats[id];
-    List<Map> recentGamesStats = gamesStats.sublist(max(0, gamesStats.length - NUM_RECENT_GAMES), gamesStats.length);
+    List<Map> gamesStats = _entitiesGamesStats[entityId];
     if (recentGamesOnly) {
-      gamesStats = recentGamesStats;
+      gamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
     }
-    StatItem statItem;
-    Record record = calculateRecord(gamesStats);
-    int numGames = combineStat(gamesStats, 'numGames');
-    int numRounds = combineStat(gamesStats, 'numRounds');
-    int numBids = combineStat(gamesStats, 'numBids');
-    if (statType == StatType.record) {
-      statItem = StatItem(id, statType, record);
-    } else if (statType == StatType.winningPct) {
-      statItem = StatItem(id, statType, record.winningPct);
-    } else if (statType == StatType.streak) {
-      statItem = StatItem(id, statType, calculateStreak(gamesStats));
-    } else if (statType == StatType.numGames) {
-      statItem = StatItem(id, statType, numGames);
-    } else if (statType == StatType.numRounds) {
-      statItem = StatItem(id, statType, numRounds);
-    } else if (statType == StatType.numBids) {
-      statItem = StatItem(id, statType, numBids);
-    } else if (statType == StatType.numPoints) {
-      statItem = StatItem(id, statType, combineStat(gamesStats, 'numPoints'));
-    } else if (statType == StatType.biddingFrequency) {
-      double biddingRate = 0;
-      if (numRounds != 0) {
-        biddingRate = numBids / numRounds;
-      }
-      statItem = StatItem(id, statType, biddingRate);
-    } else if (statType == StatType.biddingRecord) {
-      int made = combineStat(gamesStats, 'madeBids');
-      int set = numBids - made;
-      statItem = StatItem(id, statType, Record(made, set));
-    } else if (statType == StatType.madeBidPercentage) {
-      double mbp = 0;
-      if (numBids != 0) {
-        mbp = combineStat(gamesStats, 'madeBids') / numBids;
-      }
-      statItem = StatItem(id, statType, mbp);
-    } else if (statType == StatType.averageBid) {
-      double avgBid = 0;
-      if (numBids != 0) {
-        avgBid = combineStat(gamesStats, 'biddingTotal') / numBids;
-      }
-      statItem = StatItem(id, statType, avgBid);
-    } else if (statType == StatType.pointsPerBid) {
-      double ppb = 0;
-      if (numBids != 0) {
-        ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
-      }
-      statItem = StatItem(id, statType, ppb);
-    } else if (statType == StatType.lastPlayed) {
-      statItem = StatItem(id, statType, gamesStats.last['lastPlayed']);
-    } else if (statType == StatType.noPartnerFrequency) {
-      double rate = 0;
-      if (numBids != 0) {
-        rate = combineStat(gamesStats, 'noPartner') / numBids;
-      }
-      statItem = StatItem(id, statType, rate);
-    } else if (statType == StatType.noPartnerMadePercentage) {
-      double mbp = 0;
-      int numNoPartnerBids = combineStat(gamesStats, 'noPartner');
-      if (numNoPartnerBids != 0) {
-        mbp = combineStat(gamesStats, 'madeNoPartner') / numNoPartnerBids;
-      }
-      statItem = StatItem(id, statType, mbp);
-    } else if (statType == StatType.winsMinusLosses) {
-      statItem = StatItem(id, statType, record.wins - record.losses);
-    } else if (statType == StatType.wins) {
-      statItem = StatItem(id, statType, record.wins);
-    } else if (statType == StatType.losses) {
-      statItem = StatItem(id, statType, record.losses);
-    } else if (statType == StatType.bidderRating) {
-      statItem = StatItem(id, statType, calculateBidderRating(recentGamesStats, id.contains(' ')));
-    } else if (statType == StatType.settingPct) {
-      int numOBids = combineStat(gamesStats, 'numOBids');
-      double sp = 0;
-      if (numOBids != 0) {
-        sp = combineStat(gamesStats, 'setOpponents') / numOBids;
-      }
-      statItem = StatItem(id, statType, sp);
-    } else if (statType == StatType.overallRating) {
-      double overall = calculateOverallRating(recentGamesStats, id.contains(' '));
-      statItem = StatItem(id, statType, overall);
-    } else if (statType == StatType.recentRecord) {
-      statItem = StatItem(id, statType, calculateRecord(recentGamesStats));
-    }
-    return statItem;
+    return StatItem.fromGamesStats(entityId, statType, gamesStats);
   }
 
   Map<int, BiddingSplit> getTeamBiddingSplits(String teamId, {int numRecent = 0}) {
@@ -531,9 +353,7 @@ class StatsDb {
   List<String> getTeamIds(Set<String> playerIds) {
     return _entitiesGamesStats.keys.where((id) {
       List<String> ids = id.split(' ');
-      return playerIds
-          .intersection(ids.toSet())
-          .length == 2;
+      return playerIds.intersection(ids.toSet()).length == 2;
     }).toList();
   }
 
@@ -541,181 +361,6 @@ class StatsDb {
     double team1WinChance = 1 / (pow(10, ((teamRatings[1] - teamRatings[0]) / 40)) + 1);
     return [team1WinChance, 1 - team1WinChance];
   }
-
-  static String statName(StatType statType) {
-    switch (statType) {
-      case StatType.record:
-        return 'Win/Loss Record';
-      case StatType.winningPct:
-        return 'Winning Percentage';
-      case StatType.streak:
-        return 'Streak';
-      case StatType.numGames:
-        return 'Number of Games';
-      case StatType.numRounds:
-        return 'Number of Rounds';
-      case StatType.numBids:
-        return 'Number of Bids';
-      case StatType.numPoints:
-        return 'Number of Points';
-      case StatType.biddingFrequency:
-        return 'Bidding Frequency';
-      case StatType.biddingRecord:
-        return 'Bidding Record';
-      case StatType.madeBidPercentage:
-        return 'Made Bid Percentage';
-      case StatType.averageBid:
-        return 'Average Bid';
-      case StatType.pointsPerBid:
-        return 'Points Per Bid';
-      case StatType.lastPlayed:
-        return 'Last Played';
-      case StatType.noPartnerFrequency:
-        return 'Slide/Loner Frequency';
-      case StatType.noPartnerMadePercentage:
-        return 'Slider/Loner Made %';
-      case StatType.winsMinusLosses:
-        return 'Wins Minus Losses';
-      case StatType.wins:
-        return 'Wins';
-      case StatType.losses:
-        return 'Losses';
-      case StatType.bidderRating:
-        return 'Bidder Rating';
-      case StatType.settingPct:
-        return 'Setting Percentage';
-      case StatType.overallRating:
-        return 'Overall Rating';
-      case StatType.recentRecord:
-        return 'Recent Record';
-    }
-    return '';
-  }
-}
-
-class StatItem {
-  String entityId;
-  StatType statType;
-  dynamic statValue;
-
-  StatItem(this.entityId, this.statType, this.statValue);
-
-  double get sortValue {
-    switch (statType) {
-      case StatType.record:
-      case StatType.biddingRecord:
-      case StatType.recentRecord:
-        Record record = statValue as Record;
-        if (record.totalGames == 0) {
-          return 1;
-        }
-        return -record.winningPct;
-      case StatType.winningPct:
-      case StatType.biddingFrequency:
-      case StatType.madeBidPercentage:
-      case StatType.averageBid:
-      case StatType.pointsPerBid:
-      case StatType.noPartnerFrequency:
-      case StatType.noPartnerMadePercentage:
-      case StatType.bidderRating:
-      case StatType.settingPct:
-      case StatType.overallRating:
-        return -statValue;
-      case StatType.streak:
-      case StatType.numGames:
-      case StatType.numRounds:
-      case StatType.numBids:
-      case StatType.numPoints:
-      case StatType.lastPlayed:
-      case StatType.winsMinusLosses:
-      case StatType.wins:
-      case StatType.losses:
-        return -statValue.toDouble();
-    }
-    return 0;
-  }
-
-  @override
-  String toString() {
-    switch (statType) {
-      case StatType.record:
-      case StatType.biddingRecord:
-      case StatType.recentRecord:
-        Record record = statValue as Record;
-        return record.toString();
-      case StatType.winningPct:
-      case StatType.madeBidPercentage:
-      case StatType.noPartnerMadePercentage:
-      case StatType.settingPct:
-        return ((statValue as double) * 100).toStringAsFixed(1) + '%';
-      case StatType.streak:
-        if (statValue > 0) {
-          return '${statValue}W';
-        } else if (statValue < 0) {
-          return '${-statValue}L';
-        }
-        return '-';
-      case StatType.numGames:
-      case StatType.numRounds:
-      case StatType.numBids:
-      case StatType.numPoints:
-      case StatType.wins:
-      case StatType.losses:
-        return '$statValue';
-      case StatType.averageBid:
-      case StatType.pointsPerBid:
-        return (statValue as double).toStringAsFixed(2);
-      case StatType.bidderRating:
-      case StatType.overallRating:
-        return (statValue as double).toStringAsFixed(1);
-      case StatType.biddingFrequency:
-      case StatType.noPartnerFrequency:
-        double biddingRate = statValue as double;
-        if (biddingRate == 0) {
-          return '-';
-        }
-        String inverseRateString = (1 / biddingRate).toStringAsFixed(1);
-        return '1 in $inverseRateString';
-      case StatType.lastPlayed:
-        if (statValue == 0) {
-          return '-';
-        }
-        DateTime date = DateTime.fromMillisecondsSinceEpoch(statValue);
-        return intl.DateFormat.yMd().add_jm().format(date);
-      case StatType.winsMinusLosses:
-        String s = statValue.toString();
-        if (statValue > 0) {
-          s = '+' + s;
-        }
-        return s;
-    }
-    return '';
-  }
-}
-
-enum StatType {
-  record,
-  winningPct,
-  streak,
-  numGames,
-  numRounds,
-  numBids,
-  numPoints,
-  biddingFrequency,
-  biddingRecord,
-  madeBidPercentage,
-  averageBid,
-  pointsPerBid,
-  lastPlayed,
-  noPartnerFrequency,
-  noPartnerMadePercentage,
-  winsMinusLosses,
-  wins,
-  losses,
-  bidderRating,
-  settingPct,
-  overallRating,
-  recentRecord,
 }
 
 class BiddingSplit {
@@ -751,28 +396,5 @@ class BiddingSplit {
       return double.nan;
     }
     return made / count;
-  }
-}
-
-class Record {
-  int wins, losses;
-
-  Record(this.wins, this.losses);
-
-  int get totalGames {
-    return wins + losses;
-  }
-
-  double get winningPct {
-    return wins / totalGames;
-  }
-
-  List<int> get asList {
-    return [wins, losses];
-  }
-
-  @override
-  String toString() {
-    return '$wins-$losses';
   }
 }

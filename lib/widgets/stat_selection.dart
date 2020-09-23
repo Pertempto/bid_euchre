@@ -1,4 +1,5 @@
-import 'package:bideuchre/data/stats.dart';
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,6 @@ class _StatSelectionState extends State<StatSelection> {
   Widget build(BuildContext context) {
     if (statOptions == null) {
       statOptions = StatType.values.toList();
-      statOptions.sort((a, b) => StatsDb.statName(a).compareTo(StatsDb.statName(b)));
     }
     textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -30,21 +30,21 @@ class _StatSelectionState extends State<StatSelection> {
             if (index == statOptions.length) {
               return SizedBox(height: 16);
             } else {
-              StatType stat = statOptions[index];
+              StatType statType = statOptions[index];
               return InkWell(
-//                behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Row(
                     children: <Widget>[
-                      Text(StatsDb.statName(stat), style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w400)),
+                      Text(StatItem.getStatName(statType),
+                          style: textTheme.subtitle1.copyWith(fontWeight: FontWeight.w400)),
                       Spacer(),
                       Icon(Icons.chevron_right),
                     ],
                   ),
                 ),
                 onTap: () {
-                  Navigator.pop(context, stat);
+                  Navigator.pop(context, statType);
                 },
               );
             }

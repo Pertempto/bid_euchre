@@ -1,5 +1,5 @@
 import 'package:bideuchre/data/data_store.dart';
-import 'package:bideuchre/data/stats.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -91,7 +91,8 @@ class _BiddingSectionState extends State<BiddingSection>
             Expanded(
               child: Text(
                   data.statsDb.getStat(id, StatType.biddingFrequency, recentGamesOnly: recentGamesOnly).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
+                  style: statStyle,
+                  textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
