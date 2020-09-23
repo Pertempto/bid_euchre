@@ -23,7 +23,8 @@ class Auth {
   }
 
   Future<String> signUp(String email, String password) async {
-    UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+    UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email, password: password);
     return result.user.uid;
   }
 }

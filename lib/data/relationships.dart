@@ -31,7 +31,8 @@ class RelationshipsDb {
 
   void acceptInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
+    if (relationship != null &&
+        relationship.status == RelationshipStatus.requested) {
       relationship.status = RelationshipStatus.accepted;
       relationship.updateFirestore();
     }
@@ -39,7 +40,8 @@ class RelationshipsDb {
 
   void blockInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
+    if (relationship != null &&
+        relationship.status == RelationshipStatus.requested) {
       relationship.status = RelationshipStatus.blocked;
       relationship.updateFirestore();
     }
@@ -52,7 +54,10 @@ class RelationshipsDb {
       return true;
     }
     // test if the users have any groups in common
-    if (getGroupIds(user1Id).toSet().intersection(getGroupIds(user2Id).toSet()).isNotEmpty) {
+    if (getGroupIds(user1Id)
+        .toSet()
+        .intersection(getGroupIds(user2Id).toSet())
+        .isNotEmpty) {
       return true;
     }
     return false;
@@ -60,7 +65,8 @@ class RelationshipsDb {
 
   void cancelInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.requested) {
+    if (relationship != null &&
+        relationship.status == RelationshipStatus.requested) {
       DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
@@ -68,7 +74,8 @@ class RelationshipsDb {
 
   void deleteBlockedInvite(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.blocked) {
+    if (relationship != null &&
+        relationship.status == RelationshipStatus.blocked) {
       DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
@@ -76,7 +83,8 @@ class RelationshipsDb {
 
   void deleteMember(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
-    if (relationship != null && relationship.status == RelationshipStatus.accepted) {
+    if (relationship != null &&
+        relationship.status == RelationshipStatus.accepted) {
       DataStore.friendsCollection.doc(relationship.relationshipId).delete();
       _groupRelationships.remove(relationship.relationshipId);
     }
@@ -85,7 +93,8 @@ class RelationshipsDb {
   List<String> getBlockedGroupIds(String userId) {
     List<String> blockedGroupIds = [];
     for (Relationship relationship in _groupRelationships.values) {
-      if (relationship.user2Id == userId && relationship.status == RelationshipStatus.blocked) {
+      if (relationship.user2Id == userId &&
+          relationship.status == RelationshipStatus.blocked) {
         blockedGroupIds.add(relationship.groupId);
       }
     }
@@ -106,7 +115,8 @@ class RelationshipsDb {
       }
     }
     for (Relationship relationship in _groupRelationships.values) {
-      if (relationship.user2Id == userId && relationship.status == RelationshipStatus.accepted) {
+      if (relationship.user2Id == userId &&
+          relationship.status == RelationshipStatus.accepted) {
         groupIds.add(relationship.groupId);
       }
     }
@@ -117,7 +127,8 @@ class RelationshipsDb {
   List<String> getGroupInvitations(String userId) {
     List<String> groupIds = [];
     for (Relationship relationship in _groupRelationships.values) {
-      if (relationship.user2Id == userId && relationship.status == RelationshipStatus.requested) {
+      if (relationship.user2Id == userId &&
+          relationship.status == RelationshipStatus.requested) {
         groupIds.add(relationship.groupId);
       }
     }
@@ -128,14 +139,16 @@ class RelationshipsDb {
     if (groupId == null || user2Id == null) {
       return null;
     }
-    String relationshipId = Relationship.generateGroupRelationshipId(groupId, user2Id);
+    String relationshipId =
+    Relationship.generateGroupRelationshipId(groupId, user2Id);
     return _groupRelationships[relationshipId];
   }
 
   List<String> getInvitedUserIds(String groupId) {
     List<String> invitedIds = [];
     for (Relationship relationship in _groupRelationships.values) {
-      if (relationship.groupId == groupId && relationship.status == RelationshipStatus.requested) {
+      if (relationship.groupId == groupId &&
+          relationship.status == RelationshipStatus.requested) {
         invitedIds.add(relationship.user2Id);
       }
     }
@@ -145,7 +158,8 @@ class RelationshipsDb {
   List<String> getMemberIds(String groupId) {
     List<String> memberIds = [_groups[groupId].adminId];
     for (Relationship relationship in _groupRelationships.values) {
-      if (relationship.groupId == groupId && relationship.status == RelationshipStatus.accepted) {
+      if (relationship.groupId == groupId &&
+          relationship.status == RelationshipStatus.accepted) {
         memberIds.add(relationship.user2Id);
       }
     }
@@ -155,7 +169,8 @@ class RelationshipsDb {
   void inviteUser(String groupId, String user2Id) {
     Relationship relationship = getGroupRelationship(groupId, user2Id);
     if (relationship == null) {
-      relationship = Relationship.group(groupId, user2Id, RelationshipStatus.requested);
+      relationship =
+          Relationship.group(groupId, user2Id, RelationshipStatus.requested);
       _groupRelationships[relationship.relationshipId] = relationship;
       relationship.updateFirestore();
     }

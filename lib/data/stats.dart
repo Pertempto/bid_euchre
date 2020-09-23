@@ -4,6 +4,7 @@ import 'package:bideuchre/widgets/color_chooser.dart';
 import 'package:flutter/material.dart';
 
 import '../util.dart';
+import 'bidding_split.dart';
 import 'game.dart';
 import 'player.dart';
 import 'stat_item.dart';
@@ -11,17 +12,16 @@ import 'stat_type.dart';
 
 class StatsDb {
   static const int MIN_GAMES = 5;
-  static const double DEFAULT_RATING = 50;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<Map>> _entitiesGamesStats;
   Map<String, List<String>> _entitiesGameIdsHistories;
 
   StatsDb.load(this.allGames, this.allPlayers) {
-    _loadStats();
+    _loadRawStats();
   }
 
-  _loadStats() {
+  _loadRawStats() {
     _entitiesGameIdsHistories = {};
     _entitiesGamesStats = {};
 
@@ -55,7 +55,6 @@ class StatsDb {
             'lastPlayed': 0,
             'noPartner': 0,
             'madeNoPartner': 0,
-            'setOpponents': 0,
             'scoreDiff': 0,
           },
         );
@@ -116,10 +115,6 @@ class StatsDb {
                   gameStatsMap[teamId]['madeNoPartner']++;
                 }
               }
-            } else {
-              if (!round.madeBid) {
-                gameStatsMap[teamId]['setOpponents']++;
-              }
             }
           }
         }
@@ -134,9 +129,6 @@ class StatsDb {
           gameStatsMap[bidderId]['numBids']++;
           if (round.madeBid) {
             gameStatsMap[bidderId]['madeBids']++;
-          } else {
-            gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]]['setOpponents']++;
-            gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]]['setOpponents']++;
           }
           gameStatsMap[bidderId]['biddingTotal'] += round.bid;
           gameStatsMap[bidderId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
@@ -242,7 +234,6 @@ class StatsDb {
           }
         }
       } else {
-//        print('$teamColors, $numGames');
         int maxGames = numGames.values.reduce(max);
         for (String teamId in numGames.keys) {
           if (numGames[teamId] == maxGames) {
@@ -254,27 +245,11 @@ class StatsDb {
     return Colors.black;
   }
 
-  List<Game> getEntityGames(String id, {String beforeGameId}) {
+  List<Game> getEntityGames(String id) {
     if (_entitiesGameIdsHistories[id] == null) {
       return [];
     }
-    List<Game> games = allGames.where((g) => _entitiesGameIdsHistories[id].contains(g.gameId)).toList();
-    if (beforeGameId == null) {
-      return games;
-    } else {
-      bool haveFoundStart = false;
-      List<Game> beforeGames = [];
-      for (Game game in games) {
-        if (haveFoundStart) {
-          beforeGames.add(game);
-        } else {
-          if (game.gameId == beforeGameId) {
-            haveFoundStart = true;
-          }
-        }
-      }
-      return beforeGames;
-    }
+    return allGames.where((g) => _entitiesGameIdsHistories[id].contains(g.gameId)).toList();
   }
 
   Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {
@@ -306,12 +281,10 @@ class StatsDb {
   }
 
   double getRatingBeforeGame(String id, String gameId) {
-    if (!_entitiesGameIdsHistories.containsKey(id)) {
-      return DEFAULT_RATING;
-    }
-    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId);
+    List<String> gameIds = _entitiesGameIdsHistories.containsKey(id) ? _entitiesGameIdsHistories[id] : [];
+    int endIndex = gameIds.indexOf(gameId);
     if (endIndex <= 0) {
-      return DEFAULT_RATING;
+      return 0;
     }
     int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return OverallRatingStatItem.calculateOverallRating(
@@ -320,13 +293,13 @@ class StatsDb {
 
   StatItem getStat(String entityId, StatType statType, {bool recentGamesOnly = false}) {
     if (!_entitiesGamesStats.containsKey(entityId)) {
-      return StatItem.empty(entityId, statType);
+      return StatItem.empty(statType);
     }
     List<Map> gamesStats = _entitiesGamesStats[entityId];
     if (recentGamesOnly) {
       gamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
     }
-    return StatItem.fromGamesStats(entityId, statType, gamesStats);
+    return StatItem.fromGamesStats(statType, gamesStats, entityId.contains(' '));
   }
 
   Map<int, BiddingSplit> getTeamBiddingSplits(String teamId, {int numRecent = 0}) {
@@ -360,41 +333,5 @@ class StatsDb {
   static List<double> ratingsToWinChances(List<double> teamRatings) {
     double team1WinChance = 1 / (pow(10, ((teamRatings[1] - teamRatings[0]) / 40)) + 1);
     return [team1WinChance, 1 - team1WinChance];
-  }
-}
-
-class BiddingSplit {
-  int bid;
-  List<Round> rounds;
-
-  BiddingSplit(this.bid, this.rounds);
-
-  double get avgPoints {
-    if (count == 0) {
-      return double.nan;
-    }
-    return rounds.map((r) => r.score[r.bidderIndex % 2]).reduce((a, b) => a + b) / count;
-  }
-
-  double get avgTricks {
-    if (count == 0) {
-      return double.nan;
-    }
-    return rounds.map((r) => r.wonTricks).reduce((a, b) => a + b) / count;
-  }
-
-  int get count {
-    return rounds.length;
-  }
-
-  int get made {
-    return rounds.where((r) => r.madeBid).length;
-  }
-
-  double get madePct {
-    if (count == 0) {
-      return double.nan;
-    }
-    return made / count;
   }
 }

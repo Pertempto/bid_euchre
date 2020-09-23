@@ -6,97 +6,91 @@ import 'record.dart';
 import 'stat_type.dart';
 
 abstract class StatItem {
-  String _entityId;
-
-  String get entityId {
-    return _entityId;
-  }
-
   double sortValue;
   String statName;
 
   StatItem();
 
-  factory StatItem.empty(String entityId, StatType statType) {
+  factory StatItem.empty(StatType statType) {
     switch (statType) {
       case StatType.overallRating:
-        return OverallRatingStatItem(entityId, 0);
+        return OverallRatingStatItem(0);
       case StatType.bidderRating:
-        return BidderRatingStatItem(entityId, 0);
+        return BidderRatingStatItem(0);
       case StatType.record:
-        return WinLossRecordStatItem(entityId, Record(0, 0));
+        return WinLossRecordStatItem(Record(0, 0));
       case StatType.biddingRecord:
-        return BiddingRecordStatItem(entityId, Record(0, 0));
+        return BiddingRecordStatItem(Record(0, 0));
       case StatType.recentRecord:
-        return RecentRecordStatItem(entityId, Record(0, 0));
+        return RecentRecordStatItem(Record(0, 0));
       case StatType.winningPercentage:
-        return WinningPercentageStatItem(entityId, 0);
+        return WinningPercentageStatItem(0);
       case StatType.madeBidPercentage:
-        return MadeBidPercentageStatItem(entityId, 0);
+        return MadeBidPercentageStatItem(0);
       case StatType.noPartnerMadePercentage:
-        return NoPartnerMadePercentageStatItem(entityId, 0);
+        return NoPartnerMadePercentageStatItem(0);
       case StatType.biddingFrequency:
-        return BiddingFrequencyStatItem(entityId, 0);
+        return BiddingFrequencyStatItem(0);
       case StatType.noPartnerFrequency:
-        return NoPartnerFrequencyStatItem(entityId, 0);
+        return NoPartnerFrequencyStatItem(0);
       case StatType.pointsPerBid:
-        return PointsPerBidStatItem(entityId, 0, 0);
+        return PointsPerBidStatItem(0, 0);
       case StatType.averageBid:
-        return AverageBidStatItem(entityId, 0, 0);
+        return AverageBidStatItem(0, 0);
       case StatType.streak:
-        return StreakStatItem(entityId, 0);
+        return StreakStatItem(0);
       case StatType.numGames:
-        return NumGamesStatItem(entityId, 0);
+        return NumGamesStatItem(0);
       case StatType.numRounds:
-        return NumRoundsStatItem(entityId, 0);
+        return NumRoundsStatItem(0);
       case StatType.numBids:
-        return NumBidsStatItem(entityId, 0);
+        return NumBidsStatItem(0);
       case StatType.numPoints:
-        return NumPointsStatItem(entityId, 0);
+        return NumPointsStatItem(0);
       case StatType.lastPlayed:
-        return LastPlayedStatItem(entityId, 0);
+        return LastPlayedStatItem(0);
     }
     throw Exception('Invalid stat type: $statType');
   }
 
-  factory StatItem.fromGamesStats(String entityId, StatType statType, List<Map> gamesStats) {
+  factory StatItem.fromGamesStats(StatType statType, List<Map> gamesStats, bool isTeam) {
     switch (statType) {
       case StatType.overallRating:
-        return OverallRatingStatItem.fromGamesStats(entityId, gamesStats);
+        return OverallRatingStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.bidderRating:
-        return BidderRatingStatItem.fromGamesStats(entityId, gamesStats);
+        return BidderRatingStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.record:
-        return WinLossRecordStatItem.fromGamesStats(entityId, gamesStats);
+        return WinLossRecordStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.biddingRecord:
-        return BiddingRecordStatItem.fromGamesStats(entityId, gamesStats);
+        return BiddingRecordStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.recentRecord:
-        return RecentRecordStatItem.fromGamesStats(entityId, gamesStats);
+        return RecentRecordStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.winningPercentage:
-        return WinningPercentageStatItem.fromGamesStats(entityId, gamesStats);
+        return WinningPercentageStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.madeBidPercentage:
-        return MadeBidPercentageStatItem.fromGamesStats(entityId, gamesStats);
+        return MadeBidPercentageStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.noPartnerMadePercentage:
-        return NoPartnerMadePercentageStatItem.fromGamesStats(entityId, gamesStats);
+        return NoPartnerMadePercentageStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.biddingFrequency:
-        return BiddingFrequencyStatItem.fromGamesStats(entityId, gamesStats);
+        return BiddingFrequencyStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.noPartnerFrequency:
-        return NoPartnerFrequencyStatItem.fromGamesStats(entityId, gamesStats);
+        return NoPartnerFrequencyStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.pointsPerBid:
-        return PointsPerBidStatItem.fromGamesStats(entityId, gamesStats);
+        return PointsPerBidStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.averageBid:
-        return AverageBidStatItem.fromGamesStats(entityId, gamesStats);
+        return AverageBidStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.streak:
-        return StreakStatItem.fromGamesStats(entityId, gamesStats);
+        return StreakStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.numGames:
-        return NumGamesStatItem.fromGamesStats(entityId, gamesStats);
+        return NumGamesStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.numRounds:
-        return NumRoundsStatItem.fromGamesStats(entityId, gamesStats);
+        return NumRoundsStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.numBids:
-        return NumBidsStatItem.fromGamesStats(entityId, gamesStats);
+        return NumBidsStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.numPoints:
-        return NumPointsStatItem.fromGamesStats(entityId, gamesStats);
+        return NumPointsStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.lastPlayed:
-        return LastPlayedStatItem.fromGamesStats(entityId, gamesStats);
+        return LastPlayedStatItem.fromGamesStats(gamesStats, isTeam);
     }
     throw Exception('Invalid stat type: $statType');
   }
@@ -150,8 +144,7 @@ abstract class DoubleStatItem extends StatItem {
 
   double get sortValue => -_value;
 
-  DoubleStatItem(String entityId, double value) {
-    _entityId = entityId;
+  DoubleStatItem(double value) {
     _value = value;
   }
 }
@@ -161,7 +154,7 @@ abstract class RatingStatItem extends DoubleStatItem {
     return _value;
   }
 
-  RatingStatItem(String entityId, double rating) : super(entityId, rating);
+  RatingStatItem(double rating) : super(rating);
 
   @override
   String toString() {
@@ -172,17 +165,17 @@ abstract class RatingStatItem extends DoubleStatItem {
 class OverallRatingStatItem extends RatingStatItem {
   String get statName => 'Overall Rating';
 
-  OverallRatingStatItem(String entityId, double overallRating) : super(entityId, overallRating);
+  OverallRatingStatItem(double overallRating) : super(overallRating);
 
-  factory OverallRatingStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory OverallRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     List<Map> recentGamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
-    return OverallRatingStatItem(entityId, calculateOverallRating(recentGamesStats, entityId.contains(' ')));
+    return OverallRatingStatItem(calculateOverallRating(recentGamesStats, isTeam));
   }
 
   static double calculateOverallRating(List<Map> gamesStats, bool isTeam) {
     double bidderRating = BidderRatingStatItem.calculateBidderRating(gamesStats, isTeam);
     Record record = WinLossRecordStatItem.calculateRecord(gamesStats);
-    double winningRating = 50;
+    double winningRating = 0;
     if (record.totalGames != 0) {
       winningRating = record.winningPercentage * 100;
     }
@@ -194,11 +187,11 @@ class OverallRatingStatItem extends RatingStatItem {
 class BidderRatingStatItem extends RatingStatItem {
   String get statName => 'Bidder Rating';
 
-  BidderRatingStatItem(String entityId, double bidderRating) : super(entityId, bidderRating);
+  BidderRatingStatItem(double bidderRating) : super(bidderRating);
 
-  factory BidderRatingStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory BidderRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     List<Map> recentGamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
-    return BidderRatingStatItem(entityId, calculateBidderRating(recentGamesStats, entityId.contains(' ')));
+    return BidderRatingStatItem(calculateBidderRating(recentGamesStats, isTeam));
   }
 
   static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
@@ -223,7 +216,7 @@ class BidderRatingStatItem extends RatingStatItem {
 }
 
 abstract class PercentageStatItem extends DoubleStatItem {
-  PercentageStatItem(String entityId, double percentage) : super(entityId, percentage);
+  PercentageStatItem(double percentage) : super(percentage);
 
   @override
   String toString() {
@@ -234,47 +227,46 @@ abstract class PercentageStatItem extends DoubleStatItem {
 class WinningPercentageStatItem extends PercentageStatItem {
   String get statName => 'Winning Percentage';
 
-  WinningPercentageStatItem(String entityId, double winningPercentage) : super(entityId, winningPercentage);
+  WinningPercentageStatItem(double winningPercentage) : super(winningPercentage);
 
-  factory WinningPercentageStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory WinningPercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     Record record = WinLossRecordStatItem.calculateRecord(gamesStats);
-    return WinningPercentageStatItem(entityId, record.winningPercentage);
+    return WinningPercentageStatItem(record.winningPercentage);
   }
 }
 
 class MadeBidPercentageStatItem extends PercentageStatItem {
   String get statName => 'Made Bid Percentage';
 
-  MadeBidPercentageStatItem(String entityId, double madeBidPercentage) : super(entityId, madeBidPercentage);
+  MadeBidPercentageStatItem(double madeBidPercentage) : super(madeBidPercentage);
 
-  factory MadeBidPercentageStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory MadeBidPercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     int numBids = combineStat(gamesStats, 'numBids');
     double madeBidPercentage = 0;
     if (numBids != 0) {
       madeBidPercentage = combineStat(gamesStats, 'madeBids') / numBids;
     }
-    return MadeBidPercentageStatItem(entityId, madeBidPercentage);
+    return MadeBidPercentageStatItem(madeBidPercentage);
   }
 }
 
 class NoPartnerMadePercentageStatItem extends PercentageStatItem {
   String get statName => 'Slider/Loner Made %';
 
-  NoPartnerMadePercentageStatItem(String entityId, double noPartnerMadePercentage)
-      : super(entityId, noPartnerMadePercentage);
+  NoPartnerMadePercentageStatItem(double noPartnerMadePercentage) : super(noPartnerMadePercentage);
 
-  factory NoPartnerMadePercentageStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory NoPartnerMadePercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     double noPartnerMadePercentage = 0;
     int numNoPartnerBids = combineStat(gamesStats, 'noPartner');
     if (numNoPartnerBids != 0) {
       noPartnerMadePercentage = combineStat(gamesStats, 'madeNoPartner') / numNoPartnerBids;
     }
-    return NoPartnerMadePercentageStatItem(entityId, noPartnerMadePercentage);
+    return NoPartnerMadePercentageStatItem(noPartnerMadePercentage);
   }
 }
 
 abstract class FrequencyStatItem extends DoubleStatItem {
-  FrequencyStatItem(String entityId, double frequencyValue) : super(entityId, frequencyValue);
+  FrequencyStatItem(double frequencyValue) : super(frequencyValue);
 
   @override
   String toString() {
@@ -289,31 +281,31 @@ abstract class FrequencyStatItem extends DoubleStatItem {
 class BiddingFrequencyStatItem extends FrequencyStatItem {
   String get statName => 'Bidding Frequency';
 
-  BiddingFrequencyStatItem(String entityId, double biddingFrequency) : super(entityId, biddingFrequency);
+  BiddingFrequencyStatItem(double biddingFrequency) : super(biddingFrequency);
 
-  factory BiddingFrequencyStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory BiddingFrequencyStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     int numRounds = combineStat(gamesStats, 'numRounds');
     int numBids = combineStat(gamesStats, 'numBids');
     double biddingFrequency = 0;
     if (numRounds != 0) {
       biddingFrequency = numBids / numRounds;
     }
-    return BiddingFrequencyStatItem(entityId, biddingFrequency);
+    return BiddingFrequencyStatItem(biddingFrequency);
   }
 }
 
 class NoPartnerFrequencyStatItem extends FrequencyStatItem {
   String get statName => 'Slider/Loner Frequency';
 
-  NoPartnerFrequencyStatItem(String entityId, double noPartnerFrequency) : super(entityId, noPartnerFrequency);
+  NoPartnerFrequencyStatItem(double noPartnerFrequency) : super(noPartnerFrequency);
 
-  factory NoPartnerFrequencyStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory NoPartnerFrequencyStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     int numBids = combineStat(gamesStats, 'numBids');
     double noPartnerFrequency = 0;
     if (numBids != 0) {
       noPartnerFrequency = combineStat(gamesStats, 'noPartner') / numBids;
     }
-    return NoPartnerFrequencyStatItem(entityId, noPartnerFrequency);
+    return NoPartnerFrequencyStatItem(noPartnerFrequency);
   }
 }
 
@@ -329,8 +321,7 @@ abstract class RecordStatItem extends StatItem {
     return -record.winningPercentage;
   }
 
-  RecordStatItem(String entityId, Record record) {
-    _entityId = entityId;
+  RecordStatItem(Record record) {
     _record = record;
   }
 
@@ -343,16 +334,20 @@ abstract class RecordStatItem extends StatItem {
 class WinLossRecordStatItem extends RecordStatItem {
   String get statName => 'Win/Loss Record';
 
-  WinLossRecordStatItem(String entityId, Record winLossRecord) : super(entityId, winLossRecord);
+  WinLossRecordStatItem(Record winLossRecord) : super(winLossRecord);
 
-  factory WinLossRecordStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return WinLossRecordStatItem(entityId, calculateRecord(gamesStats));
+  factory WinLossRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return WinLossRecordStatItem(calculateRecord(gamesStats));
   }
 
   static Record calculateRecord(List<Map> gamesStats) {
     List<int> recentDiffs = gamesStats.map((gameStats) => gameStats['scoreDiff']).toList().cast<int>();
-    int wins = recentDiffs.where((d) => d > 0).length;
-    int losses = recentDiffs.where((d) => d < 0).length;
+    int wins = recentDiffs
+        .where((d) => d > 0)
+        .length;
+    int losses = recentDiffs
+        .where((d) => d < 0)
+        .length;
     return Record(wins, losses);
   }
 }
@@ -360,12 +355,12 @@ class WinLossRecordStatItem extends RecordStatItem {
 class BiddingRecordStatItem extends RecordStatItem {
   String get statName => 'Bidding Record';
 
-  BiddingRecordStatItem(String entityId, Record biddingRecord) : super(entityId, biddingRecord);
+  BiddingRecordStatItem(Record biddingRecord) : super(biddingRecord);
 
-  factory BiddingRecordStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory BiddingRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     int made = combineStat(gamesStats, 'madeBids');
     int set = combineStat(gamesStats, 'numBids') - made;
-    return BiddingRecordStatItem(entityId, Record(made, set));
+    return BiddingRecordStatItem(Record(made, set));
   }
 }
 
@@ -374,11 +369,11 @@ class RecentRecordStatItem extends RecordStatItem {
 
   String get statName => 'Recent Record';
 
-  RecentRecordStatItem(String entityId, Record recentRecord) : super(entityId, recentRecord);
+  RecentRecordStatItem(Record recentRecord) : super(recentRecord);
 
-  factory RecentRecordStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
+  factory RecentRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     List<Map> recentGamesStats = getRecentGamesStats(gamesStats);
-    return RecentRecordStatItem(entityId, WinLossRecordStatItem.calculateRecord(recentGamesStats));
+    return RecentRecordStatItem(WinLossRecordStatItem.calculateRecord(recentGamesStats));
   }
 
   static List<Map> getRecentGamesStats(List<Map> gamesStats) {
@@ -397,8 +392,7 @@ abstract class AverageStatItem extends StatItem {
 
   double get sortValue => count == 0 ? double.infinity : -average;
 
-  AverageStatItem(String entityId, int sum, int count) {
-    _entityId = entityId;
+  AverageStatItem(int sum, int count) {
     _sum = sum;
     _count = count;
   }
@@ -415,20 +409,20 @@ abstract class AverageStatItem extends StatItem {
 class PointsPerBidStatItem extends AverageStatItem {
   String get statName => 'Points Per Bid';
 
-  PointsPerBidStatItem(String entityId, int totalPoints, int numBids) : super(entityId, totalPoints, numBids);
+  PointsPerBidStatItem(int totalPoints, int numBids) : super(totalPoints, numBids);
 
-  factory PointsPerBidStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return PointsPerBidStatItem(entityId, combineStat(gamesStats, 'pointsOnBids'), combineStat(gamesStats, 'numBids'));
+  factory PointsPerBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return PointsPerBidStatItem(combineStat(gamesStats, 'pointsOnBids'), combineStat(gamesStats, 'numBids'));
   }
 }
 
 class AverageBidStatItem extends AverageStatItem {
   String get statName => 'Average Bid';
 
-  AverageBidStatItem(String entityId, int totalBids, int numBids) : super(entityId, totalBids, numBids);
+  AverageBidStatItem(int totalBids, int numBids) : super(totalBids, numBids);
 
-  factory AverageBidStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return AverageBidStatItem(entityId, combineStat(gamesStats, 'biddingTotal'), combineStat(gamesStats, 'numBids'));
+  factory AverageBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return AverageBidStatItem(combineStat(gamesStats, 'biddingTotal'), combineStat(gamesStats, 'numBids'));
   }
 }
 
@@ -441,13 +435,12 @@ class StreakStatItem extends StatItem {
 
   String get statName => 'Streak';
 
-  StreakStatItem(String entityId, int streak) {
-    _entityId = entityId;
+  StreakStatItem(int streak) {
     _streak = streak;
   }
 
-  factory StreakStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return StreakStatItem(entityId, calculateStreak(gamesStats));
+  factory StreakStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return StreakStatItem(calculateStreak(gamesStats));
   }
 
   @override
@@ -489,8 +482,7 @@ abstract class IntStatItem extends StatItem {
 
   double get sortValue => -_value.toDouble();
 
-  IntStatItem(String entityId, int value) {
-    _entityId = entityId;
+  IntStatItem(int value) {
     _value = value;
   }
 
@@ -503,40 +495,40 @@ abstract class IntStatItem extends StatItem {
 class NumGamesStatItem extends IntStatItem {
   String get statName => 'Number of Games';
 
-  NumGamesStatItem(String entityId, int numGames) : super(entityId, numGames);
+  NumGamesStatItem(int numGames) : super(numGames);
 
-  factory NumGamesStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return NumGamesStatItem(entityId, combineStat(gamesStats, 'numGames'));
+  factory NumGamesStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return NumGamesStatItem(combineStat(gamesStats, 'numGames'));
   }
 }
 
 class NumRoundsStatItem extends IntStatItem {
   String get statName => 'Number of Rounds';
 
-  NumRoundsStatItem(String entityId, int numRounds) : super(entityId, numRounds);
+  NumRoundsStatItem(int numRounds) : super(numRounds);
 
-  factory NumRoundsStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return NumRoundsStatItem(entityId, combineStat(gamesStats, 'numRounds'));
+  factory NumRoundsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return NumRoundsStatItem(combineStat(gamesStats, 'numRounds'));
   }
 }
 
 class NumBidsStatItem extends IntStatItem {
   String get statName => 'Number of Bids';
 
-  NumBidsStatItem(String entityId, int numBids) : super(entityId, numBids);
+  NumBidsStatItem(int numBids) : super(numBids);
 
-  factory NumBidsStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return NumBidsStatItem(entityId, combineStat(gamesStats, 'numBids'));
+  factory NumBidsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return NumBidsStatItem(combineStat(gamesStats, 'numBids'));
   }
 }
 
 class NumPointsStatItem extends IntStatItem {
   String get statName => 'Number of Points';
 
-  NumPointsStatItem(String entityId, int numPoints) : super(entityId, numPoints);
+  NumPointsStatItem(int numPoints) : super(numPoints);
 
-  factory NumPointsStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return NumPointsStatItem(entityId, combineStat(gamesStats, 'numPoints'));
+  factory NumPointsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return NumPointsStatItem(combineStat(gamesStats, 'numPoints'));
   }
 }
 
@@ -545,10 +537,10 @@ class LastPlayedStatItem extends IntStatItem {
 
   String get statName => 'Last Played';
 
-  LastPlayedStatItem(String entityId, int lastPlayed) : super(entityId, lastPlayed);
+  LastPlayedStatItem(int lastPlayed) : super(lastPlayed);
 
-  factory LastPlayedStatItem.fromGamesStats(String entityId, List<Map> gamesStats) {
-    return LastPlayedStatItem(entityId, gamesStats.last['lastPlayed']);
+  factory LastPlayedStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return LastPlayedStatItem(gamesStats.last['lastPlayed']);
   }
 
   @override

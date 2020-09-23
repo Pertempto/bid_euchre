@@ -195,7 +195,10 @@ class Game {
   String getTeamName(int index, Data data, {bool fullNames = false}) {
     String player1Id = currentPlayerIds[index];
     String player2Id = currentPlayerIds[index + 2];
-    List<Player> players = [data.allPlayers[player1Id], data.allPlayers[player2Id]];
+    List<Player> players = [
+      data.allPlayers[player1Id],
+      data.allPlayers[player2Id]
+    ];
     players.sort((a, b) => a.fullName.compareTo(b.fullName));
     if (fullNames) {
       return '${players[0].fullName} & ${players[1].fullName}';
@@ -246,7 +249,8 @@ class Round {
   int switchingPlayerIndex;
   String newPlayerId;
 
-  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid, this.wonTricks) {
+  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid,
+      this.wonTricks) {
     isPlayerSwitch = false;
   }
 
@@ -268,8 +272,10 @@ class Round {
       switchingPlayerIndex = roundData['switchingPlayerIndex'];
       newPlayerId = roundData['newPlayerId'];
     } else {
-      dealerIndex = roundData['dealerIndex'] == -1 ? null : roundData['dealerIndex'];
-      bidderIndex = roundData['bidderIndex'] == -1 ? null : roundData['bidderIndex'];
+      dealerIndex =
+      roundData['dealerIndex'] == -1 ? null : roundData['dealerIndex'];
+      bidderIndex =
+      roundData['bidderIndex'] == -1 ? null : roundData['bidderIndex'];
       bid = roundData['bid'] == -1 ? null : roundData['bid'];
       wonTricks = roundData['wonPoints'] == -1 ? null : roundData['wonPoints'];
       if (wonTricks == null) {
@@ -297,7 +303,10 @@ class Round {
   }
 
   bool get isFinished {
-    return dealerIndex != null && bidderIndex != null && bid != null && wonTricks != null;
+    return dealerIndex != null &&
+        bidderIndex != null &&
+        bid != null &&
+        wonTricks != null;
   }
 
   bool get madeBid {

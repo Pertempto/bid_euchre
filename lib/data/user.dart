@@ -17,7 +17,8 @@ class User {
       pinnedPlayerIds = [];
     }
     if (documentSnapshot.data()['confettiSettings'] != null) {
-      confettiSettings = ConfettiSettings.fromData(documentSnapshot.data()['confettiSettings']);
+      confettiSettings = ConfettiSettings.fromData(
+          documentSnapshot.data()['confettiSettings']);
     } else {
       confettiSettings = ConfettiSettings();
     }

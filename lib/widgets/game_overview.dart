@@ -203,7 +203,6 @@ class _GameOverviewState extends State<GameOverview>
                     child: OutlineButton(
                       child: Text('Celebrate!'),
                       onPressed: () {
-//                        confettiController.play();
                         confettiController.reset();
                         confettiController.forward();
                       },

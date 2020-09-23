@@ -1,6 +1,6 @@
+import 'package:bideuchre/data/bidding_split.dart';
 import 'package:bideuchre/data/stat_item.dart';
 import 'package:bideuchre/data/stat_type.dart';
-import 'package:bideuchre/data/stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

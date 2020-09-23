@@ -68,7 +68,8 @@ class DataStore {
             StatsDb statsDb = lastStats;
             if (games.isNotEmpty && players.isNotEmpty) {
               if (statsDb == null ||
-                  hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
+                  hashList(games.where((g) => g.isFinished)) !=
+                      hashList(statsDb.allGames.where((g) => g.isFinished)) ||
                   hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
                 print(
                     'loading new stats db ${hashList(games.where((g) => g.isFinished))}:${hashList(statsDb.allGames.where((g) => g.isFinished))} ${hashList(players.keys)}:${hashList(statsDb.allPlayers.keys)} ');
@@ -97,7 +98,15 @@ class DataStore {
               }
             }
             Data data = Data(
-                currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
+                currentUser,
+                users,
+                relationshipsDb,
+                games,
+                filteredGames,
+                players,
+                filteredPlayers,
+                statsDb,
+                loaded);
             if (!loaded && lastData != null) {
 //              print('using last data');
               return callback(lastData);
@@ -110,7 +119,8 @@ class DataStore {
     });
   }
 
-  static StreamBuilder _relationshipsWrap(bool allowNull, Widget Function(RelationshipsDb relationshipsDb) callback) {
+  static StreamBuilder _relationshipsWrap(bool allowNull,
+      Widget Function(RelationshipsDb relationshipsDb) callback) {
     return StreamBuilder<QuerySnapshot>(
       stream: friendsCollection.snapshots(),
       builder: (context, snapshot) {
@@ -119,7 +129,8 @@ class DataStore {
             stream: groupsCollection.snapshots(),
             builder: (context, snapshot2) {
               if (snapshot2.hasData) {
-                return callback(RelationshipsDb.fromSnapshot(snapshot.data, snapshot2.data));
+                return callback(RelationshipsDb.fromSnapshot(
+                    snapshot.data, snapshot2.data));
               } else {
                 if (allowNull) {
                   return callback(RelationshipsDb.empty());
@@ -156,8 +167,8 @@ class DataStore {
     );
   }
 
-  static StreamBuilder _playersWrap(
-      bool allowNull, Widget Function(Map<String, Player> players, bool loaded) callback) {
+  static StreamBuilder _playersWrap(bool allowNull,
+      Widget Function(Map<String, Player> players, bool loaded) callback) {
     return StreamBuilder<QuerySnapshot>(
       stream: playersCollection.snapshots(),
       builder: (context, snapshot) {
@@ -201,6 +212,6 @@ class Data {
   final StatsDb statsDb;
   final bool loaded;
 
-  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames, this.games, this.allPlayers, this.players,
-      this.statsDb, this.loaded);
+  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames,
+      this.games, this.allPlayers, this.players, this.statsDb, this.loaded);
 }
