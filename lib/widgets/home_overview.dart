@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'player_selection.dart';
+import 'rising_entities_section.dart';
 
 class HomeOverview extends StatefulWidget {
   HomeOverview();
@@ -28,6 +29,9 @@ class _HomeOverviewState extends State<HomeOverview> {
       SizedBox(height: 8),
       notificationsSection(),
       pinnedPlayersSection(),
+      RisingEntitiesSection(false),
+      RisingEntitiesSection(true),
+      SizedBox(height: 8),
     ];
 
     return SingleChildScrollView(child: Column(children: children));

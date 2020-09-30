@@ -189,31 +189,31 @@ class StatsDb {
     return [adjWinChances[0] / sum, adjWinChances[1] / sum];
   }
 
-  double getBidderRatingAfterGame(String id, String gameId) {
-    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
+  double getBidderRatingAfterGame(String entityId, String gameId) {
+    int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return BidderRatingStatItem.calculateBidderRating(
-        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
   }
 
-  Color getEntityColor(String id) {
-    if (_entitiesGameIdsHistories[id] == null || _entitiesGameIdsHistories[id].isEmpty) {
+  Color getEntityColor(String entityId) {
+    if (_entitiesGameIdsHistories[entityId] == null || _entitiesGameIdsHistories[entityId].isEmpty) {
       // return random color for new team
-      return ColorChooser.generateRandomColor(seed: id.hashCode);
+      return ColorChooser.generateRandomColor(seed: entityId.hashCode);
     }
-    if (id.contains(' ')) {
-      Game lastGame = allGames.firstWhere((g) => g.gameId == _entitiesGameIdsHistories[id].last);
+    if (entityId.contains(' ')) {
+      Game lastGame = allGames.firstWhere((g) => g.gameId == _entitiesGameIdsHistories[entityId].last);
       List<String> teamIds = lastGame.teamIds;
-      if (teamIds.contains(id)) {
-        return Util.checkColor(lastGame.teamColors[teamIds.indexOf(id)], id);
+      if (teamIds.contains(entityId)) {
+        return Util.checkColor(lastGame.teamColors[teamIds.indexOf(entityId)], entityId);
       }
     } else {
       Map<String, Color> teamColors = {};
       Map<String, int> numGames = {};
-      List<Game> games = getEntityGames(id);
+      List<Game> games = getEntityGames(entityId);
       for (Game game in games) {
         for (int i = 0; i < 2; i++) {
-          if (game.allTeamsPlayerIds[i].contains(id)) {
+          if (game.allTeamsPlayerIds[i].contains(entityId)) {
             String teamId = game.teamIds[i];
             if (teamId != null) {
               if (teamColors[teamId] == null) {
@@ -229,8 +229,8 @@ class StatsDb {
         // the player has been in games, but only played partial parts
         Game game = games[0];
         for (int i = 0; i < 2; i++) {
-          if (game.allTeamsPlayerIds[i].contains(id)) {
-            return Util.checkColor(game.teamColors[i], id);
+          if (game.allTeamsPlayerIds[i].contains(entityId)) {
+            return Util.checkColor(game.teamColors[i], entityId);
           }
         }
       } else {
@@ -245,11 +245,18 @@ class StatsDb {
     return Colors.black;
   }
 
-  List<Game> getEntityGames(String id) {
-    if (_entitiesGameIdsHistories[id] == null) {
+  List<Game> getEntityGames(String entityId) {
+    if (_entitiesGameIdsHistories[entityId] == null) {
       return [];
     }
-    return allGames.where((g) => _entitiesGameIdsHistories[id].contains(g.gameId)).toList();
+    return allGames.where((g) => _entitiesGameIdsHistories[entityId].contains(g.gameId)).toList();
+  }
+
+  List<Map> getEntityRawGamesStats(String entityId) {
+    if (_entitiesGamesStats[entityId] == null) {
+      return [];
+    }
+    return _entitiesGamesStats[entityId].toList();
   }
 
   Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {
@@ -273,22 +280,22 @@ class StatsDb {
     return splits;
   }
 
-  double getRatingAfterGame(String id, String gameId) {
-    int endIndex = _entitiesGameIdsHistories[id].indexOf(gameId) + 1;
+  double getRatingAfterGame(String entityId, String gameId) {
+    int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return OverallRatingStatItem.calculateOverallRating(
-        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
   }
 
-  double getRatingBeforeGame(String id, String gameId) {
-    List<String> gameIds = _entitiesGameIdsHistories.containsKey(id) ? _entitiesGameIdsHistories[id] : [];
+  double getRatingBeforeGame(String entityId, String gameId) {
+    List<String> gameIds = _entitiesGameIdsHistories.containsKey(entityId) ? _entitiesGameIdsHistories[entityId] : [];
     int endIndex = gameIds.indexOf(gameId);
     if (endIndex <= 0) {
       return 0;
     }
     int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return OverallRatingStatItem.calculateOverallRating(
-        _entitiesGamesStats[id].sublist(startIndex, endIndex), id.contains(' '));
+        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
   }
 
   StatItem getStat(String entityId, StatType statType, {bool recentGamesOnly = false}) {
