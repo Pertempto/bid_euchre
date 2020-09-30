@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -119,6 +121,11 @@ class Game {
     return fullGamePlayerIds;
   }
 
+  bool get isArchived {
+    DateTime gameDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return DateTime.now().subtract(Duration(days: 120)).isAfter(gameDateTime);
+  }
+
   bool get isFinished {
     int teamIndex = winningTeamIndex;
     if (teamIndex == null) {
@@ -129,6 +136,117 @@ class Game {
 
   int get numRounds {
     return rounds.where((r) => !r.isPlayerSwitch).length;
+  }
+
+  Map get rawStatsMap {
+    List<Set<String>> teamsPlayerIds = allTeamsPlayerIds;
+    List<String> teamIds = [null, null];
+    Map<String, Map> gameStatsMap = {};
+    for (int i = 0; i < 2; i++) {
+      if (teamsPlayerIds[i].length == 2) {
+        String teamId = Util.teamId(teamsPlayerIds[i].toList());
+        teamIds[i] = teamId;
+      }
+    }
+    Set<String> ids = allPlayerIds.toSet();
+    ids.addAll(teamIds.where((id) => id != null));
+    for (String id in ids) {
+      gameStatsMap.putIfAbsent(
+        id,
+        () => {
+          'numRounds': 0,
+          'numBids': 0,
+          'pointsOnBids': 0,
+          'pointsDiffOnBids': 0,
+          'numGames': 0,
+          'madeBids': 0,
+          'biddingTotal': 0,
+          'numPoints': 0,
+          'lastPlayed': 0,
+          'noPartner': 0,
+          'madeNoPartner': 0,
+          'scoreDiff': 0,
+        },
+      );
+    }
+    List<int> score = currentScore;
+    int scoreDiff = score[winningTeamIndex] - score[1 - winningTeamIndex];
+    for (String teamId in teamIds.where((id) => id != null)) {
+      if (isFinished) {
+        gameStatsMap[teamId]['numGames']++;
+        if (teamIds[winningTeamIndex] == teamId) {
+          gameStatsMap[teamId]['scoreDiff'] = scoreDiff;
+        } else {
+          gameStatsMap[teamId]['scoreDiff'] = -scoreDiff;
+        }
+      }
+      gameStatsMap[teamId]['lastPlayed'] = max(gameStatsMap[teamId]['lastPlayed'] as int, timestamp);
+    }
+    for (String playerId in allPlayerIds) {
+      if (isFinished) {
+        gameStatsMap[playerId]['numGames']++;
+        if (fullGamePlayerIds.contains(playerId)) {
+          if (allTeamsPlayerIds[winningTeamIndex].contains(playerId)) {
+            gameStatsMap[playerId]['scoreDiff'] = scoreDiff;
+          } else {
+            gameStatsMap[playerId]['scoreDiff'] = -scoreDiff;
+          }
+        }
+      }
+      gameStatsMap[playerId]['lastPlayed'] = max(gameStatsMap[playerId]['lastPlayed'] as int, timestamp);
+    }
+    for (Round round in rounds) {
+      for (int i = 0; i < 2; i++) {
+        String teamId = teamIds[i];
+        if (teamId == null) {
+          continue;
+        }
+        if (!round.isPlayerSwitch && round.isFinished) {
+          gameStatsMap[teamId]['numRounds']++;
+          gameStatsMap[teamId]['numPoints'] += round.score[i];
+          if (round.bidderIndex % 2 == i) {
+            gameStatsMap[teamId]['numBids']++;
+            if (round.madeBid) {
+              gameStatsMap[teamId]['madeBids']++;
+            }
+            gameStatsMap[teamId]['biddingTotal'] += round.bid;
+            gameStatsMap[teamId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
+            gameStatsMap[teamId]['pointsDiffOnBids'] +=
+                round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
+            if (round.bid > 6) {
+              gameStatsMap[teamId]['noPartner']++;
+              if (round.madeBid) {
+                gameStatsMap[teamId]['madeNoPartner']++;
+              }
+            }
+          }
+        }
+      }
+      List<String> rPlayerIds = getPlayerIdsAfterRound(round.roundIndex - 1);
+      if (!round.isPlayerSwitch && round.isFinished) {
+        for (int i = 0; i < 4; i++) {
+          String playerId = rPlayerIds[i];
+          gameStatsMap[playerId]['numRounds']++;
+          gameStatsMap[playerId]['numPoints'] += round.score[i % 2];
+        }
+        String bidderId = rPlayerIds[round.bidderIndex];
+        gameStatsMap[bidderId]['numBids']++;
+        if (round.madeBid) {
+          gameStatsMap[bidderId]['madeBids']++;
+        }
+        gameStatsMap[bidderId]['biddingTotal'] += round.bid;
+        gameStatsMap[bidderId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
+        gameStatsMap[bidderId]['pointsDiffOnBids'] +=
+            round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
+        if (round.bid > 6) {
+          gameStatsMap[bidderId]['noPartner']++;
+          if (round.madeBid) {
+            gameStatsMap[bidderId]['madeNoPartner']++;
+          }
+        }
+      }
+    }
+    return gameStatsMap;
   }
 
   List<String> get teamIds {
@@ -195,10 +313,7 @@ class Game {
   String getTeamName(int index, Data data, {bool fullNames = false}) {
     String player1Id = currentPlayerIds[index];
     String player2Id = currentPlayerIds[index + 2];
-    List<Player> players = [
-      data.allPlayers[player1Id],
-      data.allPlayers[player2Id]
-    ];
+    List<Player> players = [data.allPlayers[player1Id], data.allPlayers[player2Id]];
     players.sort((a, b) => a.fullName.compareTo(b.fullName));
     if (fullNames) {
       return '${players[0].fullName} & ${players[1].fullName}';
@@ -214,15 +329,15 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Game &&
-          runtimeType == other.runtimeType &&
-          gameId == other.gameId &&
-          userId == other.userId &&
-          gameOverScore == other.gameOverScore &&
-          initialPlayerIds == other.initialPlayerIds &&
-          rounds == other.rounds &&
-          teamColors == other.teamColors &&
-          timestamp == other.timestamp;
+          other is Game &&
+              runtimeType == other.runtimeType &&
+              gameId == other.gameId &&
+              userId == other.userId &&
+              gameOverScore == other.gameOverScore &&
+              initialPlayerIds == other.initialPlayerIds &&
+              rounds == other.rounds &&
+              teamColors == other.teamColors &&
+              timestamp == other.timestamp;
 
   @override
   int get hashCode =>
@@ -249,8 +364,7 @@ class Round {
   int switchingPlayerIndex;
   String newPlayerId;
 
-  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid,
-      this.wonTricks) {
+  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid, this.wonTricks) {
     isPlayerSwitch = false;
   }
 
@@ -272,10 +386,8 @@ class Round {
       switchingPlayerIndex = roundData['switchingPlayerIndex'];
       newPlayerId = roundData['newPlayerId'];
     } else {
-      dealerIndex =
-      roundData['dealerIndex'] == -1 ? null : roundData['dealerIndex'];
-      bidderIndex =
-      roundData['bidderIndex'] == -1 ? null : roundData['bidderIndex'];
+      dealerIndex = roundData['dealerIndex'] == -1 ? null : roundData['dealerIndex'];
+      bidderIndex = roundData['bidderIndex'] == -1 ? null : roundData['bidderIndex'];
       bid = roundData['bid'] == -1 ? null : roundData['bid'];
       wonTricks = roundData['wonPoints'] == -1 ? null : roundData['wonPoints'];
       if (wonTricks == null) {
@@ -303,10 +415,7 @@ class Round {
   }
 
   bool get isFinished {
-    return dealerIndex != null &&
-        bidderIndex != null &&
-        bid != null &&
-        wonTricks != null;
+    return dealerIndex != null && bidderIndex != null && bid != null && wonTricks != null;
   }
 
   bool get madeBid {
@@ -351,16 +460,16 @@ class Round {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Round &&
-          runtimeType == other.runtimeType &&
-          roundIndex == other.roundIndex &&
-          isPlayerSwitch == other.isPlayerSwitch &&
-          dealerIndex == other.dealerIndex &&
-          bidderIndex == other.bidderIndex &&
-          bid == other.bid &&
-          wonTricks == other.wonTricks &&
-          switchingPlayerIndex == other.switchingPlayerIndex &&
-          newPlayerId == other.newPlayerId;
+          other is Round &&
+              runtimeType == other.runtimeType &&
+              roundIndex == other.roundIndex &&
+              isPlayerSwitch == other.isPlayerSwitch &&
+              dealerIndex == other.dealerIndex &&
+              bidderIndex == other.bidderIndex &&
+              bid == other.bid &&
+              wonTricks == other.wonTricks &&
+              switchingPlayerIndex == other.switchingPlayerIndex &&
+              newPlayerId == other.newPlayerId;
 
   @override
   int get hashCode =>

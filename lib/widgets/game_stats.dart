@@ -46,14 +46,20 @@ class _GameStatsState extends State<GameStats> {
     List<int> teamMadeBids = [0, 0];
     List<int> teamTotalBids = [0, 0];
     List<int> teamTotalBidPoints = [0, 0];
+    //TODO: use stats from game.rawStatsMap
+    List<Map> teamsStats = [];
     Map<String, Map> playerStats = {};
     List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
-
     for (int i = 0; i < 2; i++) {
+      teamsStats.add({
+        'numBids': 0,
+        'pointsDiffOnBids': 0,
+        'teamIndex': i,
+      });
       for (String playerId in teamsPlayerIds[i]) {
         playerStats[playerId] = {
           'numBids': 0,
-          'pointsOnBids': 0,
+          'pointsDiffOnBids': 0,
           'teamIndex': i,
         };
       }
@@ -70,9 +76,14 @@ class _GameStatsState extends State<GameStats> {
         teamTotalBids[biddingTeam] += round.bid;
         teamTotalBidPoints[biddingTeam] += round.score[biddingTeam];
         String bidderId = game.getPlayerIdsAfterRound(round.roundIndex - 1)[round.bidderIndex];
-        playerStats[bidderId]['numBids'] += round.bid;
-        playerStats[bidderId]['pointsOnBids'] += round.score[biddingTeam];
+        teamsStats[biddingTeam]['numBids']++;
+        teamsStats[biddingTeam]['pointsDiffOnBids'] += round.score[biddingTeam] - round.score[1 - biddingTeam];
+        playerStats[bidderId]['numBids']++;
+        playerStats[bidderId]['pointsDiffOnBids'] += round.score[biddingTeam] - round.score[1 - biddingTeam];
       }
+    }
+    for (int i = 0; i < 2; i++) {
+      teamsStats[i]['numRounds'] = numRounds;
     }
     for (String playerId in playerStats.keys) {
       playerStats[playerId]['numRounds'] = numRounds;
@@ -244,35 +255,29 @@ class _GameStatsState extends State<GameStats> {
       ),
     ));
 
-    List<double> bidderRatings = [];
-    List<String> bidderRatingStrings = [];
+    List<double> teamBidderRatings = [];
+    List<String> teamBidderRatingStrings = [];
     for (int i = 0; i < 2; i++) {
-      double pointsPerBid = 0;
-      double biddingPointsPerRound = 0;
-      if (teamNumBids[i] != 0) {
-        pointsPerBid = teamTotalBidPoints[i] / teamNumBids[i];
-        biddingPointsPerRound = pointsPerBid * teamNumBids[i] / numRounds;
-      }
-      double rating = biddingPointsPerRound / 3.0 * 100;
-      bidderRatings.add(rating);
-      bidderRatingStrings.add(rating.toStringAsFixed(1));
+      double rating = BidderRatingStatItem.calculateBidderRating([teamsStats[i]], true);
+      teamBidderRatings.add(rating);
+      teamBidderRatingStrings.add(rating.toStringAsFixed(1));
     }
     children.add(Padding(
       padding: EdgeInsets.only(top: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Text('${bidderRatingStrings[0]}', style: textTheme.subtitle2),
+          Text('${teamBidderRatingStrings[0]}', style: textTheme.subtitle2),
           Spacer(),
           Text('Bidder Rating', style: textTheme.subtitle2),
           Spacer(),
-          Text('${bidderRatingStrings[1]}', style: textTheme.subtitle2),
+          Text('${teamBidderRatingStrings[1]}', style: textTheme.subtitle2),
         ],
       ),
     ));
     bars = [];
     for (int i = 0; i < 2; i++) {
-      double percent = max(0, min(1, bidderRatings[i] / 100));
+      double percent = max(0, min(1, teamBidderRatings[i] / 100));
       bars.add(LinearPercentIndicator(
         percent: percent,
         progressColor: game.teamColors[i],

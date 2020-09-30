@@ -16,7 +16,6 @@ class _BiddingSectionState extends State<BiddingSection>
     with AutomaticKeepAliveClientMixin<BiddingSection>, SingleTickerProviderStateMixin {
   String id;
   Data data;
-  bool recentGamesOnly = false;
 
   bool get wantKeepAlive => true;
 
@@ -38,38 +37,20 @@ class _BiddingSectionState extends State<BiddingSection>
         title: Text('Bidding', style: textTheme.headline6),
         dense: true,
       ),
-      Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: CupertinoSlidingSegmentedControl(
-          groupValue: recentGamesOnly,
-          children: {
-            true: Text('Recently'),
-            false: Text('All Time'),
-          },
-          onValueChanged: (value) {
-            setState(() {
-              recentGamesOnly = value;
-            });
-          },
-        ),
-      ),
       Padding(
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
             Expanded(child: Text('Made %', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(
-                  data.statsDb.getStat(id, StatType.madeBidPercentage, recentGamesOnly: recentGamesOnly).toString(),
-                  style: statStyle,
-                  textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(id, StatType.madeBidPercentage).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Made-Set', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.biddingRecord, recentGamesOnly: recentGamesOnly).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.biddingRecord).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
@@ -82,17 +63,15 @@ class _BiddingSectionState extends State<BiddingSection>
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numBids, recentGamesOnly: recentGamesOnly).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numBids).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Freq.', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(
-                  data.statsDb.getStat(id, StatType.biddingFrequency, recentGamesOnly: recentGamesOnly).toString(),
-                  style: statStyle,
-                  textAlign: TextAlign.end),
+              child: Text(data.statsDb.getStat(id, StatType.biddingFrequency).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
           ],
@@ -104,17 +83,31 @@ class _BiddingSectionState extends State<BiddingSection>
           children: <Widget>[
             Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.averageBid, recentGamesOnly: recentGamesOnly).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.averageBid).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.pointsPerBid, recentGamesOnly: recentGamesOnly).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.pointsPerBid).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text('Diff Per Bid', style: titleStyle), flex: 6),
+            Expanded(
+              child: Text(data.statsDb.getStat(id, StatType.pointsDiffPerBid).toString(),
+                  style: statStyle, textAlign: TextAlign.end),
+              flex: 2,
+            ),
+            Expanded(child: Container(), flex: 9),
           ],
         ),
       ),

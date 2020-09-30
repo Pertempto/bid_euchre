@@ -48,7 +48,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
 
   Widget opponentsSection() {
     Map<String, List<int>> oppRecordsAgainst = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(player.playerId)))) {
+    for (Game game
+        in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(player.playerId)))) {
       int winningTeam = game.winningTeamIndex;
       List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
       for (int teamIndex = 0; teamIndex < 2; teamIndex++) {
@@ -163,7 +164,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
 
   Widget partnersSection() {
     Map<String, List<int>> partnerRecords = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(player.playerId)))) {
+    for (Game game
+    in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(player.playerId)))) {
       int winningTeam = game.winningTeamIndex;
       List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
       for (int teamIndex = 0; teamIndex < 2; teamIndex++) {

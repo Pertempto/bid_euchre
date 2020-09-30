@@ -43,7 +43,7 @@ class _TrendsSectionState extends State<TrendsSection>
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();
     }
-    int numGames = min(games.length, RecentRecordStatItem.NUM_RECENT_GAMES);
+    int numGames = min(games.length, 20);
     TextTheme textTheme = Theme.of(context).textTheme;
     List<Widget> children = [];
     Color color = data.statsDb.getEntityColor(id);

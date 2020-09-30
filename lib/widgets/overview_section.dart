@@ -36,7 +36,7 @@ class _OverviewSectionState extends State<OverviewSection>
     TextStyle statStyle = textTheme.bodyText2;
     OverallRatingStatItem overallRating = data.statsDb.getStat(id, StatType.overallRating);
     BidderRatingStatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating);
-    Record recentRecord = (data.statsDb.getStat(id, StatType.recentRecord) as RecordStatItem).record;
+    Record record = (data.statsDb.getStat(id, StatType.record) as RecordStatItem).record;
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -96,9 +96,9 @@ class _OverviewSectionState extends State<OverviewSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Text('Recent Record', style: titleStyle),
+            Text('Record', style: titleStyle),
             Spacer(),
-            Text(recentRecord.toString(), style: statStyle, textAlign: TextAlign.end),
+            Text(record.toString(), style: statStyle, textAlign: TextAlign.end),
           ],
         ),
       ),
@@ -108,11 +108,11 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Expanded(
               child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
-              flex: recentRecord.wins,
+              flex: record.wins,
             ),
             Expanded(
               child: Container(height: 4),
-              flex: recentRecord.losses,
+              flex: record.losses,
             ),
           ],
         ),

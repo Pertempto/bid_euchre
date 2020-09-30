@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:intl/intl.dart' as intl;
 
 import 'record.dart';
@@ -21,8 +19,6 @@ abstract class StatItem {
         return WinLossRecordStatItem(Record(0, 0));
       case StatType.biddingRecord:
         return BiddingRecordStatItem(Record(0, 0));
-      case StatType.recentRecord:
-        return RecentRecordStatItem(Record(0, 0));
       case StatType.winningPercentage:
         return WinningPercentageStatItem(0);
       case StatType.madeBidPercentage:
@@ -35,6 +31,8 @@ abstract class StatItem {
         return NoPartnerFrequencyStatItem(0);
       case StatType.pointsPerBid:
         return PointsPerBidStatItem(0, 0);
+      case StatType.pointsDiffPerBid:
+        return PointsDiffPerBidStatItem(0, 0);
       case StatType.averageBid:
         return AverageBidStatItem(0, 0);
       case StatType.streak:
@@ -63,8 +61,6 @@ abstract class StatItem {
         return WinLossRecordStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.biddingRecord:
         return BiddingRecordStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.recentRecord:
-        return RecentRecordStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.winningPercentage:
         return WinningPercentageStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.madeBidPercentage:
@@ -77,6 +73,8 @@ abstract class StatItem {
         return NoPartnerFrequencyStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.pointsPerBid:
         return PointsPerBidStatItem.fromGamesStats(gamesStats, isTeam);
+      case StatType.pointsDiffPerBid:
+        return PointsDiffPerBidStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.averageBid:
         return AverageBidStatItem.fromGamesStats(gamesStats, isTeam);
       case StatType.streak:
@@ -122,6 +120,8 @@ abstract class StatItem {
         return 'Average Bid';
       case StatType.pointsPerBid:
         return 'Points Per Bid';
+      case StatType.pointsDiffPerBid:
+        return 'Points Diff Per Bid';
       case StatType.lastPlayed:
         return 'Last Played';
       case StatType.noPartnerFrequency:
@@ -132,8 +132,6 @@ abstract class StatItem {
         return 'Bidder Rating';
       case StatType.overallRating:
         return 'Overall Rating';
-      case StatType.recentRecord:
-        return 'Recent Record';
     }
     return '';
   }
@@ -168,8 +166,7 @@ class OverallRatingStatItem extends RatingStatItem {
   OverallRatingStatItem(double overallRating) : super(overallRating);
 
   factory OverallRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    List<Map> recentGamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
-    return OverallRatingStatItem(calculateOverallRating(recentGamesStats, isTeam));
+    return OverallRatingStatItem(calculateOverallRating(gamesStats, isTeam));
   }
 
   static double calculateOverallRating(List<Map> gamesStats, bool isTeam) {
@@ -190,8 +187,7 @@ class BidderRatingStatItem extends RatingStatItem {
   BidderRatingStatItem(double bidderRating) : super(bidderRating);
 
   factory BidderRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    List<Map> recentGamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
-    return BidderRatingStatItem(calculateBidderRating(recentGamesStats, isTeam));
+    return BidderRatingStatItem(calculateBidderRating(gamesStats, isTeam));
   }
 
   static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
@@ -202,14 +198,14 @@ class BidderRatingStatItem extends RatingStatItem {
     }
     double biddingPointsPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStat(gamesStats, 'pointsOnBids') / numBids;
+      double ppb = combineStat(gamesStats, 'pointsDiffOnBids') / numBids;
       biddingPointsPerRound = ppb * numBids / numRounds;
     }
     double rating;
     if (isTeam) {
-      rating = biddingPointsPerRound / 3.0 * 100;
+      rating = biddingPointsPerRound / 2 * 100;
     } else {
-      rating = biddingPointsPerRound / 1.5 * 100;
+      rating = biddingPointsPerRound / 1 * 100;
     }
     return rating;
   }
@@ -342,12 +338,8 @@ class WinLossRecordStatItem extends RecordStatItem {
 
   static Record calculateRecord(List<Map> gamesStats) {
     List<int> recentDiffs = gamesStats.map((gameStats) => gameStats['scoreDiff']).toList().cast<int>();
-    int wins = recentDiffs
-        .where((d) => d > 0)
-        .length;
-    int losses = recentDiffs
-        .where((d) => d < 0)
-        .length;
+    int wins = recentDiffs.where((d) => d > 0).length;
+    int losses = recentDiffs.where((d) => d < 0).length;
     return Record(wins, losses);
   }
 }
@@ -361,23 +353,6 @@ class BiddingRecordStatItem extends RecordStatItem {
     int made = combineStat(gamesStats, 'madeBids');
     int set = combineStat(gamesStats, 'numBids') - made;
     return BiddingRecordStatItem(Record(made, set));
-  }
-}
-
-class RecentRecordStatItem extends RecordStatItem {
-  static const int NUM_RECENT_GAMES = 20;
-
-  String get statName => 'Recent Record';
-
-  RecentRecordStatItem(Record recentRecord) : super(recentRecord);
-
-  factory RecentRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    List<Map> recentGamesStats = getRecentGamesStats(gamesStats);
-    return RecentRecordStatItem(WinLossRecordStatItem.calculateRecord(recentGamesStats));
-  }
-
-  static List<Map> getRecentGamesStats(List<Map> gamesStats) {
-    return gamesStats.sublist(max(0, gamesStats.length - NUM_RECENT_GAMES), gamesStats.length);
   }
 }
 
@@ -413,6 +388,16 @@ class PointsPerBidStatItem extends AverageStatItem {
 
   factory PointsPerBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
     return PointsPerBidStatItem(combineStat(gamesStats, 'pointsOnBids'), combineStat(gamesStats, 'numBids'));
+  }
+}
+
+class PointsDiffPerBidStatItem extends AverageStatItem {
+  String get statName => 'Points Diff Per Bid';
+
+  PointsDiffPerBidStatItem(int totalPoints, int numBids) : super(totalPoints, numBids);
+
+  factory PointsDiffPerBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
+    return PointsDiffPerBidStatItem(combineStat(gamesStats, 'pointsDiffOnBids'), combineStat(gamesStats, 'numBids'));
   }
 }
 

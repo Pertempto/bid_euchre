@@ -25,126 +25,14 @@ class StatsDb {
     _entitiesGameIdsHistories = {};
     _entitiesGamesStats = {};
 
-    Set<String> allEntityIds = {};
-
     // only finished games for now
-    for (Game g in allGames.reversed.where((g) => g.isFinished)) {
-      List<Set<String>> teamsPlayerIds = g.allTeamsPlayerIds;
-      List<String> teamIds = [null, null];
-      Map<String, Map> gameStatsMap = {};
-      for (int i = 0; i < 2; i++) {
-        if (teamsPlayerIds[i].length == 2) {
-          String teamId = Util.teamId(teamsPlayerIds[i].toList());
-          teamIds[i] = teamId;
-        }
-      }
-      Set<String> ids = g.allPlayerIds.toSet();
-      ids.addAll(teamIds.where((id) => id != null));
-      allEntityIds.addAll(ids);
-      for (String id in ids) {
-        gameStatsMap.putIfAbsent(
-          id,
-          () => {
-            'numRounds': 0,
-            'numBids': 0,
-            'pointsOnBids': 0,
-            'numGames': 0,
-            'madeBids': 0,
-            'biddingTotal': 0,
-            'numPoints': 0,
-            'lastPlayed': 0,
-            'noPartner': 0,
-            'madeNoPartner': 0,
-            'scoreDiff': 0,
-          },
-        );
-      }
-      int winningTeamIndex = g.winningTeamIndex;
-      List<int> score = g.currentScore;
-      int scoreDiff = score[winningTeamIndex] - score[1 - winningTeamIndex];
-      List<double> adjustedTeamRatings = [];
-      for (int i = 0; i < 2; i++) {
-        double teamRating = getRatingBeforeGame(teamIds[i], g.gameId) / 2;
-        teamRating += getRatingBeforeGame(g.initialPlayerIds[i], g.gameId) / 4;
-        teamRating += getRatingBeforeGame(g.initialPlayerIds[i + 2], g.gameId) / 4;
-        adjustedTeamRatings.add(teamRating);
-      }
-      for (String teamId in teamIds.where((id) => id != null)) {
-        if (g.isFinished) {
-          gameStatsMap[teamId]['numGames']++;
-          if (teamIds[winningTeamIndex] == teamId) {
-            gameStatsMap[teamId]['scoreDiff'] = scoreDiff;
-          } else {
-            gameStatsMap[teamId]['scoreDiff'] = -scoreDiff;
-          }
-        }
-        gameStatsMap[teamId]['lastPlayed'] = max(gameStatsMap[teamId]['lastPlayed'] as int, g.timestamp);
-      }
-      for (String playerId in g.allPlayerIds) {
-        if (g.isFinished) {
-          gameStatsMap[playerId]['numGames']++;
-          if (g.fullGamePlayerIds.contains(playerId)) {
-            if (g.allTeamsPlayerIds[winningTeamIndex].contains(playerId)) {
-              gameStatsMap[playerId]['scoreDiff'] = scoreDiff;
-            } else {
-              gameStatsMap[playerId]['scoreDiff'] = -scoreDiff;
-            }
-          }
-        }
-        gameStatsMap[playerId]['lastPlayed'] = max(gameStatsMap[playerId]['lastPlayed'] as int, g.timestamp);
-      }
-      for (Round round in g.rounds) {
-        for (int i = 0; i < 2; i++) {
-          String teamId = teamIds[i];
-          if (teamId == null) {
-            continue;
-          }
-          if (!round.isPlayerSwitch && round.isFinished) {
-            gameStatsMap[teamId]['numRounds']++;
-            gameStatsMap[teamId]['numPoints'] += round.score[i];
-            if (round.bidderIndex % 2 == i) {
-              gameStatsMap[teamId]['numBids']++;
-              if (round.madeBid) {
-                gameStatsMap[teamId]['madeBids']++;
-              }
-              gameStatsMap[teamId]['biddingTotal'] += round.bid;
-              gameStatsMap[teamId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
-              if (round.bid > 6) {
-                gameStatsMap[teamId]['noPartner']++;
-                if (round.madeBid) {
-                  gameStatsMap[teamId]['madeNoPartner']++;
-                }
-              }
-            }
-          }
-        }
-        List<String> rPlayerIds = g.getPlayerIdsAfterRound(round.roundIndex - 1);
-        if (!round.isPlayerSwitch && round.isFinished) {
-          for (int i = 0; i < 4; i++) {
-            String playerId = rPlayerIds[i];
-            gameStatsMap[playerId]['numRounds']++;
-            gameStatsMap[playerId]['numPoints'] += round.score[i % 2];
-          }
-          String bidderId = rPlayerIds[round.bidderIndex];
-          gameStatsMap[bidderId]['numBids']++;
-          if (round.madeBid) {
-            gameStatsMap[bidderId]['madeBids']++;
-          }
-          gameStatsMap[bidderId]['biddingTotal'] += round.bid;
-          gameStatsMap[bidderId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
-          if (round.bid > 6) {
-            gameStatsMap[bidderId]['noPartner']++;
-            if (round.madeBid) {
-              gameStatsMap[bidderId]['madeNoPartner']++;
-            }
-          }
-        }
-      }
-      for (String id in ids) {
+    for (Game g in allGames.reversed.where((g) => g.isFinished && !g.isArchived)) {
+      Map gameRawStatsMap = g.rawStatsMap;
+      for (String id in gameRawStatsMap.keys) {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
         _entitiesGamesStats.putIfAbsent(id, () => []);
-        _entitiesGamesStats[id].add(gameStatsMap[id]);
+        _entitiesGamesStats[id].add(gameRawStatsMap[id]);
       }
     }
   }
@@ -191,9 +79,8 @@ class StatsDb {
 
   double getBidderRatingAfterGame(String entityId, String gameId) {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
-    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return BidderRatingStatItem.calculateBidderRating(
-        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
+        _entitiesGamesStats[entityId].sublist(0, endIndex), entityId.contains(' '));
   }
 
   Color getEntityColor(String entityId) {
@@ -265,7 +152,7 @@ class StatsDb {
       splits[bid] = BiddingSplit(bid, []);
     }
     int count = 0;
-    for (Game g in allGames.where((g) => (g.isFinished && g.allPlayerIds.contains(playerId)))) {
+    for (Game g in allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(playerId)))) {
       for (Round r in g.rounds.reversed.where((r) => !r.isPlayerSwitch && r.isFinished)) {
         String bidderId = g.getPlayerIdsAfterRound(r.roundIndex - 1)[r.bidderIndex];
         if (bidderId == playerId) {
@@ -282,9 +169,8 @@ class StatsDb {
 
   double getRatingAfterGame(String entityId, String gameId) {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
-    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return OverallRatingStatItem.calculateOverallRating(
-        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
+        _entitiesGamesStats[entityId].sublist(0, endIndex), entityId.contains(' '));
   }
 
   double getRatingBeforeGame(String entityId, String gameId) {
@@ -293,19 +179,15 @@ class StatsDb {
     if (endIndex <= 0) {
       return 0;
     }
-    int startIndex = max(0, endIndex - RecentRecordStatItem.NUM_RECENT_GAMES);
     return OverallRatingStatItem.calculateOverallRating(
-        _entitiesGamesStats[entityId].sublist(startIndex, endIndex), entityId.contains(' '));
+        _entitiesGamesStats[entityId].sublist(0, endIndex), entityId.contains(' '));
   }
 
-  StatItem getStat(String entityId, StatType statType, {bool recentGamesOnly = false}) {
+  StatItem getStat(String entityId, StatType statType) {
     if (!_entitiesGamesStats.containsKey(entityId)) {
       return StatItem.empty(statType);
     }
     List<Map> gamesStats = _entitiesGamesStats[entityId];
-    if (recentGamesOnly) {
-      gamesStats = RecentRecordStatItem.getRecentGamesStats(gamesStats);
-    }
     return StatItem.fromGamesStats(statType, gamesStats, entityId.contains(' '));
   }
 

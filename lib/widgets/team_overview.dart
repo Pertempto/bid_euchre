@@ -52,7 +52,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Widget opponentsSection() {
     Map<String, List<int>> playerRecordsAgainst = {};
     Map<String, List<int>> teamRecordsAgainst = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && g.teamIds.contains(teamId)))) {
+    for (Game game in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.teamIds.contains(teamId)))) {
       int winningTeam = game.winningTeamIndex;
       List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
       for (int teamIndex = 0; teamIndex < 2; teamIndex++) {

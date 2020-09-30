@@ -32,13 +32,14 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
       this.data = data;
+      filteredGames = data.games.where((g) => !g.isArchived).toList();
       if (showSharedGames) {
-        filteredGames = data.games
+        filteredGames = filteredGames
             .where((g) => (g.userId != data.currentUser.userId &&
                 data.relationshipsDb.canShare(g.userId, data.currentUser.userId)))
             .toList();
       } else {
-        filteredGames = data.games.where((g) => (g.userId == data.currentUser.userId)).toList();
+        filteredGames = filteredGames.where((g) => (g.userId == data.currentUser.userId)).toList();
       }
       // bring unfinished games to the top
       List<Game> finishedGames = filteredGames.where((g) => g.isFinished).toList();
