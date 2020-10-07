@@ -1,5 +1,5 @@
 import 'package:bideuchre/data/bidding_split.dart';
-import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/round.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

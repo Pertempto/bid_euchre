@@ -1,4 +1,4 @@
-import 'game.dart';
+import 'package:bideuchre/data/round.dart';
 
 class BiddingSplit {
   List<Round> rounds;

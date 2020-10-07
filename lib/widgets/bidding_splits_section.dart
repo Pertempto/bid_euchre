@@ -1,6 +1,6 @@
 import 'package:bideuchre/data/bidding_split.dart';
 import 'package:bideuchre/data/data_store.dart';
-import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/round.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -67,13 +67,13 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
     List<Widget> children = [
       isCompare
           ? Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Text('Bidding Splits', style: textTheme.headline6),
-      )
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text('Bidding Splits', style: textTheme.headline6),
+            )
           : ListTile(
-        title: Text('Bidding Splits', style: textTheme.headline6),
-        dense: true,
-      ),
+              title: Text('Bidding Splits', style: textTheme.headline6),
+              dense: true,
+            ),
       Container(
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),

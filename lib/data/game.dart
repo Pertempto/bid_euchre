@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../util.dart';
 import 'data_store.dart';
 import 'player.dart';
+import 'round.dart';
 import 'user.dart';
 
 class Game {
@@ -329,15 +330,15 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Game &&
-              runtimeType == other.runtimeType &&
-              gameId == other.gameId &&
-              userId == other.userId &&
-              gameOverScore == other.gameOverScore &&
-              initialPlayerIds == other.initialPlayerIds &&
-              rounds == other.rounds &&
-              teamColors == other.teamColors &&
-              timestamp == other.timestamp;
+      other is Game &&
+          runtimeType == other.runtimeType &&
+          gameId == other.gameId &&
+          userId == other.userId &&
+          gameOverScore == other.gameOverScore &&
+          initialPlayerIds == other.initialPlayerIds &&
+          rounds == other.rounds &&
+          teamColors == other.teamColors &&
+          timestamp == other.timestamp;
 
   @override
   int get hashCode =>
@@ -348,137 +349,4 @@ class Game {
       hashList(rounds) ^
       hashList(teamColors) ^
       timestamp.hashCode;
-}
-
-class Round {
-  static const List<int> ALL_BIDS = [3, 4, 5, 6, 12, 24];
-
-  int roundIndex;
-  bool isPlayerSwitch;
-
-  int dealerIndex;
-  int bidderIndex;
-  int bid;
-  int wonTricks;
-
-  int switchingPlayerIndex;
-  String newPlayerId;
-
-  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid, this.wonTricks) {
-    isPlayerSwitch = false;
-  }
-
-  Round.empty(this.roundIndex, this.dealerIndex) {
-    isPlayerSwitch = false;
-  }
-
-  Round.playerSwitch(this.roundIndex, this.switchingPlayerIndex, this.newPlayerId) {
-    isPlayerSwitch = true;
-  }
-
-  Round.fromData(Map roundData) {
-    roundIndex = roundData['roundIndex'];
-    isPlayerSwitch = roundData['isPlayerSwitch'];
-    if (isPlayerSwitch == null) {
-      isPlayerSwitch = false;
-    }
-    if (isPlayerSwitch) {
-      switchingPlayerIndex = roundData['switchingPlayerIndex'];
-      newPlayerId = roundData['newPlayerId'];
-    } else {
-      dealerIndex = roundData['dealerIndex'] == -1 ? null : roundData['dealerIndex'];
-      bidderIndex = roundData['bidderIndex'] == -1 ? null : roundData['bidderIndex'];
-      bid = roundData['bid'] == -1 ? null : roundData['bid'];
-      wonTricks = roundData['wonPoints'] == -1 ? null : roundData['wonPoints'];
-      if (wonTricks == null) {
-        wonTricks = roundData['bidderWonHands'];
-      }
-    }
-  }
-
-  Map get dataMap {
-    Map roundData = {
-      'roundIndex': roundIndex,
-      'isPlayerSwitch': isPlayerSwitch,
-    };
-    if (isPlayerSwitch) {
-      roundData['switchingPlayerIndex'] = switchingPlayerIndex;
-      roundData['newPlayerId'] = newPlayerId;
-    } else {
-      roundData['dealerIndex'] = dealerIndex;
-      roundData['bidderIndex'] = bidderIndex;
-      roundData['bid'] = bid;
-      roundData['wonPoints'] = wonTricks;
-      roundData['partnerIndex'] = 0;
-    }
-    return roundData;
-  }
-
-  bool get isFinished {
-    return dealerIndex != null && bidderIndex != null && bid != null && wonTricks != null;
-  }
-
-  bool get madeBid {
-    if (!isFinished) {
-      return false;
-    }
-    if (bid == 24 || bid == 12) {
-      return wonTricks == 6;
-    }
-    return wonTricks >= bid;
-  }
-
-  List<int> get score {
-    if (isPlayerSwitch) {
-      return null;
-    }
-    if (wonTricks == null) {
-      return [0, 0];
-    }
-    List<int> score = [0, 0];
-    int bidTeam = bidderIndex % 2;
-    int oTeam = 1 - bidTeam;
-    if (bid == 24 || bid == 12) {
-      if (wonTricks == 6) {
-        score[bidTeam] = bid;
-      } else {
-        score[bidTeam] = -bid;
-        score[oTeam] = 6 - wonTricks;
-      }
-    } else {
-      if (wonTricks >= bid) {
-        score[bidTeam] = wonTricks;
-        score[oTeam] = 6 - wonTricks;
-      } else {
-        score[bidTeam] = -bid;
-        score[oTeam] = 6 - wonTricks;
-      }
-    }
-    return score;
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-          other is Round &&
-              runtimeType == other.runtimeType &&
-              roundIndex == other.roundIndex &&
-              isPlayerSwitch == other.isPlayerSwitch &&
-              dealerIndex == other.dealerIndex &&
-              bidderIndex == other.bidderIndex &&
-              bid == other.bid &&
-              wonTricks == other.wonTricks &&
-              switchingPlayerIndex == other.switchingPlayerIndex &&
-              newPlayerId == other.newPlayerId;
-
-  @override
-  int get hashCode =>
-      roundIndex.hashCode ^
-      isPlayerSwitch.hashCode ^
-      dealerIndex.hashCode ^
-      bidderIndex.hashCode ^
-      bid.hashCode ^
-      wonTricks.hashCode ^
-      switchingPlayerIndex.hashCode ^
-      newPlayerId.hashCode;
 }
