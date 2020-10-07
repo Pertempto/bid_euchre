@@ -315,7 +315,7 @@ class _GameStatsState extends State<GameStats> {
       int teamIndex = playerStats[playerId]['teamIndex'];
       double percent = max(0, min(1, playerBiddingDiffs[playerId] / numRounds));
       children.add(Padding(
-        padding: EdgeInsets.only(top: 4),
+        padding: EdgeInsets.only(bottom: 4),
         child: Column(
           children: [
             Row(

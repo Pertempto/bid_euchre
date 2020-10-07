@@ -23,4 +23,12 @@ class Record {
   String toString() {
     return '$wins-$losses';
   }
+
+  addWin() {
+    _wins++;
+  }
+
+  addLoss() {
+    _losses++;
+  }
 }

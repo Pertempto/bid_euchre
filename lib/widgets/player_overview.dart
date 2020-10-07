@@ -1,6 +1,7 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
+import 'package:bideuchre/data/record.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -47,7 +48,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   }
 
   Widget opponentsSection() {
-    Map<String, List<int>> oppRecordsAgainst = {};
+    Map<String, Record> oppRecordsAgainst = {};
     for (Game game
         in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(player.playerId)))) {
       int winningTeam = game.winningTeamIndex;
@@ -57,11 +58,11 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         if (teamPlayerIds.contains(player.playerId)) {
           Set<String> opponentPlayerIds = teamsPlayerIds[1 - teamIndex];
           for (String opponentId in opponentPlayerIds) {
-            oppRecordsAgainst.putIfAbsent(opponentId, () => [0, 0]);
+            oppRecordsAgainst.putIfAbsent(opponentId, () => Record(0, 0));
             if (teamIndex == winningTeam) {
-              oppRecordsAgainst[opponentId][0] += 1;
+              oppRecordsAgainst[opponentId].addWin();
             } else {
-              oppRecordsAgainst[opponentId][1] += 1;
+              oppRecordsAgainst[opponentId].addLoss();
             }
           }
         }
@@ -70,21 +71,21 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     List<String> opponentIds = oppRecordsAgainst.keys.toList();
     opponentIds.sort((a, b) {
       if (opponentsSortByRecord) {
-        double aPct = oppRecordsAgainst[a][0] / (oppRecordsAgainst[a][0] + oppRecordsAgainst[a][1]);
-        double bPct = oppRecordsAgainst[b][0] / (oppRecordsAgainst[b][0] + oppRecordsAgainst[b][1]);
+        double aPct = oppRecordsAgainst[a].winningPercentage;
+        double bPct = oppRecordsAgainst[b].winningPercentage;
         int pctCmp = -aPct.compareTo(bPct);
         if (pctCmp != 0) {
           return pctCmp;
         }
       } else {
-        int aGames = oppRecordsAgainst[a][0] + oppRecordsAgainst[a][1];
-        int bGames = oppRecordsAgainst[b][0] + oppRecordsAgainst[b][1];
+        int aGames = oppRecordsAgainst[a].totalGames;
+        int bGames = oppRecordsAgainst[b].totalGames;
         int gamesCmp = -aGames.compareTo(bGames);
         if (gamesCmp != 0) {
           return gamesCmp;
         }
       }
-      return -oppRecordsAgainst[a][0].compareTo(oppRecordsAgainst[b][0]);
+      return -oppRecordsAgainst[a].wins.compareTo(oppRecordsAgainst[b].wins);
     });
     if (opponentIds.isEmpty) {
       return Container();
@@ -122,8 +123,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     for (String oPlayerId in opponentIds) {
       Player oPlayer = data.players[oPlayerId];
       if (oPlayer != null) {
-        List<int> record = oppRecordsAgainst[oPlayerId];
-        String recordString = '${record[0]}-${record[1]}';
+        Record record = oppRecordsAgainst[oPlayerId];
         Color color = data.statsDb.getEntityColor(oPlayerId);
         horizontalScrollChildren.add(
           Card(
@@ -137,7 +137,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 child: Column(
                   children: <Widget>[
                     Text(oPlayer.shortName, style: textTheme.bodyText1.copyWith(color: color)),
-                    Text(recordString, style: textTheme.bodyText2),
+                    Text(opponentsSortByRecord ? record.toString() : record.totalGames.toString(),
+                        style: textTheme.bodyText2),
                   ],
                 ),
               ),
@@ -163,7 +164,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   }
 
   Widget partnersSection() {
-    Map<String, List<int>> partnerRecords = {};
+    Map<String, Record> partnerRecords = {};
     for (Game game
     in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(player.playerId)))) {
       int winningTeam = game.winningTeamIndex;
@@ -172,11 +173,11 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
         Set<String> teamPlayerIds = teamsPlayerIds[teamIndex];
         if (teamPlayerIds.contains(player.playerId) && teamPlayerIds.length == 2) {
           String partnerId = teamPlayerIds.firstWhere((id) => id != player.playerId);
-          partnerRecords.putIfAbsent(partnerId, () => [0, 0]);
+          partnerRecords.putIfAbsent(partnerId, () => Record(0, 0));
           if (teamIndex == winningTeam) {
-            partnerRecords[partnerId][0] += 1;
+            partnerRecords[partnerId].addWin();
           } else {
-            partnerRecords[partnerId][1] += 1;
+            partnerRecords[partnerId].addLoss();
           }
         }
       }
@@ -184,21 +185,21 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     List<String> partnerIds = partnerRecords.keys.toList();
     partnerIds.sort((a, b) {
       if (partnersSortByRecord) {
-        double aPct = partnerRecords[a][0] / (partnerRecords[a][0] + partnerRecords[a][1]);
-        double bPct = partnerRecords[b][0] / (partnerRecords[b][0] + partnerRecords[b][1]);
+        double aPct = partnerRecords[a].winningPercentage;
+        double bPct = partnerRecords[b].winningPercentage;
         int pctCmp = -aPct.compareTo(bPct);
         if (pctCmp != 0) {
           return pctCmp;
         }
       } else {
-        int aGames = partnerRecords[a][0] + partnerRecords[a][1];
-        int bGames = partnerRecords[b][0] + partnerRecords[b][1];
+        int aGames = partnerRecords[a].totalGames;
+        int bGames = partnerRecords[b].totalGames;
         int gamesCmp = -aGames.compareTo(bGames);
         if (gamesCmp != 0) {
           return gamesCmp;
         }
       }
-      return -partnerRecords[a][0].compareTo(partnerRecords[b][0]);
+      return -partnerRecords[a].wins.compareTo(partnerRecords[b].wins);
     });
     if (partnerIds.isEmpty) {
       return Container();
@@ -236,8 +237,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
     for (String partnerId in partnerIds) {
       Player partner = data.players[partnerId];
       if (partner != null) {
-        List<int> record = partnerRecords[partnerId];
-        String recordString = '${record[0]}-${record[1]}';
+        Record record = partnerRecords[partnerId];
         Color color = data.statsDb.getEntityColor(Util.teamId([player.playerId, partnerId]));
         horizontalScrollChildren.add(
           Card(
@@ -251,7 +251,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 child: Column(
                   children: <Widget>[
                     Text(partner.shortName, style: textTheme.bodyText1.copyWith(color: color)),
-                    Text(recordString, style: textTheme.bodyText2),
+                    Text(partnersSortByRecord ? record.toString() : record.totalGames.toString(),
+                        style: textTheme.bodyText2),
                   ],
                 ),
               ),
