@@ -68,8 +68,7 @@ class DataStore {
             StatsDb statsDb = lastStats;
             if (games.isNotEmpty && players.isNotEmpty) {
               if (statsDb == null ||
-                  hashList(games.where((g) => g.isFinished)) !=
-                      hashList(statsDb.allGames.where((g) => g.isFinished)) ||
+                  hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
                   hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
                 print(
                     'loading new stats db ${hashList(games.where((g) => g.isFinished))}:${hashList(statsDb.allGames.where((g) => g.isFinished))} ${hashList(players.keys)}:${hashList(statsDb.allPlayers.keys)} ');
@@ -80,15 +79,13 @@ class DataStore {
                 //   int total = 0;
                 //   for (Game g in games.where((g) => g.isFinished)) {
                 //     total++;
-                //     if (statsDb.getWinChances(g.initialPlayerIds, [0, 0], 42,
+                //     if (statsDb.calculateWinChances(g.initialPlayerIds, [0, 0], 42,
                 //             beforeGameId: g.gameId)[g.winningTeamIndex] >=
                 //         0.5) {
                 //       correct++;
                 //     }
                 //   }
-                //   if (correct >= 140) {
-                //     print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
-                //   }
+                //   print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
                 // }
               }
             } else {
@@ -98,15 +95,7 @@ class DataStore {
               }
             }
             Data data = Data(
-                currentUser,
-                users,
-                relationshipsDb,
-                games,
-                filteredGames,
-                players,
-                filteredPlayers,
-                statsDb,
-                loaded);
+                currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
             if (!loaded && lastData != null) {
 //              print('using last data');
               return callback(lastData);
@@ -119,8 +108,7 @@ class DataStore {
     });
   }
 
-  static StreamBuilder _relationshipsWrap(bool allowNull,
-      Widget Function(RelationshipsDb relationshipsDb) callback) {
+  static StreamBuilder _relationshipsWrap(bool allowNull, Widget Function(RelationshipsDb relationshipsDb) callback) {
     return StreamBuilder<QuerySnapshot>(
       stream: friendsCollection.snapshots(),
       builder: (context, snapshot) {
@@ -129,8 +117,7 @@ class DataStore {
             stream: groupsCollection.snapshots(),
             builder: (context, snapshot2) {
               if (snapshot2.hasData) {
-                return callback(RelationshipsDb.fromSnapshot(
-                    snapshot.data, snapshot2.data));
+                return callback(RelationshipsDb.fromSnapshot(snapshot.data, snapshot2.data));
               } else {
                 if (allowNull) {
                   return callback(RelationshipsDb.empty());
@@ -212,6 +199,6 @@ class Data {
   final StatsDb statsDb;
   final bool loaded;
 
-  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames,
-      this.games, this.allPlayers, this.players, this.statsDb, this.loaded);
+  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames, this.games, this.allPlayers, this.players,
+      this.statsDb, this.loaded);
 }

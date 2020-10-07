@@ -176,7 +176,7 @@ class OverallRatingStatItem extends RatingStatItem {
     if (record.totalGames != 0) {
       winningRating = record.winningPercentage * 100;
     }
-    double ovr = bidderRating * 0.7 + winningRating * 0.3;
+    double ovr = bidderRating * 0.5 + winningRating * 0.5;
     return ovr;
   }
 }
