@@ -138,6 +138,10 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           lastSortValue = statItem.sortValue;
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
+          String nameString = names[id];
+          if (displayStatType == StatType.overallRating && data.statsDb.getRecentRating(id, StatsDb.MIN_GAMES) > 70) {
+            nameString += '🔥';
+          }
           Color color = data.statsDb.getEntityColor(id);
           children.add(GestureDetector(
             child: Padding(
@@ -156,7 +160,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                     ),
                   ),
                   Expanded(
-                    child: Text(names[id], style: textTheme.bodyText1.copyWith(color: color)),
+                    child: Text(nameString, style: textTheme.bodyText1.copyWith(color: color)),
                     flex: 4,
                   ),
                   Expanded(
