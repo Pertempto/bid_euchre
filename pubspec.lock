@@ -85,6 +85,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
+  coverage:
+    dependency: transitive
+    description:
+      name: coverage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.13.11"
   crypto:
     dependency: transitive
     description:
@@ -261,6 +268,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.1+1"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
+  lcov:
+    dependency: transitive
+    description:
+      name: lcov
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.7.0"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.11.4"
   matcher:
     dependency: transitive
     description:
@@ -282,6 +310,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.8"
+  package_config:
+    dependency: transitive
+    description:
+      name: package_config
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.9.3"
   package_info:
     dependency: "direct main"
     description:
@@ -392,6 +427,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  source_maps:
+    dependency: transitive
+    description:
+      name: source_maps
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.9"
   source_span:
     dependency: transitive
     description:
@@ -434,6 +476,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.17"
+  test_cov:
+    dependency: "direct dev"
+    description:
+      name: test_cov
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1"
   typed_data:
     dependency: transitive
     description:
@@ -448,6 +497,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.8"
+  vm_service:
+    dependency: transitive
+    description:
+      name: vm_service
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.2.0"
   xdg_directories:
     dependency: transitive
     description:

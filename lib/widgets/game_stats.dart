@@ -299,19 +299,20 @@ class _GameStatsState extends State<GameStats> {
     ));
     children.add(Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Text('Player Bidder Ratings', style: textTheme.subtitle2),
+      child: Text('Bidding Diffs', style: textTheme.subtitle2),
     ));
     List<String> playerIds = playerStats.keys.toList();
-    Map<String, double> playerBidderRatings = {};
+    Map<String, int> playerBiddingDiffs = {};
+    Map rawGameStats = game.rawStatsMap;
     for (String playerId in playerIds) {
-      playerBidderRatings[playerId] = BidderRatingStatItem.calculateBidderRating([playerStats[playerId]], false);
+      playerBiddingDiffs[playerId] = PointsDiffPerBidStatItem.fromGamesStats([rawGameStats[playerId]], false).sum;
     }
     playerIds.sort((a, b) {
-      return -playerBidderRatings[a].compareTo(playerBidderRatings[b]);
+      return -playerBiddingDiffs[a].compareTo(playerBiddingDiffs[b]);
     });
     for (String playerId in playerIds) {
       int teamIndex = playerStats[playerId]['teamIndex'];
-      double percent = max(0, min(1, playerBidderRatings[playerId] / 100));
+      double percent = max(0, min(1, playerBiddingDiffs[playerId] / numRounds));
       children.add(Padding(
         padding: EdgeInsets.only(top: 4),
         child: Column(
@@ -321,7 +322,7 @@ class _GameStatsState extends State<GameStats> {
                 Text(data.allPlayers[playerId].shortName,
                     style: textTheme.subtitle2.copyWith(color: game.teamColors[teamIndex])),
                 Spacer(),
-                Text(playerBidderRatings[playerId].toStringAsFixed(1), style: textTheme.subtitle2),
+                Text(playerBiddingDiffs[playerId].toString(), style: textTheme.subtitle2),
               ],
             ),
             Padding(

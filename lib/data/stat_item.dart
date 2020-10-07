@@ -541,7 +541,11 @@ class LastPlayedStatItem extends IntStatItem {
 int combineStat(List<Map> gamesStats, String statName) {
   int combinedStatValue = 0;
   for (Map gameStatMap in gamesStats) {
-    combinedStatValue += gameStatMap[statName];
+    try {
+      combinedStatValue += gameStatMap[statName];
+    } on NoSuchMethodError {
+      throw Exception("Can't find raw stat '$statName'");
+    }
   }
   return combinedStatValue;
 }

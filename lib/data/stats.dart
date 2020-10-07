@@ -11,7 +11,7 @@ import 'stat_item.dart';
 import 'stat_type.dart';
 
 class StatsDb {
-  static const int MIN_GAMES = 5;
+  static const int MIN_GAMES = 3;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<Map>> _entitiesGamesStats;
@@ -149,7 +149,7 @@ class StatsDb {
   Map<int, BiddingSplit> getPlayerBiddingSplits(String playerId, {int numRecent = 0}) {
     Map<int, BiddingSplit> splits = {};
     for (int bid in Round.ALL_BIDS) {
-      splits[bid] = BiddingSplit(bid, []);
+      splits[bid] = BiddingSplit([]);
     }
     int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && !g.isArchived && g.allPlayerIds.contains(playerId)))) {
@@ -194,7 +194,7 @@ class StatsDb {
   Map<int, BiddingSplit> getTeamBiddingSplits(String teamId, {int numRecent = 0}) {
     Map<int, BiddingSplit> splits = {};
     for (int bid in Round.ALL_BIDS) {
-      splits[bid] = BiddingSplit(bid, []);
+      splits[bid] = BiddingSplit([]);
     }
     int count = 0;
     for (Game g in allGames.where((g) => (g.isFinished && g.teamIds.contains(teamId)))) {

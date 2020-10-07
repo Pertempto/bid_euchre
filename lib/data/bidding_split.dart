@@ -1,10 +1,9 @@
 import 'game.dart';
 
 class BiddingSplit {
-  int bid;
   List<Round> rounds;
 
-  BiddingSplit(this.bid, this.rounds);
+  BiddingSplit(this.rounds);
 
   double get avgPoints {
     if (count == 0) {

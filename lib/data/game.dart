@@ -123,7 +123,7 @@ class Game {
 
   bool get isArchived {
     DateTime gameDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return DateTime.now().subtract(Duration(days: 120)).isAfter(gameDateTime);
+    return DateTime.now().subtract(Duration(days: 90)).isAfter(gameDateTime);
   }
 
   bool get isFinished {
