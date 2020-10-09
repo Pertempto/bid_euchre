@@ -313,7 +313,10 @@ class _GameStatsState extends State<GameStats> {
     });
     for (String playerId in playerIds) {
       int teamIndex = playerStats[playerId]['teamIndex'];
-      double percent = max(0, min(1, playerBiddingDiffs[playerId] / numRounds));
+      double percent = 0;
+      if (numRounds != 0) {
+        percent = max(0, min(1, playerBiddingDiffs[playerId] / numRounds));
+      }
       children.add(Padding(
         padding: EdgeInsets.only(bottom: 4),
         child: Column(

@@ -138,9 +138,15 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           lastSortValue = statItem.sortValue;
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
-          String nameString = names[id];
-          if (displayStatType == StatType.overallRating && data.statsDb.getRecentRating(id, StatsDb.MIN_GAMES) > 70) {
-            nameString += '🔥';
+          Icon trendIcon;
+          if (displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating) {
+            double recentRating = (data.statsDb.getRecentStat(id, displayStatType) as RatingStatItem).rating;
+            double rating = (statItem as RatingStatItem).rating;
+            if (recentRating > rating + 20) {
+              trendIcon = Icon(Icons.trending_up, color: Colors.green);
+            } else if (recentRating < rating - 20) {
+              trendIcon = Icon(Icons.trending_down, color: Colors.red);
+            }
           }
           Color color = data.statsDb.getEntityColor(id);
           children.add(GestureDetector(
@@ -160,7 +166,12 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                     ),
                   ),
                   Expanded(
-                    child: Text(nameString, style: textTheme.bodyText1.copyWith(color: color)),
+                    child: Row(
+                      children: [
+                        Text(names[id], style: textTheme.bodyText1.copyWith(color: color)),
+                        if (trendIcon != null) Padding(child: trendIcon, padding: EdgeInsets.only(left: 4)),
+                      ],
+                    ),
                     flex: 4,
                   ),
                   Expanded(

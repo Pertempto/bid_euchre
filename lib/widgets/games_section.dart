@@ -1,5 +1,6 @@
 import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
+import 'package:bideuchre/data/stat_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -99,8 +100,8 @@ class _GamesSectionState extends State<GamesSection>
           DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
           String dateString = intl.DateFormat.yMd().format(date);
           String timeString = intl.DateFormat.jm().format(date);
-          double rating = data.statsDb.getRatingAfterGame(id, game.gameId);
-          String ratingString = 'OVR: ${rating.toStringAsFixed(1)}';
+          StatItem bidderRating = BidderRatingStatItem.fromGamesStats([game.rawStatsMap[id]], isTeam);
+          String ratingString = 'Bidding: ${bidderRating.toString()}';
           return Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(8),

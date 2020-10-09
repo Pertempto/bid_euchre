@@ -184,11 +184,11 @@ class StatsDb {
         _entitiesGamesStats[entityId].sublist(0, endIndex), entityId.contains(' '));
   }
 
-  double getRecentRating(String entityId, int numGames) {
+  StatItem getRecentStat(String entityId, StatType statType) {
     List<Game> games = getEntityGames(entityId);
-    games = games.sublist(0, numGames);
+    games = games.sublist(0, MIN_GAMES);
     List<Map> gamesStats = games.map<Map>((g) => g.rawStatsMap[entityId]).toList();
-    return OverallRatingStatItem.fromGamesStats(gamesStats, entityId.contains(' ')).rating;
+    return StatItem.fromGamesStats(statType, gamesStats, entityId.contains(' '));
   }
 
   StatItem getStat(String entityId, StatType statType) {

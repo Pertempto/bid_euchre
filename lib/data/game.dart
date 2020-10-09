@@ -128,11 +128,11 @@ class Game {
   }
 
   bool get isFinished {
-    int teamIndex = winningTeamIndex;
-    if (teamIndex == null) {
+    List<int> score = currentScore;
+    if (score[0] == score[1]) {
       return false;
     }
-    return currentScore[teamIndex] >= gameOverScore;
+    return score[winningTeamIndex] >= gameOverScore;
   }
 
   int get numRounds {
@@ -171,7 +171,7 @@ class Game {
       );
     }
     List<int> score = currentScore;
-    int scoreDiff = score[winningTeamIndex] - score[1 - winningTeamIndex];
+    int scoreDiff = (score[0] - score[1]).abs();
     for (String teamId in teamIds.where((id) => id != null)) {
       if (isFinished) {
         gameStatsMap[teamId]['numGames']++;
