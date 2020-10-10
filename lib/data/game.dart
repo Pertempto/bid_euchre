@@ -19,9 +19,8 @@ class Game {
   List<Color> teamColors;
   int timestamp;
 
-  Game.fromDocument(DocumentSnapshot documentSnapshot) {
-    gameId = documentSnapshot.id;
-    Map data = documentSnapshot.data();
+  Game.fromData(String id, Map data) {
+    gameId = id;
     userId = data['userId'];
     gameOverScore = data['gameOverScore'];
     if (gameOverScore == null) {
@@ -32,7 +31,7 @@ class Game {
     } else {
       if (data['playerNames'] == null) {
         print('can\'t get player names for game id: $gameId');
-        print(documentSnapshot.data);
+        print(data);
       }
       initialPlayerIds = data['playerNames'].cast<String>();
     }
@@ -272,16 +271,31 @@ class Game {
     return null;
   }
 
+  addBid(int dealerIndex, int bidderIndex, int bid) {
+    if (rounds.isEmpty || rounds.last.bidderIndex == null) {
+      rounds.last.dealerIndex = dealerIndex;
+      rounds.last.bidderIndex = bidderIndex;
+      rounds.last.bid = bid;
+    }
+  }
+
+  addRoundResult(int wonTricks) {
+    if (rounds.isEmpty || (rounds.last.bidderIndex != null && rounds.last.wonTricks == null)) {
+      rounds.last.wonTricks = wonTricks;
+    }
+  }
+
   static List<Game> gamesFromSnapshot(QuerySnapshot snapshot) {
     List<Game> games = [];
     for (DocumentSnapshot documentSnapshot in snapshot.docs) {
+      Map data = documentSnapshot.data();
       // for some reason player data is being sent to this function
-      if (documentSnapshot.data().containsKey('fullName')) {
+      if (data.containsKey('fullName')) {
         return [];
       }
-      int variation = documentSnapshot.data()['variation'];
+      int variation = data['variation'];
       if (variation == null || variation == 1) {
-        games.add(Game.fromDocument(documentSnapshot));
+        games.add(Game.fromData(documentSnapshot.id, data));
       }
     }
     games.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
@@ -320,6 +334,36 @@ class Game {
       return '${players[0].fullName} & ${players[1].fullName}';
     } else {
       return '${players[0].shortName} & ${players[1].shortName}';
+    }
+  }
+
+  newRound(int dealerIndex) {
+    if (rounds.isEmpty || rounds.last.isFinished) {
+      rounds.add(Round.empty(rounds.length, dealerIndex));
+    }
+  }
+
+  replacePlayer(int switchingPlayerIndex, String newPlayerId) {
+    rounds.add(Round.playerSwitch(rounds.length, switchingPlayerIndex, newPlayerId));
+  }
+
+  undoLastAction() {
+    if (rounds.isNotEmpty) {
+      Round lastRound = rounds.last;
+      if (lastRound.isPlayerSwitch) {
+        // delete round
+        rounds.removeLast();
+      } else if (lastRound.bid == null) {
+        // delete round
+        rounds.removeLast();
+      } else if (lastRound.wonTricks == null) {
+        // delete bid
+        lastRound.bidderIndex = null;
+        lastRound.bid = null;
+      } else {
+        // delete result
+        lastRound.wonTricks = null;
+      }
     }
   }
 

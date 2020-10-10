@@ -1,9 +1,13 @@
+import 'dart:math';
+
 import 'package:bideuchre/data/round.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'util.dart';
+
 void main() {
   test('Empty round is empty', () {
-    final round = Round.empty(0, 0);
+    final round = emptyRound();
 
     expect(round.isPlayerSwitch, isFalse);
     expect(round.bidderIndex, isNull);
@@ -12,15 +16,21 @@ void main() {
   });
 
   test('Empty round is not finished', () {
-    final round = Round.empty(0, 0);
+    final round = emptyRound();
 
     expect(round.isFinished, isFalse);
   });
 
   test('Can create player switch', () {
-    final round = Round.playerSwitch(0, 0, 'newId');
+    final round = playerSwitch();
 
     expect(round.isPlayerSwitch, isTrue);
+  });
+
+  test('Player switch is finished', () {
+    final round = Round.playerSwitch(0, 0, 'newId');
+
+    expect(round.isFinished, isTrue);
   });
 
   test('Round is finished', () {
@@ -40,4 +50,13 @@ void main() {
 
     expect(round.madeBid, isTrue);
   });
+}
+
+Round emptyRound() {
+  int roundIndex = Random().nextInt(30);
+  return Round.empty(roundIndex, randomPlayerIndex());
+}
+
+Round playerSwitch() {
+  return Round.playerSwitch(randomPlayerIndex(), randomPlayerIndex(), randomId());
 }

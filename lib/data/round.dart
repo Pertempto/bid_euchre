@@ -63,7 +63,7 @@ class Round {
   }
 
   bool get isFinished {
-    return dealerIndex != null && bidderIndex != null && bid != null && wonTricks != null;
+    return isPlayerSwitch || (dealerIndex != null && bidderIndex != null && bid != null && wonTricks != null);
   }
 
   bool get madeBid {

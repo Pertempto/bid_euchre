@@ -365,7 +365,7 @@ class _GameOverviewState extends State<GameOverview>
   onAddClick() {
     if (game.rounds.isEmpty) {
       setState(() {
-        game.rounds.add(Round.empty(game.rounds.length, 0));
+        game.newRound(0);
         game.updateFirestore();
       });
       return;
@@ -380,7 +380,7 @@ class _GameOverviewState extends State<GameOverview>
         }
       }
       setState(() {
-        game.rounds.add(Round.empty(game.rounds.length, dealerIndex));
+        game.newRound(dealerIndex);
         game.updateFirestore();
       });
     } else if (lastRound.bid == null) {
@@ -495,13 +495,13 @@ class _GameOverviewState extends State<GameOverview>
                             FlatButton(
                               child: Text('Add'),
                               onPressed: () {
+                                Navigator.of(context).pop();
                                 setState(() {
                                   lastRound.dealerIndex = selectedDealerIndex;
                                   lastRound.bidderIndex = selectedBidderIndex;
                                   lastRound.bid = selectedBid;
-                                  game.updateFirestore();
                                 });
-                                Navigator.of(context).pop();
+                                game.updateFirestore();
                               },
                             ),
                           ],
@@ -576,7 +576,7 @@ class _GameOverviewState extends State<GameOverview>
                                 setState(() {
                                   lastRound.wonTricks = selectedWonTricks;
                                   if (!game.isFinished) {
-                                    game.rounds.add(Round.empty(game.rounds.length, (lastRound.dealerIndex + 1) % 4));
+                                    game.newRound((lastRound.dealerIndex + 1) % 4);
                                   }
                                   game.updateFirestore();
                                 });
@@ -596,18 +596,14 @@ class _GameOverviewState extends State<GameOverview>
       );
     } else {
       setState(() {
-        game.rounds.add(Round.empty(game.rounds.length, (lastRound.dealerIndex + 1) % 4));
+        game.newRound((lastRound.dealerIndex + 1) % 4);
         game.updateFirestore();
       });
     }
   }
 
   onSubstituteClick() {
-    Round lastRound = game.rounds.last;
-    if (lastRound.wonTricks != null || lastRound.isPlayerSwitch) {
-      lastRound = Round.empty(game.rounds.length, null);
-    }
-    List<String> playerIds = game.getPlayerIdsAfterRound(lastRound.roundIndex - 1);
+    List<String> playerIds = game.getPlayerIdsAfterRound(game.rounds.length - 1);
 
     int selectedPlayerIndex = 0;
     String selectedPlayerId;
@@ -696,12 +692,7 @@ class _GameOverviewState extends State<GameOverview>
                                 ? null
                                 : () {
                                     setState(() {
-                                      lastRound.isPlayerSwitch = true;
-                                      lastRound.switchingPlayerIndex = selectedPlayerIndex;
-                                      lastRound.newPlayerId = selectedPlayerId;
-                                      if (game.rounds.last.roundIndex != lastRound.roundIndex) {
-                                        game.rounds.add(lastRound);
-                                      }
+                                      game.replacePlayer(selectedPlayerIndex, selectedPlayerId);
                                       int dealerIndex = 0;
                                       for (Round round in game.rounds.reversed) {
                                         if (!round.isPlayerSwitch) {
@@ -709,7 +700,7 @@ class _GameOverviewState extends State<GameOverview>
                                           break;
                                         }
                                       }
-                                      game.rounds.add(Round.empty(game.rounds.length, dealerIndex));
+                                      game.newRound(dealerIndex);
                                       game.updateFirestore();
                                     });
                                     Navigator.of(context).pop();
@@ -730,26 +721,10 @@ class _GameOverviewState extends State<GameOverview>
 
   onUndoClick() {
     if (game.rounds.isNotEmpty) {
-      Round lastRound = game.rounds.last;
-      if (lastRound.isPlayerSwitch) {
-        // delete round
-        game.rounds.removeLast();
-      } else if (lastRound.bid == null) {
-        // delete round
-        game.rounds.removeLast();
-      } else if (lastRound.wonTricks == null) {
-        // delete bid
-        lastRound.bidderIndex = null;
-        lastRound.bid = null;
-      } else {
-        // delete result
-        lastRound.wonTricks = null;
-      }
-
+      game.undoLastAction();
       setState(() {
         if (game.rounds.isEmpty) {
           game.rounds.add(Round.empty(game.rounds.length, 0));
-          game.updateFirestore();
         }
         game.updateFirestore();
       });
