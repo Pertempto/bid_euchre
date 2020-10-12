@@ -41,13 +41,32 @@ class _GameStatsState extends State<GameStats> {
     );
   }
 
+  Widget winningChancesSection() {
+    List<double> winProbs =
+        data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
+    if (!game.isFinished) {
+      winProbs = data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore);
+    }
+    List<Widget> children = [
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: Text('Pre-Game Winning Chances', style: textTheme.subtitle2),
+      ),
+      Util.winProbsBar(winProbs, game.teamColors, context),
+    ];
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(children: children),
+    );
+  }
+
   Widget statsSection() {
     List<Widget> children = [];
 
     if (game.numRounds != 0) {
-      children.addAll(teamBidsSection());
-      children.addAll(teamPPBSection());
-      children.addAll(teamBidderRatingsSection());
+      children.add(teamBidsSection());
+      children.add(teamPPBSection());
+      children.add(teamBidderRatingsSection());
       children.addAll(playerBiddingDiffsSection());
     }
     return Padding(
@@ -56,12 +75,11 @@ class _GameStatsState extends State<GameStats> {
     );
   }
 
-  List<Widget> teamBidsSection() {
+  Widget teamBidsSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<BiddingRecordStatItem> teamBidding =
-        game.teamIds.map((teamId) => BiddingRecordStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
+    game.teamIds.map((teamId) => BiddingRecordStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
     List<Widget> children = [];
-    // TODO: create function to reduce duplicate code between stat sections
     children.add(Column(
       children: <Widget>[
         Row(
@@ -87,130 +105,29 @@ class _GameStatsState extends State<GameStats> {
         ),
       ],
     ));
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text('${teamBidding[0].record.wins}/${teamBidding[0].record.total}', style: textTheme.subtitle2),
-          Spacer(),
-          Text('Made Bids', style: textTheme.subtitle2),
-          Spacer(),
-          Text('${teamBidding[1].record.wins}/${teamBidding[1].record.total}', style: textTheme.subtitle2),
-        ],
-      ),
+    children.add(statBarsSection(
+      'Made Bids',
+      '${teamBidding[0].record.wins}/${teamBidding[0].record.total}',
+      '${teamBidding[1].record.wins}/${teamBidding[1].record.total}',
+      List.generate(2, (i) => teamBidding[i].record.winningPercentage),
     ));
-    List<Widget> bars = [];
-    for (int i = 0; i < 2; i++) {
-      bars.add(LinearPercentIndicator(
-        percent: teamBidding[i].record.winningPercentage,
-        progressColor: game.teamColors[i],
-        lineHeight: 12,
-        linearStrokeCap: LinearStrokeCap.butt,
-        padding: EdgeInsets.all(0),
-      ));
-    }
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Expanded(child: bars[0]),
-          SizedBox(width: 16),
-          Expanded(child: bars[1]),
-        ],
-      ),
-    ));
-    return children;
+    return Column(children: children);
   }
 
-  List<Widget> teamPPBSection() {
+  Widget teamPPBSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<PointsPerBidStatItem> teamPPB =
     game.teamIds.map((teamId) => PointsPerBidStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
-    List<Widget> children = [];
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text('${teamPPB[0]}', style: textTheme.subtitle2),
-          Spacer(),
-          Text('Points per Bid', style: textTheme.subtitle2),
-          Spacer(),
-          Text('${teamPPB[1]}', style: textTheme.subtitle2),
-        ],
-      ),
-    ));
-    List<Widget> bars = [];
-    for (int i = 0; i < 2; i++) {
-      double percent = 0;
-      if (teamPPB[i].count != 0) {
-        percent = max(0, min(1, teamPPB[i].average / 6));
-      }
-      bars.add(LinearPercentIndicator(
-        percent: percent,
-        progressColor: game.teamColors[i],
-        lineHeight: 12,
-        linearStrokeCap: LinearStrokeCap.butt,
-        padding: EdgeInsets.all(0),
-      ));
-    }
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Expanded(child: bars[0]),
-          SizedBox(width: 16),
-          Expanded(child: bars[1]),
-        ],
-      ),
-    ));
-    return children;
+    return statBarsSection('Points Per Bid', teamPPB[0].toString(), teamPPB[1].toString(),
+        List.generate(2, (i) => max(0, min(1, teamPPB[i].average / 6))));
   }
 
-  List<Widget> teamBidderRatingsSection() {
+  Widget teamBidderRatingsSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<BidderRatingStatItem> teamBidderRatings =
     game.teamIds.map((teamId) => BidderRatingStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
-    List<Widget> children = [];
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text('${teamBidderRatings[0]}', style: textTheme.subtitle2),
-          Spacer(),
-          Text('Bidder Rating', style: textTheme.subtitle2),
-          Spacer(),
-          Text('${teamBidderRatings[1]}', style: textTheme.subtitle2),
-        ],
-      ),
-    ));
-    List<Widget> bars = [];
-    for (int i = 0; i < 2; i++) {
-      double percent = max(0, min(1, teamBidderRatings[i].rating / 100));
-      bars.add(LinearPercentIndicator(
-        percent: percent,
-        progressColor: game.teamColors[i],
-        lineHeight: 12,
-        linearStrokeCap: LinearStrokeCap.butt,
-        padding: EdgeInsets.all(0),
-      ));
-    }
-    children.add(Padding(
-      padding: EdgeInsets.only(top: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Expanded(child: bars[0]),
-          SizedBox(width: 16),
-          Expanded(child: bars[1]),
-        ],
-      ),
-    ));
-    return children;
+    return statBarsSection('Bidder Rating', teamBidderRatings[0].toString(), teamBidderRatings[1].toString(),
+        List.generate(2, (i) => max(0, min(1, teamBidderRatings[i].rating / 100))));
   }
 
   List<Widget> playerBiddingDiffsSection() {
@@ -270,22 +187,40 @@ class _GameStatsState extends State<GameStats> {
     return children;
   }
 
-  Widget winningChancesSection() {
-    List<double> winProbs =
-        data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
-    if (!game.isFinished) {
-      winProbs = data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore);
-    }
-    List<Widget> children = [
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-        child: Text('Pre-Game Winning Chances', style: textTheme.subtitle2),
+  Widget statBarsSection(String title, String leftLabel, String rightLabel, List<double> barPercents) {
+    List<Widget> children = [];
+    children.add(Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Expanded(child: Text(leftLabel, style: textTheme.subtitle2, textAlign: TextAlign.start), flex: 1),
+          Expanded(child: Text(title, style: textTheme.subtitle2, textAlign: TextAlign.center), flex: 2),
+          Expanded(child: Text(rightLabel, style: textTheme.subtitle2, textAlign: TextAlign.end), flex: 1),
+        ],
       ),
-      Util.winProbsBar(winProbs, game.teamColors, context),
-    ];
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Column(children: children),
-    );
+    ));
+    List<Widget> bars = [];
+    for (int i = 0; i < 2; i++) {
+      bars.add(LinearPercentIndicator(
+        percent: barPercents[i],
+        progressColor: game.teamColors[i],
+        lineHeight: 12,
+        linearStrokeCap: LinearStrokeCap.butt,
+        padding: EdgeInsets.all(0),
+      ));
+    }
+    children.add(Padding(
+      padding: EdgeInsets.only(top: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Expanded(child: bars[0]),
+          SizedBox(width: 16),
+          Expanded(child: bars[1]),
+        ],
+      ),
+    ));
+    return Column(children: children);
   }
 }
