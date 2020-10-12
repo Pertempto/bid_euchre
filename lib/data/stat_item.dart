@@ -173,7 +173,7 @@ class OverallRatingStatItem extends RatingStatItem {
     double bidderRating = BidderRatingStatItem.calculateBidderRating(gamesStats, isTeam);
     Record record = WinLossRecordStatItem.calculateRecord(gamesStats);
     double winningRating = 0;
-    if (record.totalGames != 0) {
+    if (record.total != 0) {
       winningRating = record.winningPercentage * 100;
     }
     double ovr = bidderRating * 0.5 + winningRating * 0.5;
@@ -311,7 +311,7 @@ abstract class RecordStatItem extends StatItem {
   Record get record => _record;
 
   double get sortValue {
-    if (record.totalGames == 0) {
+    if (record.total == 0) {
       return 1;
     }
     return -record.winningPercentage;

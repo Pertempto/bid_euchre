@@ -7,12 +7,15 @@ class Record {
 
   Record(this._wins, this._losses);
 
-  int get totalGames {
+  int get total {
     return wins + losses;
   }
 
   double get winningPercentage {
-    return wins / totalGames;
+    if (total == 0) {
+      return 0;
+    }
+    return wins / total;
   }
 
   List<int> get asList {

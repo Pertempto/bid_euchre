@@ -173,7 +173,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                         if (trendIcon != null) Padding(child: trendIcon, padding: EdgeInsets.only(left: 4)),
                       ],
                     ),
-                    flex: 4,
+                    flex: 6,
                   ),
                   Expanded(
                     child: Text(
@@ -181,7 +181,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                       style: textTheme.bodyText1.copyWith(fontWeight: FontWeight.w300),
                       textAlign: TextAlign.end,
                     ),
-                    flex: 4,
+                    flex: 2,
                   ),
                 ],
               ),

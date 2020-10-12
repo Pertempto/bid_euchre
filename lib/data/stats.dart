@@ -223,7 +223,7 @@ class StatsDb {
   List<String> getTeamIds(Set<String> playerIds) {
     return _entitiesGamesStats.keys.where((id) {
       List<String> ids = id.split(' ');
-      return playerIds.intersection(ids.toSet()).length == 2;
+      return ids.length >= 2 && playerIds.intersection(ids.toSet()).length == ids.length;
     }).toList();
   }
 

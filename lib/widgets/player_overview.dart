@@ -78,8 +78,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           return pctCmp;
         }
       } else {
-        int aGames = oppRecordsAgainst[a].totalGames;
-        int bGames = oppRecordsAgainst[b].totalGames;
+        int aGames = oppRecordsAgainst[a].total;
+        int bGames = oppRecordsAgainst[b].total;
         int gamesCmp = -aGames.compareTo(bGames);
         if (gamesCmp != 0) {
           return gamesCmp;
@@ -137,7 +137,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 child: Column(
                   children: <Widget>[
                     Text(oPlayer.shortName, style: textTheme.bodyText1.copyWith(color: color)),
-                    Text(opponentsSortByRecord ? record.toString() : record.totalGames.toString(),
+                    Text(opponentsSortByRecord ? record.toString() : record.total.toString(),
                         style: textTheme.bodyText2),
                   ],
                 ),
@@ -192,8 +192,8 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
           return pctCmp;
         }
       } else {
-        int aGames = partnerRecords[a].totalGames;
-        int bGames = partnerRecords[b].totalGames;
+        int aGames = partnerRecords[a].total;
+        int bGames = partnerRecords[b].total;
         int gamesCmp = -aGames.compareTo(bGames);
         if (gamesCmp != 0) {
           return gamesCmp;
@@ -251,7 +251,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
                 child: Column(
                   children: <Widget>[
                     Text(partner.shortName, style: textTheme.bodyText1.copyWith(color: color)),
-                    Text(partnersSortByRecord ? record.toString() : record.totalGames.toString(),
+                    Text(partnersSortByRecord ? record.toString() : record.total.toString(),
                         style: textTheme.bodyText2),
                   ],
                 ),

@@ -135,27 +135,18 @@ class Game {
   }
 
   int get numRounds {
-    return _rounds
-        .where((r) => !r.isPlayerSwitch)
-        .length;
+    return _rounds.where((r) => !r.isPlayerSwitch && r.isFinished).length;
   }
 
   Map get rawStatsMap {
-    List<Set<String>> teamsPlayerIds = allTeamsPlayerIds;
-    List<String> teamIds = [null, null];
     Map<String, Map> gameStatsMap = {};
-    for (int i = 0; i < 2; i++) {
-      if (teamsPlayerIds[i].length == 2) {
-        String teamId = Util.teamId(teamsPlayerIds[i].toList());
-        teamIds[i] = teamId;
-      }
-    }
     Set<String> ids = allPlayerIds.toSet();
-    ids.addAll(teamIds.where((id) => id != null));
+    ids.addAll(teamIds);
     for (String id in ids) {
       gameStatsMap.putIfAbsent(
         id,
-        () => {
+            () =>
+        {
           'numRounds': 0,
           'numBids': 0,
           'pointsOnBids': 0,
@@ -173,7 +164,7 @@ class Game {
     }
     List<int> score = currentScore;
     int scoreDiff = (score[0] - score[1]).abs();
-    for (String teamId in teamIds.where((id) => id != null)) {
+    for (String teamId in teamIds) {
       if (isFinished) {
         gameStatsMap[teamId]['numGames']++;
         if (teamIds[winningTeamIndex] == teamId) {
@@ -261,18 +252,20 @@ class Game {
   }
 
   List<String> get teamIds {
-    List<String> teamIds = [null, null];
-    Set<String> fullGamers = fullGamePlayerIds;
-    for (int i = 0; i < 2; i++) {
-      List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
-      if (initialIds
-          .toSet()
-          .intersection(fullGamers)
-          .length == 2) {
-        teamIds[i] = Util.teamId(initialIds);
-      }
-    }
-    return teamIds;
+    List<Set<String>> teamsPlayerIds = allTeamsPlayerIds;
+    return [Util.teamId(teamsPlayerIds[0].toList()), Util.teamId(teamsPlayerIds[1].toList())];
+    // List<String> teamIds = [null, null];
+    // Set<String> fullGamers = fullGamePlayerIds;
+    // for (int i = 0; i < 2; i++) {
+    //   List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
+    //   if (initialIds
+    //       .toSet()
+    //       .intersection(fullGamers)
+    //       .length == 2) {
+    //     teamIds[i] = Util.teamId(initialIds);
+    //   }
+    // }
+    // return teamIds;
   }
 
   int get winningTeamIndex {
@@ -401,7 +394,7 @@ class Game {
               initialPlayerIds == other.initialPlayerIds &&
               _rounds == other._rounds &&
               teamColors == other.teamColors &&
-          timestamp == other.timestamp;
+              timestamp == other.timestamp;
 
   @override
   int get hashCode =>
