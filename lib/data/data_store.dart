@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'authentication.dart';
 import 'game.dart';
@@ -18,6 +19,29 @@ class DataStore {
   static String currentUserId;
   static Data lastData;
   static StatsDb lastStats;
+
+  static StreamBuilder dataWrapNew(Widget Function(Data data) callback, {bool allowNull = false}) {
+    return StreamBuilder(
+      stream: Rx.merge([
+        friendsCollection.snapshots(),
+        gamesCollection.snapshots(),
+        groupsCollection.snapshots(),
+        playersCollection.snapshots(),
+        usersCollection.snapshots(),
+      ]),
+      builder: (context, mainSnapshot) {
+        QuerySnapshot snapshot = mainSnapshot.data;
+        if (mainSnapshot.hasData) {
+          if (snapshot.docs.isNotEmpty) {
+            print(snapshot.docs.first.reference.parent.id);
+          }
+        }
+
+        Data data = Data(null, {}, RelationshipsDb.empty(), [], [], {}, {}, StatsDb.load([], {}), false);
+        return callback(data);
+      },
+    );
+  }
 
   static StreamBuilder dataWrap(Widget Function(Data data) callback, {bool allowNull = false}) {
     return _usersWrap(allowNull, (users) {

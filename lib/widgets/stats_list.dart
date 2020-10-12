@@ -139,7 +139,8 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
           Icon trendIcon;
-          if (displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating) {
+          if (!showInfrequent &&
+              (displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating)) {
             double recentRating = (data.statsDb.getRecentStat(id, displayStatType) as RatingStatItem).rating;
             double rating = (statItem as RatingStatItem).rating;
             if (recentRating > rating + 20) {

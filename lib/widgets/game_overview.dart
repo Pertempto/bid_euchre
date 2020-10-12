@@ -384,216 +384,9 @@ class _GameOverviewState extends State<GameOverview>
         game.updateFirestore();
       });
     } else if (lastRound.bid == null) {
-      List<String> playerIds = game.getPlayerIdsAfterRound(lastRound.roundIndex - 1);
-
-      int selectedDealerIndex = 0;
-      if (lastRound.dealerIndex != null) {
-        selectedDealerIndex = lastRound.dealerIndex;
-      }
-      int selectedBidderIndex = (selectedDealerIndex + 1) % 4;
-      int selectedBid = 3;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, innerSetState) {
-            return Wrap(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          width: double.infinity,
-                          child: Text(
-                            'Add Bid',
-                            style: textTheme.headline6,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text('Dealer', style: textTheme.subtitle1),
-                        Container(
-                          width: double.infinity,
-                          child: CupertinoSlidingSegmentedControl(
-                            children: Map.fromIterable(
-                              [0, 1, 2, 3],
-                              key: (i) => i,
-                              value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                            ),
-                            onValueChanged: (value) {
-                              innerSetState(() {
-                                selectedDealerIndex = value;
-                              });
-                            },
-                            groupValue: selectedDealerIndex,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text('Bidder', style: textTheme.subtitle1),
-                        Container(
-                          width: double.infinity,
-                          child: CupertinoSlidingSegmentedControl(
-                            children: Map.fromIterable(
-                              [0, 1, 2, 3],
-                              key: (i) => i,
-                              value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                            ),
-                            onValueChanged: (value) {
-                              innerSetState(() {
-                                selectedBidderIndex = value;
-                              });
-                            },
-                            groupValue: selectedBidderIndex,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text('Bid', style: textTheme.subtitle1),
-                        Container(
-                          width: double.infinity,
-                          child: CupertinoSlidingSegmentedControl(
-                            children: Map.fromIterable(
-                              Round.ALL_BIDS,
-                              key: (i) => i,
-                              value: (i) {
-                                if (i == 24) {
-                                  return Text('Alone');
-                                } else if (i == 12) {
-                                  return Text('Slide');
-                                } else {
-                                  return Text(i.toString());
-                                }
-                              },
-                            ),
-                            onValueChanged: (value) {
-                              innerSetState(() {
-                                selectedBid = value;
-                              });
-                            },
-                            groupValue: selectedBid,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: <Widget>[
-                            FlatButton(
-                              child: Text('Cancel'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            Spacer(),
-                            FlatButton(
-                              child: Text('Add'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                setState(() {
-                                  lastRound.dealerIndex = selectedDealerIndex;
-                                  lastRound.bidderIndex = selectedBidderIndex;
-                                  lastRound.bid = selectedBid;
-                                });
-                                game.updateFirestore();
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          });
-        },
-      );
+      selectBid();
     } else if (lastRound.wonTricks == null) {
-      int selectedWonTricks = lastRound.bid > 6 ? 6 : lastRound.bid;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, innerSetState) {
-            return Wrap(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          width: double.infinity,
-                          child: Text(
-                            'Add Result',
-                            style: textTheme.headline6,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text('Won Tricks', style: textTheme.subtitle1),
-                        Container(
-                          width: double.infinity,
-                          child: CupertinoSlidingSegmentedControl(
-                            children: Map.fromIterable([0, 1, 2, 3, 4, 5, 6],
-                                key: (i) => i, value: (i) => Text(i.toString())),
-                            onValueChanged: (value) {
-                              innerSetState(() {
-                                selectedWonTricks = value;
-                              });
-                            },
-                            groupValue: selectedWonTricks,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: <Widget>[
-                            FlatButton(
-                              child: Text('Cancel'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            Spacer(),
-                            FlatButton(
-                              child: Text('Add'),
-                              onPressed: () {
-                                setState(() {
-                                  lastRound.wonTricks = selectedWonTricks;
-                                  if (!game.isFinished) {
-                                    game.newRound((lastRound.dealerIndex + 1) % 4);
-                                  }
-                                  game.updateFirestore();
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          });
-        },
-      );
+      selectRoundResult();
     } else {
       setState(() {
         game.newRound((lastRound.dealerIndex + 1) % 4);
@@ -724,11 +517,225 @@ class _GameOverviewState extends State<GameOverview>
       game.undoLastAction();
       setState(() {
         if (game.rounds.isEmpty) {
-          game.rounds.add(Round.empty(game.rounds.length, 0));
+          game.newRound(0);
         }
         game.updateFirestore();
       });
     }
+  }
+
+  selectBid() {
+    Round lastRound = game.rounds.last;
+    List<String> playerIds = game.getPlayerIdsAfterRound(lastRound.roundIndex - 1);
+    int selectedDealerIndex = 0;
+    if (lastRound.dealerIndex != null) {
+      selectedDealerIndex = lastRound.dealerIndex;
+    }
+    int selectedBidderIndex = (selectedDealerIndex + 1) % 4;
+    int selectedBid = 3;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, innerSetState) {
+          return Wrap(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          'Add Bid',
+                          style: textTheme.headline6,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text('Dealer', style: textTheme.subtitle1),
+                      Container(
+                        width: double.infinity,
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            [0, 1, 2, 3],
+                            key: (i) => i,
+                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                          ),
+                          onValueChanged: (value) {
+                            innerSetState(() {
+                              selectedDealerIndex = value;
+                            });
+                          },
+                          groupValue: selectedDealerIndex,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text('Bidder', style: textTheme.subtitle1),
+                      Container(
+                        width: double.infinity,
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            [0, 1, 2, 3],
+                            key: (i) => i,
+                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
+                          ),
+                          onValueChanged: (value) {
+                            innerSetState(() {
+                              selectedBidderIndex = value;
+                            });
+                          },
+                          groupValue: selectedBidderIndex,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text('Bid', style: textTheme.subtitle1),
+                      Container(
+                        width: double.infinity,
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            Round.ALL_BIDS,
+                            key: (i) => i,
+                            value: (i) {
+                              if (i == 24) {
+                                return Text('Alone');
+                              } else if (i == 12) {
+                                return Text('Slide');
+                              } else {
+                                return Text(i.toString());
+                              }
+                            },
+                          ),
+                          onValueChanged: (value) {
+                            innerSetState(() {
+                              selectedBid = value;
+                            });
+                          },
+                          groupValue: selectedBid,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: <Widget>[
+                          FlatButton(
+                            child: Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Spacer(),
+                          FlatButton(
+                            child: Text('Add'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              setState(() {
+                                game.addBid(selectedDealerIndex, selectedBidderIndex, selectedBid);
+                              });
+                              game.updateFirestore();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  selectRoundResult() {
+    Round lastRound = game.rounds.last;
+    int selectedWonTricks = lastRound.bid > 6 ? 6 : lastRound.bid;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, innerSetState) {
+          return Wrap(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: double.infinity,
+                        child: Text(
+                          'Add Result',
+                          style: textTheme.headline6,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text('Won Tricks', style: textTheme.subtitle1),
+                      Container(
+                        width: double.infinity,
+                        child: CupertinoSlidingSegmentedControl(
+                          children:
+                              Map.fromIterable([0, 1, 2, 3, 4, 5, 6], key: (i) => i, value: (i) => Text(i.toString())),
+                          onValueChanged: (value) {
+                            innerSetState(() {
+                              selectedWonTricks = value;
+                            });
+                          },
+                          groupValue: selectedWonTricks,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: <Widget>[
+                          FlatButton(
+                            child: Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Spacer(),
+                          FlatButton(
+                            child: Text('Add'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              setState(() {
+                                game.addRoundResult(selectedWonTricks);
+                                if (!game.isFinished) {
+                                  game.newRound((lastRound.dealerIndex + 1) % 4);
+                                }
+                                game.updateFirestore();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 }
 

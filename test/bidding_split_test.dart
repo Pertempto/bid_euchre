@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final dummyRounds = [
-    Round(0, 0, 0, 3, 4), // +4 points
-    Round(0, 0, 0, 3, 2), // -3 points, didn't make bid
-    Round(0, 0, 0, 3, 5), // +5 points
+    Round(0, 0, 3, 4), // +4 points
+    Round(0, 0, 3, 2), // -3 points, didn't make bid
+    Round(0, 0, 3, 5), // +5 points
   ];
 
   test('Average points with no rounds is nan', () {

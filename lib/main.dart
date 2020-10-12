@@ -134,7 +134,7 @@ class _RootState extends State<Root> {
   BottomNavigationBarItem _buildNavBarItem(IconData iconData, String title) {
     return BottomNavigationBarItem(
       icon: Icon(iconData),
-      title: Text(title),
+      label: title,
       backgroundColor: Theme.of(context).primaryColor,
     );
   }

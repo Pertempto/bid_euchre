@@ -1,9 +1,9 @@
 class Round {
   static const List<int> ALL_BIDS = [3, 4, 5, 6, 12, 24];
 
-  int roundIndex;
   bool isPlayerSwitch;
 
+  int roundIndex;
   int dealerIndex;
   int bidderIndex;
   int bid;
@@ -12,20 +12,19 @@ class Round {
   int switchingPlayerIndex;
   String newPlayerId;
 
-  Round(this.roundIndex, this.dealerIndex, this.bidderIndex, this.bid, this.wonTricks) {
+  Round(this.dealerIndex, this.bidderIndex, this.bid, this.wonTricks) {
     isPlayerSwitch = false;
   }
 
-  Round.empty(this.roundIndex, this.dealerIndex) {
+  Round.empty(this.dealerIndex) {
     isPlayerSwitch = false;
   }
 
-  Round.playerSwitch(this.roundIndex, this.switchingPlayerIndex, this.newPlayerId) {
+  Round.playerSwitch(this.switchingPlayerIndex, this.newPlayerId) {
     isPlayerSwitch = true;
   }
 
   Round.fromData(Map roundData) {
-    roundIndex = roundData['roundIndex'];
     isPlayerSwitch = roundData['isPlayerSwitch'];
     if (isPlayerSwitch == null) {
       isPlayerSwitch = false;
@@ -46,7 +45,6 @@ class Round {
 
   Map get dataMap {
     Map roundData = {
-      'roundIndex': roundIndex,
       'isPlayerSwitch': isPlayerSwitch,
     };
     if (isPlayerSwitch) {
@@ -110,7 +108,6 @@ class Round {
       identical(this, other) ||
       other is Round &&
           runtimeType == other.runtimeType &&
-          roundIndex == other.roundIndex &&
           isPlayerSwitch == other.isPlayerSwitch &&
           dealerIndex == other.dealerIndex &&
           bidderIndex == other.bidderIndex &&
@@ -121,7 +118,6 @@ class Round {
 
   @override
   int get hashCode =>
-      roundIndex.hashCode ^
       isPlayerSwitch.hashCode ^
       dealerIndex.hashCode ^
       bidderIndex.hashCode ^

@@ -47,7 +47,6 @@ class _ConfettiSetupState extends State<ConfettiSetup> with TickerProviderStateM
           onPressed: () {
             confettiController.reset();
             confettiController.forward();
-//            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ConfettiTest(settings)));
           },
         ),
         SizedBox(height: 64),

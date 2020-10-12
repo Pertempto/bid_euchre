@@ -20,6 +20,23 @@ void main() {
     expect(game.rounds.last.newPlayerId, newPlayerId);
   });
 
+  test('Unfinished round pushed to end when player replaced', () {
+    final game = randomEmptyGame();
+
+    int dealerIndex = randomPlayerIndex();
+    game.newRound(dealerIndex);
+    int bidderIndex = randomPlayerIndex();
+    game.addBid(dealerIndex, bidderIndex, randomBid());
+    int switchingPlayerIndex = randomPlayerIndex();
+    String newPlayerId = randomId();
+    game.replacePlayer(switchingPlayerIndex, newPlayerId);
+
+    expect(game.rounds.length, 2);
+    expect(game.rounds[0].isPlayerSwitch, isTrue);
+    expect(game.rounds.last.dealerIndex, dealerIndex);
+    expect(game.rounds.last.bidderIndex, bidderIndex);
+  });
+
   test('Can add new round', () {
     final game = randomEmptyGame();
 

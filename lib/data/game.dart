@@ -15,7 +15,7 @@ class Game {
   String userId;
   int gameOverScore;
   List<String> initialPlayerIds;
-  List<Round> rounds;
+  List<Round> _rounds;
   List<Color> teamColors;
   int timestamp;
 
@@ -35,7 +35,7 @@ class Game {
       }
       initialPlayerIds = data['playerNames'].cast<String>();
     }
-    rounds = data['rounds'].map<Round>((rd) => Round.fromData(rd)).toList();
+    _rounds = data['rounds'].map<Round>((rd) => Round.fromData(rd)).toList();
     List<int> teamColorInts;
     if (data['teamColors'] != null) {
       teamColorInts = data['teamColors'].cast<int>();
@@ -54,7 +54,7 @@ class Game {
     this.teamColors = teamColors;
     this.gameOverScore = gameOverScore;
     timestamp = DateTime.now().millisecondsSinceEpoch;
-    rounds = [Round.empty(0, 0)];
+    _rounds = [Round.empty(0)];
     print(dataMap);
     doc.set(dataMap);
   }
@@ -64,7 +64,7 @@ class Game {
       'userId': userId,
       'gameOverScore': gameOverScore,
       'initialPlayerIds': initialPlayerIds,
-      'rounds': rounds.map((r) => r.dataMap).toList(),
+      'rounds': _rounds.map((r) => r.dataMap).toList(),
       'teamColors': teamColors.map((c) => c.value).toList(),
       'timestamp': timestamp,
       'variation': 1,
@@ -73,7 +73,7 @@ class Game {
 
   Set<String> get allPlayerIds {
     Set<String> playerIds = initialPlayerIds.toSet();
-    for (Round r in rounds.where((r) => r.isPlayerSwitch)) {
+    for (Round r in _rounds.where((r) => r.isPlayerSwitch)) {
       playerIds.add(r.newPlayerId);
     }
     return playerIds;
@@ -81,7 +81,7 @@ class Game {
 
   List<Set<String>> get allTeamsPlayerIds {
     List<Set<String>> teamPlayerIds = [{}, {}];
-    for (int i = 0; i < rounds.length; i++) {
+    for (int i = 0; i < _rounds.length; i++) {
       List<String> ids = getPlayerIdsAfterRound(i);
       for (int j = 0; j < 4; j++) {
         teamPlayerIds[j % 2].add(ids[j]);
@@ -91,11 +91,11 @@ class Game {
   }
 
   List<String> get currentPlayerIds {
-    return getPlayerIdsAfterRound(rounds.length - 1);
+    return getPlayerIdsAfterRound(_rounds.length - 1);
   }
 
   List<int> get currentScore {
-    return getScoreAfterRound(rounds.length - 1);
+    return getScoreAfterRound(_rounds.length - 1);
   }
 
   String get dateString {
@@ -135,7 +135,9 @@ class Game {
   }
 
   int get numRounds {
-    return rounds.where((r) => !r.isPlayerSwitch).length;
+    return _rounds
+        .where((r) => !r.isPlayerSwitch)
+        .length;
   }
 
   Map get rawStatsMap {
@@ -249,12 +251,24 @@ class Game {
     return gameStatsMap;
   }
 
+  List<Round> get rounds {
+    List<Round> rounds = [];
+    for (int i = 0; i < _rounds.length; i++) {
+      _rounds[i].roundIndex = i;
+      rounds.add(_rounds[i]);
+    }
+    return rounds;
+  }
+
   List<String> get teamIds {
     List<String> teamIds = [null, null];
     Set<String> fullGamers = fullGamePlayerIds;
     for (int i = 0; i < 2; i++) {
       List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
-      if (initialIds.toSet().intersection(fullGamers).length == 2) {
+      if (initialIds
+          .toSet()
+          .intersection(fullGamers)
+          .length == 2) {
         teamIds[i] = Util.teamId(initialIds);
       }
     }
@@ -272,16 +286,16 @@ class Game {
   }
 
   addBid(int dealerIndex, int bidderIndex, int bid) {
-    if (rounds.isEmpty || rounds.last.bidderIndex == null) {
-      rounds.last.dealerIndex = dealerIndex;
-      rounds.last.bidderIndex = bidderIndex;
-      rounds.last.bid = bid;
+    if (_rounds.isEmpty || _rounds.last.bidderIndex == null) {
+      _rounds.last.dealerIndex = dealerIndex;
+      _rounds.last.bidderIndex = bidderIndex;
+      _rounds.last.bid = bid;
     }
   }
 
   addRoundResult(int wonTricks) {
-    if (rounds.isEmpty || (rounds.last.bidderIndex != null && rounds.last.wonTricks == null)) {
-      rounds.last.wonTricks = wonTricks;
+    if (_rounds.isEmpty || (_rounds.last.bidderIndex != null && _rounds.last.wonTricks == null)) {
+      _rounds.last.wonTricks = wonTricks;
     }
   }
 
@@ -305,7 +319,7 @@ class Game {
   List<String> getPlayerIdsAfterRound(int roundIndex) {
     List<String> playerIds = initialPlayerIds.toList();
     for (int i = 0; i <= roundIndex; i++) {
-      Round round = rounds[i];
+      Round round = _rounds[i];
       if (round.isPlayerSwitch) {
         playerIds[round.switchingPlayerIndex] = round.newPlayerId;
       }
@@ -316,10 +330,10 @@ class Game {
   List<int> getScoreAfterRound(int roundIndex) {
     List<int> score = [0, 0];
     for (int i = 0; i <= roundIndex; i++) {
-      if (!rounds[i].isPlayerSwitch) {
-        List<int> roundScore = rounds[i].score;
-        score[0] += roundScore[0];
-        score[1] += roundScore[1];
+      if (!_rounds[i].isPlayerSwitch) {
+        List<int> _roundscore = _rounds[i].score;
+        score[0] += _roundscore[0];
+        score[1] += _roundscore[1];
       }
     }
     return score;
@@ -338,24 +352,29 @@ class Game {
   }
 
   newRound(int dealerIndex) {
-    if (rounds.isEmpty || rounds.last.isFinished) {
-      rounds.add(Round.empty(rounds.length, dealerIndex));
+    if (_rounds.isEmpty || _rounds.last.isFinished) {
+      _rounds.add(Round.empty(dealerIndex));
     }
   }
 
   replacePlayer(int switchingPlayerIndex, String newPlayerId) {
-    rounds.add(Round.playerSwitch(rounds.length, switchingPlayerIndex, newPlayerId));
+    Round playerSwitch = Round.playerSwitch(switchingPlayerIndex, newPlayerId);
+    if (_rounds.isNotEmpty && !_rounds.last.isFinished) {
+      _rounds.insert(_rounds.length - 1, playerSwitch);
+    } else {
+      _rounds.add(playerSwitch);
+    }
   }
 
   undoLastAction() {
-    if (rounds.isNotEmpty) {
-      Round lastRound = rounds.last;
+    if (_rounds.isNotEmpty) {
+      Round lastRound = _rounds.last;
       if (lastRound.isPlayerSwitch) {
         // delete round
-        rounds.removeLast();
+        _rounds.removeLast();
       } else if (lastRound.bid == null) {
         // delete round
-        rounds.removeLast();
+        _rounds.removeLast();
       } else if (lastRound.wonTricks == null) {
         // delete bid
         lastRound.bidderIndex = null;
@@ -374,14 +393,14 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Game &&
-          runtimeType == other.runtimeType &&
-          gameId == other.gameId &&
-          userId == other.userId &&
-          gameOverScore == other.gameOverScore &&
-          initialPlayerIds == other.initialPlayerIds &&
-          rounds == other.rounds &&
-          teamColors == other.teamColors &&
+          other is Game &&
+              runtimeType == other.runtimeType &&
+              gameId == other.gameId &&
+              userId == other.userId &&
+              gameOverScore == other.gameOverScore &&
+              initialPlayerIds == other.initialPlayerIds &&
+              _rounds == other._rounds &&
+              teamColors == other.teamColors &&
           timestamp == other.timestamp;
 
   @override
@@ -390,7 +409,7 @@ class Game {
       userId.hashCode ^
       gameOverScore.hashCode ^
       hashList(initialPlayerIds) ^
-      hashList(rounds) ^
+      hashList(_rounds) ^
       hashList(teamColors) ^
       timestamp.hashCode;
 }
