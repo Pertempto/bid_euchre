@@ -28,7 +28,7 @@ class _GameStatsState extends State<GameStats> {
   @override
   Widget build(BuildContext context) {
     game = widget.game;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       gameHeader(game, data, textTheme, context),

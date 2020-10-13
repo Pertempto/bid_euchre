@@ -35,7 +35,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     teamId = widget.teamId;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     playerIds = teamId.split(' ').toSet();
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [

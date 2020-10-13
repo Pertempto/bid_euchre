@@ -27,7 +27,7 @@ class _SettingsState extends State<HomeSettings> {
 
   @override
   Widget build(BuildContext context) {
-    Data data = DataStore.lastData;
+    Data data = DataStore.currentData;
     currentUser = data.currentUser;
     players = data.players;
 

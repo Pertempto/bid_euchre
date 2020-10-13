@@ -24,7 +24,7 @@ class _PlayerProfileState extends State<PlayerProfile> {
 
   @override
   Widget build(BuildContext context) {
-    Data data = DataStore.lastData;
+    Data data = DataStore.currentData;
     player = data.players[widget.player.playerId];
     return DefaultTabController(
       length: 3,

@@ -15,214 +15,171 @@ class DataStore {
   static CollectionReference groupsCollection = FirebaseFirestore.instance.collection('groups');
   static CollectionReference playersCollection = FirebaseFirestore.instance.collection('players');
   static CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+  static List<Stream> streamList = [
+    friendsCollection.snapshots(),
+    gamesCollection.snapshots(),
+    groupsCollection.snapshots(),
+    playersCollection.snapshots(),
+    usersCollection.snapshots(),
+  ];
+  static Stream dataStream = Rx.combineLatest(streamList, combineSnapshots).map(onDataUpdate).asBroadcastStream();
   static Auth auth;
   static String currentUserId;
-  static Data lastData;
-  static StatsDb lastStats;
+  static Data currentData = Data.empty();
 
-  static StreamBuilder dataWrapNew(Widget Function(Data data) callback, {bool allowNull = false}) {
-    return StreamBuilder(
-      stream: Rx.merge([
-        friendsCollection.snapshots(),
-        gamesCollection.snapshots(),
-        groupsCollection.snapshots(),
-        playersCollection.snapshots(),
-        usersCollection.snapshots(),
-      ]),
-      builder: (context, mainSnapshot) {
-        QuerySnapshot snapshot = mainSnapshot.data;
-        if (mainSnapshot.hasData) {
-          if (snapshot.docs.isNotEmpty) {
-            print(snapshot.docs.first.reference.parent.id);
-          }
-        }
-
-        Data data = Data(null, {}, RelationshipsDb.empty(), [], [], {}, {}, StatsDb.load([], {}), false);
-        return callback(data);
-      },
-    );
+  static Map combineSnapshots(List values) {
+    return {
+      'friends': values[0],
+      'games': values[1],
+      'groups': values[2],
+      'players': values[3],
+      'users': values[4],
+    };
   }
 
   static StreamBuilder dataWrap(Widget Function(Data data) callback, {bool allowNull = false}) {
-    return _usersWrap(allowNull, (users) {
-      if (currentUserId == null) {
-        print('User id is null, signing out...');
-        auth.signOut();
+    return StreamBuilder(
+      stream: dataStream,
+      builder: (context, mainSnapshot) {
+        if (currentUserId == null) {
+          print('User id is null, signing out...');
+          auth.signOut();
+          return Container();
+        }
+        if (currentData.loaded || allowNull) {
+          return callback(currentData);
+        }
         return Container();
-      }
-      User currentUser = users[currentUserId];
-      return _relationshipsWrap(allowNull, (relationshipsDb) {
-        return _gamesWrap(allowNull, (games) {
-//          games.forEach((g) {
-//            if (g.userId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
-//              print(g.gameId);
-//              g.userId = 'saGRfPf2HWdsgWkyWsyDjeKh22N2';
-//              g.updateFirestore();
-//            }
-//          });
-          List<Game> filteredGames = [];
-          for (Game game in games) {
-            if (game.userId == currentUserId) {
-              filteredGames.add(game);
-            } else {
-              if (relationshipsDb.canShare(game.userId, currentUserId)) {
-                filteredGames.add(game);
-              }
-            }
-          }
-          return _playersWrap(allowNull, (players, loaded) {
-//            players.values.forEach((p) {
-//              if (p.ownerId == 'ifyDcznPS5OF4Ng8QCoKydTK6jp1') {
-//                print('${p.playerId} ${p.fullName}');
-//                p.ownerId = 'saGRfPf2HWdsgWkyWsyDjeKh22N2';
-//                p.updateFirestore();
-//              }
-//            });
-            Map<String, Player> filteredPlayers = {};
-            for (String playerId in players.keys) {
-              Player player = players[playerId];
-              if (player.ownerId == currentUserId) {
-                filteredPlayers[playerId] = player;
-              } else {
-                if (relationshipsDb.canShare(player.ownerId, currentUserId)) {
-                  filteredPlayers[playerId] = player;
-                }
-              }
-            }
-            StatsDb statsDb = lastStats;
-            if (games.isNotEmpty && players.isNotEmpty) {
-              if (statsDb == null ||
-                  hashList(games.where((g) => g.isFinished)) != hashList(statsDb.allGames.where((g) => g.isFinished)) ||
-                  hashList(players.keys) != hashList(statsDb.allPlayers.keys)) {
-                print(
-                    'loading new stats db ${hashList(games.where((g) => g.isFinished))}:${hashList(statsDb.allGames.where((g) => g.isFinished))} ${hashList(players.keys)}:${hashList(statsDb.allPlayers.keys)} ');
-                statsDb = StatsDb.load(games, players);
-                lastStats = statsDb;
-                // if (true) {
-                //   int correct = 0;
-                //   int total = 0;
-                //   for (Game g in games.where((g) => g.isFinished)) {
-                //     total++;
-                //     if (statsDb.calculateWinChances(g.initialPlayerIds, [0, 0], 42,
-                //             beforeGameId: g.gameId)[g.winningTeamIndex] >=
-                //         0.5) {
-                //       correct++;
-                //     }
-                //   }
-                //   print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
-                // }
-              }
-            } else {
-              if (statsDb == null) {
-                statsDb = StatsDb.load([], {});
-                lastStats = statsDb;
-              }
-            }
-            Data data = Data(
-                currentUser, users, relationshipsDb, games, filteredGames, players, filteredPlayers, statsDb, loaded);
-            if (!loaded && lastData != null) {
-//              print('using last data');
-              return callback(lastData);
-            }
-            lastData = data;
-            return callback(data);
-          });
-        });
-      });
-    });
-  }
-
-  static StreamBuilder _relationshipsWrap(bool allowNull, Widget Function(RelationshipsDb relationshipsDb) callback) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: friendsCollection.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return StreamBuilder<QuerySnapshot>(
-            stream: groupsCollection.snapshots(),
-            builder: (context, snapshot2) {
-              if (snapshot2.hasData) {
-                return callback(RelationshipsDb.fromSnapshot(snapshot.data, snapshot2.data));
-              } else {
-                if (allowNull) {
-                  return callback(RelationshipsDb.empty());
-                } else {
-                  return Container();
-                }
-              }
-            },
-          );
-        } else {
-          if (allowNull) {
-            return callback(RelationshipsDb.empty());
-          } else {
-            return Container();
-          }
-        }
       },
     );
   }
 
-  static StreamBuilder _gamesWrap(bool allowNull, Widget Function(List<Game> games) callback) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: gamesCollection.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return callback(Game.gamesFromSnapshot(snapshot.data));
-        } else {
-          if (allowNull) {
-            return callback([]);
-          }
-          return Container();
-        }
-      },
-    );
-  }
-
-  static StreamBuilder _playersWrap(bool allowNull,
-      Widget Function(Map<String, Player> players, bool loaded) callback) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: playersCollection.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return callback(Player.playersFromSnapshot(snapshot.data), true);
-        } else {
-          if (allowNull) {
-            return callback({}, false);
-          }
-          return Container();
-        }
-      },
-    );
-  }
-
-  static StreamBuilder _usersWrap(bool allowNull, Widget Function(Map<String, User> users) callback) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: usersCollection.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return callback(User.usersFromSnapshot(snapshot.data));
-        } else {
-          if (allowNull) {
-            return callback({});
-          }
-          return Container();
-        }
-      },
-    );
+  static void onDataUpdate(Map data) {
+    currentData.updateUsers(data['users']);
+    currentData.updateRelationships(data['friends']);
+    currentData.updateGroups(data['groups']);
+    currentData.updateGames(data['games']);
+    currentData.updatePlayers(data['players']);
   }
 }
 
 class Data {
-  final User currentUser;
-  final Map<String, User> users;
-  final RelationshipsDb relationshipsDb;
-  final List<Game> allGames;
-  final List<Game> games;
-  final Map<String, Player> allPlayers;
-  final Map<String, Player> players;
-  final StatsDb statsDb;
-  final bool loaded;
+  User _currentUser;
+  Map<String, User> _users;
+  QuerySnapshot _lastRelationshipsSnapshot;
+  QuerySnapshot _lastGroupsSnapshot;
+  RelationshipsDb _relationshipsDb;
+  List<Game> _allGames;
+  List<Game> _games;
+  Map<String, Player> _allPlayers;
+  Map<String, Player> _players;
+  StatsDb _statsDb;
 
-  Data(this.currentUser, this.users, this.relationshipsDb, this.allGames, this.games, this.allPlayers, this.players,
-      this.statsDb, this.loaded);
+  User get currentUser => _currentUser;
+
+  Map<String, User> get users => _users;
+
+  RelationshipsDb get relationshipsDb => _relationshipsDb;
+
+  List<Game> get allGames => _allGames;
+
+  List<Game> get games => _games;
+
+  Map<String, Player> get allPlayers => _allPlayers;
+
+  Map<String, Player> get players => _players;
+
+  StatsDb get statsDb => _statsDb;
+
+  bool get loaded {
+    return currentUser != null && relationshipsDb != null && allGames != null && allPlayers != null && statsDb != null;
+  }
+
+  Data.empty();
+
+  updateUsers(QuerySnapshot snapshot) {
+    Map<String, User> users = User.usersFromSnapshot(snapshot);
+    _currentUser = users[DataStore.currentUserId];
+    _users = users;
+  }
+
+  updateRelationships(QuerySnapshot snapshot) {
+    _lastRelationshipsSnapshot = snapshot;
+    _updateRelationshipsDb();
+  }
+
+  updateGroups(QuerySnapshot snapshot) {
+    _lastGroupsSnapshot = snapshot;
+    _updateRelationshipsDb();
+  }
+
+  _updateRelationshipsDb() {
+    if (_lastGroupsSnapshot != null && _lastRelationshipsSnapshot != null) {
+      _relationshipsDb = RelationshipsDb.fromSnapshot(_lastRelationshipsSnapshot, _lastGroupsSnapshot);
+    }
+  }
+
+  updateGames(QuerySnapshot snapshot) {
+    List<Game> games = Game.gamesFromSnapshot(snapshot);
+    List<Game> filteredGames = [];
+    for (Game game in games) {
+      if (game.userId == DataStore.currentUserId) {
+        filteredGames.add(game);
+      } else {
+        if (relationshipsDb != null && relationshipsDb.canShare(game.userId, DataStore.currentUserId)) {
+          filteredGames.add(game);
+        }
+      }
+    }
+    _allGames = games;
+    _games = filteredGames;
+    _updateStats();
+  }
+
+  updatePlayers(QuerySnapshot snapshot) {
+    Map<String, Player> players = Player.playersFromSnapshot(snapshot);
+    Map<String, Player> filteredPlayers = {};
+    for (String playerId in players.keys) {
+      Player player = players[playerId];
+      if (player.ownerId == DataStore.currentUserId) {
+        filteredPlayers[playerId] = player;
+      } else {
+        if (relationshipsDb != null && relationshipsDb.canShare(player.ownerId, DataStore.currentUserId)) {
+          filteredPlayers[playerId] = player;
+        }
+      }
+    }
+    _allPlayers = players;
+    _players = filteredPlayers;
+    _updateStats();
+  }
+
+  _updateStats() {
+    if (allGames != null && allPlayers != null) {
+      if (_statsDb == null ||
+          hashList(allGames.where((g) => g.isFinished)) != hashList(_statsDb.allGames.where((g) => g.isFinished)) ||
+          hashList(allPlayers.keys) != hashList(_statsDb.allPlayers.keys)) {
+        print(
+            'loading new stats db ${hashList(allGames.where((g) => g.isFinished))}:${hashList(_statsDb.allGames.where((g) => g.isFinished))} ${hashList(allPlayers.keys)}:${hashList(_statsDb.allPlayers.keys)} ');
+        _statsDb = StatsDb.load(allGames, allPlayers);
+        // if (true) {
+        //   int correct = 0;
+        //   int total = 0;
+        //   for (Game g in games.where((g) => g.isFinished)) {
+        //     total++;
+        //     if (_statsDb.calculateWinChances(g.initialPlayerIds, [0, 0], 42,
+        //             beforeGameId: g.gameId)[g.winningTeamIndex] >=
+        //         0.5) {
+        //       correct++;
+        //     }
+        //   }
+        //   print('$correct/$total (${(correct / total * 100).toStringAsFixed(2)}%)');
+        // }
+      }
+    } else {
+      if (_statsDb == null) {
+        _statsDb = StatsDb.load([], {});
+      }
+    }
+  }
 }

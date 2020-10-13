@@ -38,7 +38,7 @@ class _TrendsSectionState extends State<TrendsSection>
   Widget build(BuildContext context) {
     super.build(context);
     id = widget.id;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     List<Game> games = data.statsDb.getEntityGames(id);
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();

@@ -34,7 +34,7 @@ class _PlayerOverviewState extends State<PlayerOverview> with AutomaticKeepAlive
   Widget build(BuildContext context) {
     super.build(context);
     player = widget.player;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers

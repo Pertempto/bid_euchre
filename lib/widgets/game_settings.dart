@@ -23,7 +23,7 @@ class _GameSettingsState extends State<GameSettings> {
   @override
   Widget build(BuildContext context) {
     game = widget.game;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
 
     TextTheme textTheme = Theme.of(context).textTheme;
     TextStyle leadingStyle = textTheme.headline6;

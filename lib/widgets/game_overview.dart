@@ -52,7 +52,7 @@ class _GameOverviewState extends State<GameOverview>
     super.build(context);
     game = widget.game;
     isSummary = widget.isSummary;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
 
     List<Widget> rows = [SizedBox(height: 8)];
@@ -366,7 +366,6 @@ class _GameOverviewState extends State<GameOverview>
     if (game.rounds.isEmpty) {
       setState(() {
         game.newRound(0);
-        game.updateFirestore();
       });
       return;
     }
@@ -381,7 +380,6 @@ class _GameOverviewState extends State<GameOverview>
       }
       setState(() {
         game.newRound(dealerIndex);
-        game.updateFirestore();
       });
     } else if (lastRound.bid == null) {
       selectBid();
@@ -390,7 +388,6 @@ class _GameOverviewState extends State<GameOverview>
     } else {
       setState(() {
         game.newRound((lastRound.dealerIndex + 1) % 4);
-        game.updateFirestore();
       });
     }
   }
@@ -485,6 +482,7 @@ class _GameOverviewState extends State<GameOverview>
                                 ? null
                                 : () {
                                     setState(() {
+                                      Navigator.of(context).pop();
                                       game.replacePlayer(selectedPlayerIndex, selectedPlayerId);
                                       int dealerIndex = 0;
                                       for (Round round in game.rounds.reversed) {
@@ -496,7 +494,6 @@ class _GameOverviewState extends State<GameOverview>
                                       game.newRound(dealerIndex);
                                       game.updateFirestore();
                                     });
-                                    Navigator.of(context).pop();
                                   },
                           ),
                         ],
@@ -636,11 +633,10 @@ class _GameOverviewState extends State<GameOverview>
                           FlatButton(
                             child: Text('Add'),
                             onPressed: () {
-                              Navigator.of(context).pop();
                               setState(() {
+                                Navigator.of(context).pop();
                                 game.addBid(selectedDealerIndex, selectedBidderIndex, selectedBid);
                               });
-                              game.updateFirestore();
                             },
                           ),
                         ],
@@ -715,8 +711,8 @@ class _GameOverviewState extends State<GameOverview>
                           FlatButton(
                             child: Text('Add'),
                             onPressed: () {
-                              Navigator.of(context).pop();
                               setState(() {
+                                Navigator.of(context).pop();
                                 game.addRoundResult(selectedWonTricks);
                                 if (!game.isFinished) {
                                   game.newRound((lastRound.dealerIndex + 1) % 4);

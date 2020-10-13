@@ -19,7 +19,7 @@ class GroupProfile extends StatefulWidget {
 class _GroupProfileState extends State<GroupProfile> {
   @override
   Widget build(BuildContext context) {
-    Data data = DataStore.lastData;
+    Data data = DataStore.currentData;
     Group group = data.relationshipsDb.getGroup(widget.group.groupId);
     return DefaultTabController(
       length: 2,

@@ -23,7 +23,7 @@ class _PlayerSelectionState extends State<PlayerSelection> {
 
   @override
   Widget build(BuildContext context) {
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     if (filteredPlayers == null) {
       filteredPlayers = List.from(data.players.values);
     }

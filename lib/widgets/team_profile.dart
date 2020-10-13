@@ -24,7 +24,7 @@ class _TeamProfileState extends State<TeamProfile> {
   @override
   Widget build(BuildContext context) {
     teamId = widget.teamId;
-    Data data = DataStore.lastData;
+    Data data = DataStore.currentData;
     String teamName = Util.teamName(teamId, data);
     return DefaultTabController(
       length: 2,

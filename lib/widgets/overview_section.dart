@@ -30,7 +30,7 @@ class _OverviewSectionState extends State<OverviewSection>
   Widget build(BuildContext context) {
     super.build(context);
     id = widget.id;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     TextTheme textTheme = Theme.of(context).textTheme;
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;

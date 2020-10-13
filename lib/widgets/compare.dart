@@ -40,7 +40,7 @@ class _CompareState extends State<Compare> {
 
   @override
   Widget build(BuildContext context) {
-    Data data = DataStore.lastData;
+    Data data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
 
     teams = widget.id1.contains(' ');

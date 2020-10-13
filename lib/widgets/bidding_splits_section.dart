@@ -58,7 +58,7 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
     super.build(context);
     id1 = widget.id;
     id2 = widget.id2;
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     TextTheme textTheme = Theme.of(context).textTheme;
     getSplits();
     if (!isCompare && totalBids[0] == 0) {

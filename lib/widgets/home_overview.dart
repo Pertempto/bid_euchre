@@ -21,7 +21,7 @@ class _HomeOverviewState extends State<HomeOverview> {
 
   @override
   Widget build(BuildContext context) {
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
 
     List<Widget> children = [

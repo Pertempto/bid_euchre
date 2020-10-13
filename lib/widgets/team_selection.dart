@@ -20,7 +20,7 @@ class _TeamSelectionState extends State<TeamSelection> {
 
   @override
   Widget build(BuildContext context) {
-    data = DataStore.lastData;
+    data = DataStore.currentData;
     if (filteredTeams == null) {
       filteredTeams = data.statsDb.getTeamIds(data.players.keys.toSet());
       teamNames = {};
