@@ -34,9 +34,11 @@ class _OverviewSectionState extends State<OverviewSection>
     TextTheme textTheme = Theme.of(context).textTheme;
     TextStyle titleStyle = textTheme.bodyText2.copyWith(fontWeight: FontWeight.w500);
     TextStyle statStyle = textTheme.bodyText2;
-    OverallRatingStatItem overallRating = data.statsDb.getStat(id, StatType.overallRating);
-    BidderRatingStatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating);
-    Record record = (data.statsDb.getStat(id, StatType.record) as RecordStatItem).record;
+    OverallRatingStatItem overallRating =
+        data.statsDb.getStat(id, StatType.overallRating, DataStore.displayArchivedStats);
+    BidderRatingStatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating, DataStore.displayArchivedStats);
+    Record record =
+        (data.statsDb.getStat(id, StatType.record, DataStore.displayArchivedStats) as RecordStatItem).record;
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -57,7 +59,7 @@ class _OverviewSectionState extends State<OverviewSection>
         child: Row(
           children: <Widget>[
             Expanded(
-              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
+              child: Container(height: 4, color: data.statsDb.getColor(id)),
               flex: (overallRating.rating * 10).round(),
             ),
             Expanded(
@@ -82,7 +84,7 @@ class _OverviewSectionState extends State<OverviewSection>
         child: Row(
           children: <Widget>[
             Expanded(
-              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
+              child: Container(height: 4, color: data.statsDb.getColor(id)),
               flex: (bidderRating.rating * 10).round(),
             ),
             Expanded(
@@ -107,7 +109,7 @@ class _OverviewSectionState extends State<OverviewSection>
         child: Row(
           children: <Widget>[
             Expanded(
-              child: Container(height: 4, color: data.statsDb.getEntityColor(id)),
+              child: Container(height: 4, color: data.statsDb.getColor(id)),
               flex: record.wins,
             ),
             Expanded(
@@ -121,16 +123,16 @@ class _OverviewSectionState extends State<OverviewSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Streak', style: titleStyle), flex: 6),
+            Expanded(child: Text('Recent Rating', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.streak).toString(),
+              child: Text(data.statsDb.getRecentStat(id, StatType.overallRating).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Record', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.record).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.record, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
@@ -143,14 +145,14 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Expanded(child: Text('Games', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numGames).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numGames, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Rounds', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numRounds).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numRounds, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
@@ -163,14 +165,14 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numBids).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numBids, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Points', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numPoints).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numPoints, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),

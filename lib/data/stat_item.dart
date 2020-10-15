@@ -1,3 +1,4 @@
+import 'package:bideuchre/data/entity_raw_game_stats.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'record.dart';
@@ -23,20 +24,12 @@ abstract class StatItem {
         return WinningPercentageStatItem(0);
       case StatType.madeBidPercentage:
         return MadeBidPercentageStatItem(0);
-      case StatType.noPartnerMadePercentage:
-        return NoPartnerMadePercentageStatItem(0);
       case StatType.biddingFrequency:
         return BiddingFrequencyStatItem(0);
-      case StatType.noPartnerFrequency:
-        return NoPartnerFrequencyStatItem(0);
-      case StatType.pointsPerBid:
-        return PointsPerBidStatItem(0, 0);
-      case StatType.pointsDiffPerBid:
-        return PointsDiffPerBidStatItem(0, 0);
+      case StatType.gainedPerBid:
+        return GainedPerBidStatItem(0, 0);
       case StatType.averageBid:
         return AverageBidStatItem(0, 0);
-      case StatType.streak:
-        return StreakStatItem(0);
       case StatType.numGames:
         return NumGamesStatItem(0);
       case StatType.numRounds:
@@ -51,44 +44,36 @@ abstract class StatItem {
     throw Exception('Invalid stat type: $statType');
   }
 
-  factory StatItem.fromGamesStats(StatType statType, List<Map> gamesStats, bool isTeam) {
+  factory StatItem.fromRawStats(StatType statType, List<EntityRawGameStats> rawStats, bool isTeam) {
     switch (statType) {
       case StatType.overallRating:
-        return OverallRatingStatItem.fromGamesStats(gamesStats, isTeam);
+        return OverallRatingStatItem.fromRawStats(rawStats, isTeam);
       case StatType.bidderRating:
-        return BidderRatingStatItem.fromGamesStats(gamesStats, isTeam);
+        return BidderRatingStatItem.fromRawStats(rawStats, isTeam);
       case StatType.record:
-        return WinLossRecordStatItem.fromGamesStats(gamesStats, isTeam);
+        return WinLossRecordStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingRecord:
-        return BiddingRecordStatItem.fromGamesStats(gamesStats, isTeam);
+        return BiddingRecordStatItem.fromRawStats(rawStats, isTeam);
       case StatType.winningPercentage:
-        return WinningPercentageStatItem.fromGamesStats(gamesStats, isTeam);
+        return WinningPercentageStatItem.fromRawStats(rawStats, isTeam);
       case StatType.madeBidPercentage:
-        return MadeBidPercentageStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.noPartnerMadePercentage:
-        return NoPartnerMadePercentageStatItem.fromGamesStats(gamesStats, isTeam);
+        return MadeBidPercentageStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingFrequency:
-        return BiddingFrequencyStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.noPartnerFrequency:
-        return NoPartnerFrequencyStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.pointsPerBid:
-        return PointsPerBidStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.pointsDiffPerBid:
-        return PointsDiffPerBidStatItem.fromGamesStats(gamesStats, isTeam);
+        return BiddingFrequencyStatItem.fromRawStats(rawStats, isTeam);
+      case StatType.gainedPerBid:
+        return GainedPerBidStatItem.fromRawStats(rawStats, isTeam);
       case StatType.averageBid:
-        return AverageBidStatItem.fromGamesStats(gamesStats, isTeam);
-      case StatType.streak:
-        return StreakStatItem.fromGamesStats(gamesStats, isTeam);
+        return AverageBidStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numGames:
-        return NumGamesStatItem.fromGamesStats(gamesStats, isTeam);
+        return NumGamesStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numRounds:
-        return NumRoundsStatItem.fromGamesStats(gamesStats, isTeam);
+        return NumRoundsStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numBids:
-        return NumBidsStatItem.fromGamesStats(gamesStats, isTeam);
+        return NumBidsStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numPoints:
-        return NumPointsStatItem.fromGamesStats(gamesStats, isTeam);
+        return NumPointsStatItem.fromRawStats(rawStats, isTeam);
       case StatType.lastPlayed:
-        return LastPlayedStatItem.fromGamesStats(gamesStats, isTeam);
+        return LastPlayedStatItem.fromRawStats(rawStats, isTeam);
     }
     throw Exception('Invalid stat type: $statType');
   }
@@ -100,8 +85,6 @@ abstract class StatItem {
         return 'Win/Loss Record';
       case StatType.winningPercentage:
         return 'Winning Percentage';
-      case StatType.streak:
-        return 'Streak';
       case StatType.numGames:
         return 'Number of Games';
       case StatType.numRounds:
@@ -118,16 +101,10 @@ abstract class StatItem {
         return 'Made Bid Percentage';
       case StatType.averageBid:
         return 'Average Bid';
-      case StatType.pointsPerBid:
-        return 'Points Per Bid';
-      case StatType.pointsDiffPerBid:
+      case StatType.gainedPerBid:
         return 'Points Diff Per Bid';
       case StatType.lastPlayed:
         return 'Last Played';
-      case StatType.noPartnerFrequency:
-        return 'Slide/Loner Frequency';
-      case StatType.noPartnerMadePercentage:
-        return 'Slider/Loner Made %';
       case StatType.bidderRating:
         return 'Bidder Rating';
       case StatType.overallRating:
@@ -165,13 +142,13 @@ class OverallRatingStatItem extends RatingStatItem {
 
   OverallRatingStatItem(double overallRating) : super(overallRating);
 
-  factory OverallRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return OverallRatingStatItem(calculateOverallRating(gamesStats, isTeam));
+  factory OverallRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return OverallRatingStatItem(calculateOverallRating(rawStats, isTeam));
   }
 
-  static double calculateOverallRating(List<Map> gamesStats, bool isTeam) {
-    double bidderRating = BidderRatingStatItem.calculateBidderRating(gamesStats, isTeam);
-    Record record = WinLossRecordStatItem.calculateRecord(gamesStats);
+  static double calculateOverallRating(List<EntityRawGameStats> rawStats, bool isTeam) {
+    double bidderRating = BidderRatingStatItem.calculateBidderRating(rawStats, isTeam);
+    Record record = WinLossRecordStatItem.calculateRecord(rawStats);
     double winningRating = 0;
     if (record.total != 0) {
       winningRating = record.winningPercentage * 100;
@@ -186,26 +163,26 @@ class BidderRatingStatItem extends RatingStatItem {
 
   BidderRatingStatItem(double bidderRating) : super(bidderRating);
 
-  factory BidderRatingStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return BidderRatingStatItem(calculateBidderRating(gamesStats, isTeam));
+  factory BidderRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return BidderRatingStatItem(calculateBidderRating(rawStats, isTeam));
   }
 
-  static double calculateBidderRating(List<Map> gamesStats, bool isTeam) {
-    int numBids = combineStat(gamesStats, 'numBids');
-    int numRounds = combineStat(gamesStats, 'numRounds');
+  static double calculateBidderRating(List<EntityRawGameStats> rawStats, bool isTeam) {
+    int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
+    int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
     if (numRounds == 0) {
       return 0;
     }
-    double biddingPointsPerRound = 0;
+    double gainedPerRound = 0;
     if (numBids != 0) {
-      double ppb = combineStat(gamesStats, 'pointsDiffOnBids') / numBids;
-      biddingPointsPerRound = ppb * numBids / numRounds;
+      int totalGained = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
+      gainedPerRound = totalGained / numRounds;
     }
     double rating;
     if (isTeam) {
-      rating = biddingPointsPerRound / 2 * 100;
+      rating = gainedPerRound / 2 * 100;
     } else {
-      rating = biddingPointsPerRound / 1 * 100;
+      rating = gainedPerRound / 1 * 100;
     }
     return rating;
   }
@@ -225,8 +202,8 @@ class WinningPercentageStatItem extends PercentageStatItem {
 
   WinningPercentageStatItem(double winningPercentage) : super(winningPercentage);
 
-  factory WinningPercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    Record record = WinLossRecordStatItem.calculateRecord(gamesStats);
+  factory WinningPercentageStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    Record record = WinLossRecordStatItem.calculateRecord(rawStats);
     return WinningPercentageStatItem(record.winningPercentage);
   }
 }
@@ -236,28 +213,13 @@ class MadeBidPercentageStatItem extends PercentageStatItem {
 
   MadeBidPercentageStatItem(double madeBidPercentage) : super(madeBidPercentage);
 
-  factory MadeBidPercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    int numBids = combineStat(gamesStats, 'numBids');
+  factory MadeBidPercentageStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
     double madeBidPercentage = 0;
     if (numBids != 0) {
-      madeBidPercentage = combineStat(gamesStats, 'madeBids') / numBids;
+      madeBidPercentage = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.MadeBids) / numBids;
     }
     return MadeBidPercentageStatItem(madeBidPercentage);
-  }
-}
-
-class NoPartnerMadePercentageStatItem extends PercentageStatItem {
-  String get statName => 'Slider/Loner Made %';
-
-  NoPartnerMadePercentageStatItem(double noPartnerMadePercentage) : super(noPartnerMadePercentage);
-
-  factory NoPartnerMadePercentageStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    double noPartnerMadePercentage = 0;
-    int numNoPartnerBids = combineStat(gamesStats, 'noPartner');
-    if (numNoPartnerBids != 0) {
-      noPartnerMadePercentage = combineStat(gamesStats, 'madeNoPartner') / numNoPartnerBids;
-    }
-    return NoPartnerMadePercentageStatItem(noPartnerMadePercentage);
   }
 }
 
@@ -279,29 +241,14 @@ class BiddingFrequencyStatItem extends FrequencyStatItem {
 
   BiddingFrequencyStatItem(double biddingFrequency) : super(biddingFrequency);
 
-  factory BiddingFrequencyStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    int numRounds = combineStat(gamesStats, 'numRounds');
-    int numBids = combineStat(gamesStats, 'numBids');
+  factory BiddingFrequencyStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
+    int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
     double biddingFrequency = 0;
     if (numRounds != 0) {
       biddingFrequency = numBids / numRounds;
     }
     return BiddingFrequencyStatItem(biddingFrequency);
-  }
-}
-
-class NoPartnerFrequencyStatItem extends FrequencyStatItem {
-  String get statName => 'Slider/Loner Frequency';
-
-  NoPartnerFrequencyStatItem(double noPartnerFrequency) : super(noPartnerFrequency);
-
-  factory NoPartnerFrequencyStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    int numBids = combineStat(gamesStats, 'numBids');
-    double noPartnerFrequency = 0;
-    if (numBids != 0) {
-      noPartnerFrequency = combineStat(gamesStats, 'noPartner') / numBids;
-    }
-    return NoPartnerFrequencyStatItem(noPartnerFrequency);
   }
 }
 
@@ -332,14 +279,14 @@ class WinLossRecordStatItem extends RecordStatItem {
 
   WinLossRecordStatItem(Record winLossRecord) : super(winLossRecord);
 
-  factory WinLossRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return WinLossRecordStatItem(calculateRecord(gamesStats));
+  factory WinLossRecordStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return WinLossRecordStatItem(calculateRecord(rawStats));
   }
 
-  static Record calculateRecord(List<Map> gamesStats) {
-    List<int> recentDiffs = gamesStats.map((gameStats) => gameStats['scoreDiff']).toList().cast<int>();
-    int wins = recentDiffs.where((d) => d > 0).length;
-    int losses = recentDiffs.where((d) => d < 0).length;
+  static Record calculateRecord(List<EntityRawGameStats> rawStats) {
+    List<bool> recentDiffs = rawStats.map((gameStats) => gameStats.won).toList().cast<bool>();
+    int wins = recentDiffs.where((won) => won).length;
+    int losses = recentDiffs.where((won) => !won).length;
     return Record(wins, losses);
   }
 }
@@ -349,9 +296,9 @@ class BiddingRecordStatItem extends RecordStatItem {
 
   BiddingRecordStatItem(Record biddingRecord) : super(biddingRecord);
 
-  factory BiddingRecordStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    int made = combineStat(gamesStats, 'madeBids');
-    int set = combineStat(gamesStats, 'numBids') - made;
+  factory BiddingRecordStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    int made = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.MadeBids);
+    int set = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids) - made;
     return BiddingRecordStatItem(Record(made, set));
   }
 }
@@ -381,23 +328,16 @@ abstract class AverageStatItem extends StatItem {
   }
 }
 
-class PointsPerBidStatItem extends AverageStatItem {
-  String get statName => 'Points Per Bid';
+class GainedPerBidStatItem extends AverageStatItem {
+  String get statName => 'Gained Points Per Bid';
 
-  PointsPerBidStatItem(int totalPoints, int numBids) : super(totalPoints, numBids);
+  GainedPerBidStatItem(int totalGainedPoints, int numBids) : super(totalGainedPoints, numBids);
 
-  factory PointsPerBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return PointsPerBidStatItem(combineStat(gamesStats, 'pointsOnBids'), combineStat(gamesStats, 'numBids'));
-  }
-}
-
-class PointsDiffPerBidStatItem extends AverageStatItem {
-  String get statName => 'Points Diff Per Bid';
-
-  PointsDiffPerBidStatItem(int totalPoints, int numBids) : super(totalPoints, numBids);
-
-  factory PointsDiffPerBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return PointsDiffPerBidStatItem(combineStat(gamesStats, 'pointsDiffOnBids'), combineStat(gamesStats, 'numBids'));
+  factory GainedPerBidStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return GainedPerBidStatItem(
+      EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids),
+      EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids),
+    );
   }
 }
 
@@ -406,57 +346,11 @@ class AverageBidStatItem extends AverageStatItem {
 
   AverageBidStatItem(int totalBids, int numBids) : super(totalBids, numBids);
 
-  factory AverageBidStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return AverageBidStatItem(combineStat(gamesStats, 'biddingTotal'), combineStat(gamesStats, 'numBids'));
-  }
-}
-
-class StreakStatItem extends StatItem {
-  int _streak;
-
-  int get streak => _streak;
-
-  double get sortValue => -_streak.toDouble();
-
-  String get statName => 'Streak';
-
-  StreakStatItem(int streak) {
-    _streak = streak;
-  }
-
-  factory StreakStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return StreakStatItem(calculateStreak(gamesStats));
-  }
-
-  @override
-  String toString() {
-    if (streak > 0) {
-      return '${streak}W';
-    } else if (streak < 0) {
-      return '${-streak}L';
-    }
-    return '-';
-  }
-
-  static int calculateStreak(List<Map> gamesStats) {
-    int streak = 0;
-    // iterate through score diffs, newest to oldest
-    for (int scoreDiff in gamesStats.map((gameStats) => gameStats['scoreDiff']).toList().reversed) {
-      if (scoreDiff > 0) {
-        if (streak >= 0) {
-          streak++;
-        } else {
-          break;
-        }
-      } else {
-        if (streak <= 0) {
-          streak--;
-        } else {
-          break;
-        }
-      }
-    }
-    return streak;
+  factory AverageBidStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return AverageBidStatItem(
+      EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.BiddingTotal),
+      EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids),
+    );
   }
 }
 
@@ -482,8 +376,8 @@ class NumGamesStatItem extends IntStatItem {
 
   NumGamesStatItem(int numGames) : super(numGames);
 
-  factory NumGamesStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return NumGamesStatItem(combineStat(gamesStats, 'numGames'));
+  factory NumGamesStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return NumGamesStatItem(EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumGames));
   }
 }
 
@@ -492,8 +386,8 @@ class NumRoundsStatItem extends IntStatItem {
 
   NumRoundsStatItem(int numRounds) : super(numRounds);
 
-  factory NumRoundsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return NumRoundsStatItem(combineStat(gamesStats, 'numRounds'));
+  factory NumRoundsStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return NumRoundsStatItem(EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds));
   }
 }
 
@@ -502,8 +396,8 @@ class NumBidsStatItem extends IntStatItem {
 
   NumBidsStatItem(int numBids) : super(numBids);
 
-  factory NumBidsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return NumBidsStatItem(combineStat(gamesStats, 'numBids'));
+  factory NumBidsStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return NumBidsStatItem(EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids));
   }
 }
 
@@ -512,8 +406,8 @@ class NumPointsStatItem extends IntStatItem {
 
   NumPointsStatItem(int numPoints) : super(numPoints);
 
-  factory NumPointsStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return NumPointsStatItem(combineStat(gamesStats, 'numPoints'));
+  factory NumPointsStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return NumPointsStatItem(EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumPoints));
   }
 }
 
@@ -524,8 +418,8 @@ class LastPlayedStatItem extends IntStatItem {
 
   LastPlayedStatItem(int lastPlayed) : super(lastPlayed);
 
-  factory LastPlayedStatItem.fromGamesStats(List<Map> gamesStats, bool isTeam) {
-    return LastPlayedStatItem(gamesStats.last['lastPlayed']);
+  factory LastPlayedStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return LastPlayedStatItem(rawStats.last.timestamp);
   }
 
   @override
@@ -536,16 +430,4 @@ class LastPlayedStatItem extends IntStatItem {
     DateTime date = DateTime.fromMillisecondsSinceEpoch(lastPlayedTimestamp);
     return intl.DateFormat.yMd().add_jm().format(date);
   }
-}
-
-int combineStat(List<Map> gamesStats, String statName) {
-  int combinedStatValue = 0;
-  for (Map gameStatMap in gamesStats) {
-    try {
-      combinedStatValue += gameStatMap[statName];
-    } on NoSuchMethodError {
-      throw Exception("Can't find raw stat '$statName'");
-    }
-  }
-  return combinedStatValue;
 }

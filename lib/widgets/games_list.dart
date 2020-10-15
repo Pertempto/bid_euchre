@@ -32,7 +32,7 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
       this.data = data;
-      filteredGames = data.games.where((g) => !g.isArchived).toList();
+      filteredGames = data.games;
       if (showSharedGames) {
         filteredGames = filteredGames
             .where((g) => (g.userId != data.currentUser.userId &&
@@ -42,8 +42,8 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
         filteredGames = filteredGames.where((g) => (g.userId == data.currentUser.userId)).toList();
       }
       // bring unfinished games to the top
-      List<Game> finishedGames = filteredGames.where((g) => g.isFinished).toList();
-      List<Game> unfinishedGames = filteredGames.where((g) => !g.isFinished).toList();
+      List<Game> finishedGames = filteredGames.where((g) => g.isFinished || g.isArchived).toList();
+      List<Game> unfinishedGames = filteredGames.where((g) => !g.isFinished && !g.isArchived).toList();
       filteredGames = unfinishedGames + finishedGames;
 
       return Stack(
@@ -109,7 +109,9 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
     }
     User owner = data.users[game.userId];
     String statusString;
-    if (game.isFinished) {
+    if (game.isArchived) {
+      statusString = 'Archived';
+    } else if (game.isFinished) {
       statusString = 'Finished';
     } else {
       statusString = 'In Progress';
@@ -121,13 +123,14 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
           Text('${game.dateString} - ${owner.name}', style: textTheme.caption),
           Spacer(),
           Text(statusString,
-              style: game.isFinished
+              style: game.isFinished || game.isArchived
                   ? textTheme.caption
                   : textTheme.subtitle2.copyWith(fontSize: textTheme.caption.fontSize)),
         ],
       ),
     ));
     return Card(
+      color: game.isArchived ? Colors.grey[50] : Colors.white,
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),

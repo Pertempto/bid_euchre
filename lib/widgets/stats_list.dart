@@ -53,7 +53,8 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       if (!showInfrequent) {
         ids = ids.where((id) {
-          bool hasEnoughGames = (data.statsDb.getStat(id, StatType.numGames) as IntStatItem).value >= StatsDb.MIN_GAMES;
+          bool hasEnoughGames =
+              (data.statsDb.getStat(id, StatType.numGames, false) as IntStatItem).value >= StatsDb.MIN_GAMES;
           return hasEnoughGames;
         }).toList();
       }
@@ -69,9 +70,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       ids.sort((a, b) {
         int statCmp = data.statsDb
-            .getStat(a, displayStatType)
+            .getStat(a, displayStatType, false)
             .sortValue
-            .compareTo(data.statsDb.getStat(b, displayStatType).sortValue);
+            .compareTo(data.statsDb.getStat(b, displayStatType, false).sortValue);
         if (statCmp != 0) {
           return statCmp;
         }
@@ -131,7 +132,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       int playerNum = 0;
       double lastSortValue;
       for (String id in ids) {
-        StatItem statItem = data.statsDb.getStat(id, displayStatType);
+        StatItem statItem = data.statsDb.getStat(id, displayStatType, false);
         playerNum++;
         if (statItem.sortValue != lastSortValue) {
           placeNum = playerNum;
@@ -149,7 +150,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
               trendIcon = Icon(Icons.trending_down, color: Colors.red);
             }
           }
-          Color color = data.statsDb.getEntityColor(id);
+          Color color = data.statsDb.getColor(id);
           children.add(GestureDetector(
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 4, 16, 4),

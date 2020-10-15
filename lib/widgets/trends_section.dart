@@ -39,14 +39,14 @@ class _TrendsSectionState extends State<TrendsSection>
     super.build(context);
     id = widget.id;
     data = DataStore.currentData;
-    List<Game> games = data.statsDb.getEntityGames(id);
+    List<Game> games = data.statsDb.getGames(id, DataStore.displayArchivedStats);
     if (games.length < StatsDb.MIN_GAMES) {
       return Container();
     }
     int numGames = min(games.length, 20);
     TextTheme textTheme = Theme.of(context).textTheme;
     List<Widget> children = [];
-    Color color = data.statsDb.getEntityColor(id);
+    Color color = data.statsDb.getColor(id);
     children.add(ListTile(
       title: Text('Recent Trends', style: textTheme.headline6),
       dense: true,
@@ -65,7 +65,6 @@ class _TrendsSectionState extends State<TrendsSection>
       ),
     ));
     children.add(Container(
-//        padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         children: [
           Container(
@@ -79,11 +78,13 @@ class _TrendsSectionState extends State<TrendsSection>
                   return LineChartBarData(
                     show: stat == displayStat,
                     spots: List.generate(numGames, (index) {
-                      double rating = data.statsDb.getRatingAfterGame(id, games[index].gameId);
+                      double rating;
                       if (stat == StatType.overallRating) {
-                        rating = data.statsDb.getRatingAfterGame(id, games[index].gameId);
+                        rating = data.statsDb.getRatingAfterGame(id, games[index].gameId,
+                            includeArchived: DataStore.displayArchivedStats);
                       } else if (stat == StatType.bidderRating) {
-                        rating = data.statsDb.getBidderRatingAfterGame(id, games[index].gameId);
+                        rating = data.statsDb.getBidderRatingAfterGame(id, games[index].gameId,
+                            includeArchived: DataStore.displayArchivedStats);
                       }
                       rating = (rating * 10).round() / 10.0;
                       return FlSpot((numGames - index).toDouble(), rating);

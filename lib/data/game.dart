@@ -1,5 +1,4 @@
-import 'dart:math';
-
+import 'package:bideuchre/data/entity_raw_game_stats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -138,55 +137,30 @@ class Game {
     return _rounds.where((r) => !r.isPlayerSwitch && r.isFinished).length;
   }
 
-  Map get rawStatsMap {
-    Map<String, Map> gameStatsMap = {};
+  Map<String, EntityRawGameStats> get rawStatsMap {
+    Map<String, EntityRawGameStats> gameStatsMap = {};
     Set<String> ids = allPlayerIds.toSet();
     ids.addAll(teamIds);
     for (String id in ids) {
-      gameStatsMap.putIfAbsent(
-        id,
-            () =>
-        {
-          'numRounds': 0,
-          'numBids': 0,
-          'pointsOnBids': 0,
-          'pointsDiffOnBids': 0,
-          'numGames': 0,
-          'madeBids': 0,
-          'biddingTotal': 0,
-          'numPoints': 0,
-          'lastPlayed': 0,
-          'noPartner': 0,
-          'madeNoPartner': 0,
-          'scoreDiff': 0,
-        },
-      );
+      gameStatsMap.putIfAbsent(id, () => EntityRawGameStats(id));
     }
-    List<int> score = currentScore;
-    int scoreDiff = (score[0] - score[1]).abs();
-    for (String teamId in teamIds) {
+    for (int i = 0; i < 2; i++) {
+      String teamId = teamIds[i];
+      gameStatsMap[teamId].isArchived = isArchived;
       if (isFinished) {
-        gameStatsMap[teamId]['numGames']++;
-        if (teamIds[winningTeamIndex] == teamId) {
-          gameStatsMap[teamId]['scoreDiff'] = scoreDiff;
-        } else {
-          gameStatsMap[teamId]['scoreDiff'] = -scoreDiff;
-        }
+        gameStatsMap[teamId].isFinished = true;
+        gameStatsMap[teamId].won = winningTeamIndex == i;
       }
-      gameStatsMap[teamId]['lastPlayed'] = max(gameStatsMap[teamId]['lastPlayed'] as int, timestamp);
+      gameStatsMap[teamId].timestamp = timestamp;
     }
+    Set<String> winningPlayerIds = allTeamsPlayerIds[winningTeamIndex];
     for (String playerId in allPlayerIds) {
+      gameStatsMap[playerId].isArchived = isArchived;
       if (isFinished) {
-        gameStatsMap[playerId]['numGames']++;
-        if (fullGamePlayerIds.contains(playerId)) {
-          if (allTeamsPlayerIds[winningTeamIndex].contains(playerId)) {
-            gameStatsMap[playerId]['scoreDiff'] = scoreDiff;
-          } else {
-            gameStatsMap[playerId]['scoreDiff'] = -scoreDiff;
-          }
-        }
+        gameStatsMap[playerId].isFinished = true;
+        gameStatsMap[playerId].won = winningPlayerIds.contains(playerId);
       }
-      gameStatsMap[playerId]['lastPlayed'] = max(gameStatsMap[playerId]['lastPlayed'] as int, timestamp);
+      gameStatsMap[playerId].timestamp = timestamp;
     }
     for (Round round in rounds) {
       for (int i = 0; i < 2; i++) {
@@ -195,23 +169,16 @@ class Game {
           continue;
         }
         if (!round.isPlayerSwitch && round.isFinished) {
-          gameStatsMap[teamId]['numRounds']++;
-          gameStatsMap[teamId]['numPoints'] += round.score[i];
+          gameStatsMap[teamId].numRounds++;
+          gameStatsMap[teamId].numPoints += round.score[i];
           if (round.bidderIndex % 2 == i) {
-            gameStatsMap[teamId]['numBids']++;
+            gameStatsMap[teamId].numBids++;
             if (round.madeBid) {
-              gameStatsMap[teamId]['madeBids']++;
+              gameStatsMap[teamId].madeBids++;
             }
-            gameStatsMap[teamId]['biddingTotal'] += round.bid;
-            gameStatsMap[teamId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
-            gameStatsMap[teamId]['pointsDiffOnBids'] +=
+            gameStatsMap[teamId].biddingTotal += round.bid;
+            gameStatsMap[teamId].gainedOnBids +=
                 round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
-            if (round.bid > 6) {
-              gameStatsMap[teamId]['noPartner']++;
-              if (round.madeBid) {
-                gameStatsMap[teamId]['madeNoPartner']++;
-              }
-            }
           }
         }
       }
@@ -219,24 +186,17 @@ class Game {
       if (!round.isPlayerSwitch && round.isFinished) {
         for (int i = 0; i < 4; i++) {
           String playerId = rPlayerIds[i];
-          gameStatsMap[playerId]['numRounds']++;
-          gameStatsMap[playerId]['numPoints'] += round.score[i % 2];
+          gameStatsMap[playerId].numRounds++;
+          gameStatsMap[playerId].numPoints += round.score[i % 2];
         }
         String bidderId = rPlayerIds[round.bidderIndex];
-        gameStatsMap[bidderId]['numBids']++;
+        gameStatsMap[bidderId].numBids++;
         if (round.madeBid) {
-          gameStatsMap[bidderId]['madeBids']++;
+          gameStatsMap[bidderId].madeBids++;
         }
-        gameStatsMap[bidderId]['biddingTotal'] += round.bid;
-        gameStatsMap[bidderId]['pointsOnBids'] += round.score[round.bidderIndex % 2];
-        gameStatsMap[bidderId]['pointsDiffOnBids'] +=
+        gameStatsMap[bidderId].biddingTotal += round.bid;
+        gameStatsMap[bidderId].gainedOnBids +=
             round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
-        if (round.bid > 6) {
-          gameStatsMap[bidderId]['noPartner']++;
-          if (round.madeBid) {
-            gameStatsMap[bidderId]['madeNoPartner']++;
-          }
-        }
       }
     }
     return gameStatsMap;

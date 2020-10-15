@@ -52,7 +52,8 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
   Widget opponentsSection() {
     Map<String, List<int>> playerRecordsAgainst = {};
     Map<String, List<int>> teamRecordsAgainst = {};
-    for (Game game in data.allGames.where((g) => (g.isFinished && !g.isArchived && g.teamIds.contains(teamId)))) {
+    for (Game game in data.allGames.where(
+        (g) => (g.isFinished && (DataStore.displayArchivedStats || !g.isArchived) && g.teamIds.contains(teamId)))) {
       int winningTeam = game.winningTeamIndex;
       List<Set<String>> teamsPlayerIds = game.allTeamsPlayerIds;
       for (int teamIndex = 0; teamIndex < 2; teamIndex++) {
@@ -156,7 +157,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (oPlayer != null) {
         List<int> record = playerRecordsAgainst[oPlayerId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getEntityColor(oPlayerId);
+        Color color = data.statsDb.getColor(oPlayerId);
         playersScrollChildren.add(
           Card(
             child: InkWell(
@@ -196,7 +197,7 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
       if (teamName != null) {
         List<int> record = teamRecordsAgainst[oTeamId];
         String recordString = '${record[0]}-${record[1]}';
-        Color color = data.statsDb.getEntityColor(oTeamId);
+        Color color = data.statsDb.getColor(oTeamId);
         teamsScrollChildren.add(
           Card(
             child: InkWell(
@@ -247,8 +248,8 @@ class _TeamOverviewState extends State<TeamOverview> with AutomaticKeepAliveClie
     for (String playerId in playerIds) {
       Player player = data.players[playerId];
       if (player != null) {
-        StatItem record = data.statsDb.getStat(playerId, StatType.record);
-        Color color = data.statsDb.getEntityColor(playerId);
+        StatItem record = data.statsDb.getStat(playerId, StatType.record, DataStore.displayArchivedStats);
+        Color color = data.statsDb.getColor(playerId);
         horizontalScrollChildren.add(
           Card(
             child: InkWell(

@@ -227,11 +227,11 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
       if (id == null) {
         continue;
       }
-      if (id.contains(' ')) {
-        splits.add(data.statsDb.getTeamBiddingSplits(id, numRecent: numRecentBids));
-      } else {
-        splits.add(data.statsDb.getPlayerBiddingSplits(id, numRecent: numRecentBids));
-      }
+      splits.add(data.statsDb.getBiddingSplits(
+        id,
+        numRecent: numRecentBids,
+        includeArchived: DataStore.displayArchivedStats,
+      ));
       for (int bid in Round.ALL_BIDS) {
         totalMade[i] += splits[i][bid].made;
         totalBids[i] += splits[i][bid].count;

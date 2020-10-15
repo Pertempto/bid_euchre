@@ -85,7 +85,7 @@ class _NewGameState extends State<NewGame> {
         for (List<String> playerIds in teamCombos) {
           String team1Id = Util.teamId([playerIds[0], playerIds[2]]);
           String team2Id = Util.teamId([playerIds[1], playerIds[3]]);
-          List<Color> teamColors = [data.statsDb.getEntityColor(team1Id), data.statsDb.getEntityColor(team2Id)];
+          List<Color> teamColors = [data.statsDb.getColor(team1Id), data.statsDb.getColor(team2Id)];
           List<double> winProbs = data.statsDb.calculateWinChances(playerIds, [0, 0], gameOverScore);
           comboWidgets.add(InkWell(
             onTap: () {
@@ -186,8 +186,8 @@ class _NewGameState extends State<NewGame> {
     List<List<String>> combos = [];
     List<String> sortedPlayerIds = initialPlayerIds.toList();
     sortedPlayerIds.sort((a, b) {
-      double sa = data.statsDb.getStat(a, StatType.overallRating).sortValue;
-      double sb = data.statsDb.getStat(b, StatType.overallRating).sortValue;
+      double sa = data.statsDb.getStat(a, StatType.overallRating, DataStore.displayArchivedStats).sortValue;
+      double sb = data.statsDb.getStat(b, StatType.overallRating, DataStore.displayArchivedStats).sortValue;
       return sa.compareTo(sb);
     });
     Map<String, double> diffMap = {};
@@ -237,7 +237,7 @@ class _NewGameState extends State<NewGame> {
     for (int i = 0; i < 2; i++) {
       if (initialPlayerIds[i] != null && initialPlayerIds[i + 2] != null) {
         String teamId = Util.teamId([initialPlayerIds[i], initialPlayerIds[i + 2]]);
-        Color teamColor = data.statsDb.getEntityColor(teamId);
+        Color teamColor = data.statsDb.getColor(teamId);
         teamColors[i] = teamColor;
       }
     }

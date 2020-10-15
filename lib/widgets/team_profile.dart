@@ -39,6 +39,15 @@ class _TeamProfileState extends State<TeamProfile> {
           ),
           actions: <Widget>[
             IconButton(
+              tooltip: 'Toggle archived games',
+              icon: DataStore.displayArchivedStats ? Icon(MdiIcons.archive) : Icon(MdiIcons.archiveOutline),
+              onPressed: () {
+                setState(() {
+                  DataStore.displayArchivedStats = !DataStore.displayArchivedStats;
+                });
+              },
+            ),
+            IconButton(
               icon: Icon(MdiIcons.compareHorizontal),
               onPressed: () {
                 compareTeam(context);

@@ -36,7 +36,7 @@ class _GamesSectionState extends State<GamesSection>
     super.build(context);
     id = widget.id;
     data = DataStore.currentData;
-    List<Game> games = data.statsDb.getEntityGames(id);
+    List<Game> games = data.statsDb.getGames(id, true);
     if (games.isEmpty) {
       return Container();
     }
@@ -100,9 +100,10 @@ class _GamesSectionState extends State<GamesSection>
           DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
           String dateString = intl.DateFormat.yMd().format(date);
           String timeString = intl.DateFormat.jm().format(date);
-          StatItem bidderRating = BidderRatingStatItem.fromGamesStats([game.rawStatsMap[id]], isTeam);
+          StatItem bidderRating = BidderRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
           String ratingString = 'Bidding: ${bidderRating.toString()}';
           return Card(
+            color: game.isArchived ? Colors.grey[50] : Colors.white,
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
               child: Container(
@@ -116,7 +117,7 @@ class _GamesSectionState extends State<GamesSection>
                     Row(children: scoreChildren),
                     Text(ratingString, style: textTheme.bodyText2),
                     Text(dateString, style: textTheme.caption),
-                    Text(timeString, style: textTheme.caption),
+                    Text(game.isArchived ? 'Archived' : timeString, style: textTheme.caption),
                   ],
                 ),
               ),

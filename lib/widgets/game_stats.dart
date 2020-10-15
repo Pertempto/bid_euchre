@@ -78,7 +78,7 @@ class _GameStatsState extends State<GameStats> {
   Widget teamBidsSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<BiddingRecordStatItem> teamBidding =
-    game.teamIds.map((teamId) => BiddingRecordStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
+        game.teamIds.map((teamId) => BiddingRecordStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
     List<Widget> children = [];
     children.add(Column(
       children: <Widget>[
@@ -116,16 +116,16 @@ class _GameStatsState extends State<GameStats> {
 
   Widget teamPPBSection() {
     Map rawStatsMap = game.rawStatsMap;
-    List<PointsPerBidStatItem> teamPPB =
-    game.teamIds.map((teamId) => PointsPerBidStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
-    return statBarsSection('Points Per Bid', teamPPB[0].toString(), teamPPB[1].toString(),
-        List.generate(2, (i) => max(0, min(1, teamPPB[i].average / 6))));
+    List<GainedPerBidStatItem> teamGainedPerBids =
+    game.teamIds.map((teamId) => GainedPerBidStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
+    return statBarsSection('Gained Per Bid', teamGainedPerBids[0].toString(), teamGainedPerBids[1].toString(),
+        List.generate(2, (i) => max(0, min(1, teamGainedPerBids[i].average / 6))));
   }
 
   Widget teamBidderRatingsSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<BidderRatingStatItem> teamBidderRatings =
-    game.teamIds.map((teamId) => BidderRatingStatItem.fromGamesStats([rawStatsMap[teamId]], true)).toList();
+    game.teamIds.map((teamId) => BidderRatingStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
     return statBarsSection('Bidder Rating', teamBidderRatings[0].toString(), teamBidderRatings[1].toString(),
         List.generate(2, (i) => max(0, min(1, teamBidderRatings[i].rating / 100))));
   }
@@ -140,8 +140,8 @@ class _GameStatsState extends State<GameStats> {
     List<String> playerIds = game.allPlayerIds.toList();
     Map rawStatsMap = game.rawStatsMap;
     for (String playerId in playerIds) {
-      playerBiddingDiffs[playerId] = PointsDiffPerBidStatItem
-          .fromGamesStats([rawStatsMap[playerId]], false)
+      playerBiddingDiffs[playerId] = GainedPerBidStatItem
+          .fromRawStats([rawStatsMap[playerId]], false)
           .sum;
     }
     playerIds.sort((a, b) {

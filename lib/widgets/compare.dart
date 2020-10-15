@@ -25,13 +25,12 @@ class _CompareState extends State<Compare> {
     StatType.overallRating,
     StatType.record,
     StatType.numGames,
-    StatType.streak,
     StatType.bidderRating,
     StatType.numBids,
     StatType.madeBidPercentage,
     StatType.biddingFrequency,
     StatType.averageBid,
-    StatType.pointsPerBid,
+    StatType.gainedPerBid,
   ];
   TextTheme textTheme;
   bool teams = false;
@@ -56,9 +55,8 @@ class _CompareState extends State<Compare> {
       ];
       colors = [];
       for (int i = 0; i < 2; i++) {
-        colors.add(data.statsDb.getEntityColor(Util.teamId([players[i].playerId, players[i + 2].playerId])));
+        colors.add(data.statsDb.getColor(Util.teamId([players[i].playerId, players[i + 2].playerId])));
       }
-      splits = [data.statsDb.getTeamBiddingSplits(widget.id1), data.statsDb.getTeamBiddingSplits(widget.id2)];
     } else {
       players = [
         data.players[widget.id1],
@@ -66,10 +64,13 @@ class _CompareState extends State<Compare> {
       ];
       colors = [];
       for (int i = 0; i < 2; i++) {
-        colors.add(data.statsDb.getEntityColor(players[i].playerId));
+        colors.add(data.statsDb.getColor(players[i].playerId));
       }
-      splits = [data.statsDb.getPlayerBiddingSplits(widget.id1), data.statsDb.getPlayerBiddingSplits(widget.id2)];
     }
+    splits = [
+      data.statsDb.getBiddingSplits(widget.id1, includeArchived: DataStore.displayArchivedStats),
+      data.statsDb.getBiddingSplits(widget.id2, includeArchived: DataStore.displayArchivedStats)
+    ];
     Widget playerTitle(int index) {
       return GestureDetector(
         child: Text(players[index].shortName, style: textTheme.headline5.copyWith(color: colors[index % 2])),
@@ -120,8 +121,8 @@ class _CompareState extends State<Compare> {
       child: Text('General Stats', style: textTheme.headline6),
     ));
     for (StatType stat in COMPARE_STATS) {
-      StatItem stat1 = data.statsDb.getStat(widget.id1, stat);
-      StatItem stat2 = data.statsDb.getStat(widget.id2, stat);
+      StatItem stat1 = data.statsDb.getStat(widget.id1, stat, DataStore.displayArchivedStats);
+      StatItem stat2 = data.statsDb.getStat(widget.id2, stat, DataStore.displayArchivedStats);
       List<Color> colors = [Colors.blue, Colors.blue];
       if (stat1.sortValue < stat2.sortValue) {
         colors = [Colors.green, Colors.red];

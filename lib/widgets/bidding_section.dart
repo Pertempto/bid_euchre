@@ -43,14 +43,16 @@ class _BiddingSectionState extends State<BiddingSection>
           children: <Widget>[
             Expanded(child: Text('Made %', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.madeBidPercentage).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
+              child: Text(
+                  data.statsDb.getStat(id, StatType.madeBidPercentage, DataStore.displayArchivedStats).toString(),
+                  style: statStyle,
+                  textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Made-Set', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.biddingRecord).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.biddingRecord, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
@@ -63,14 +65,15 @@ class _BiddingSectionState extends State<BiddingSection>
           children: <Widget>[
             Expanded(child: Text('Bids', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numBids).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.numBids, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Bidding Freq.', style: titleStyle), flex: 5),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.biddingFrequency).toString(),
+              child: Text(
+                  data.statsDb.getStat(id, StatType.biddingFrequency, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 3,
             ),
@@ -83,31 +86,17 @@ class _BiddingSectionState extends State<BiddingSection>
           children: <Widget>[
             Expanded(child: Text('Average Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.averageBid).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.averageBid, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Points Per Bid', style: titleStyle), flex: 6),
+            Expanded(child: Text('Gained Per Bid', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.pointsPerBid).toString(),
+              child: Text(data.statsDb.getStat(id, StatType.gainedPerBid, DataStore.displayArchivedStats).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(child: Text('Diff Per Bid', style: titleStyle), flex: 6),
-            Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.pointsDiffPerBid).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
-              flex: 2,
-            ),
-            Expanded(child: Container(), flex: 9),
           ],
         ),
       ),

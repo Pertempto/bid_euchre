@@ -26,6 +26,7 @@ class DataStore {
   static Auth auth;
   static String currentUserId;
   static Data currentData = Data.empty();
+  static bool displayArchivedStats = false;
 
   static Map combineSnapshots(List values) {
     return {
