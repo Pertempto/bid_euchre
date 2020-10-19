@@ -102,7 +102,7 @@ abstract class StatItem {
       case StatType.averageBid:
         return 'Average Bid';
       case StatType.gainedPerBid:
-        return 'Points Diff Per Bid';
+        return 'Gained Per Bid';
       case StatType.lastPlayed:
         return 'Last Played';
       case StatType.bidderRating:
