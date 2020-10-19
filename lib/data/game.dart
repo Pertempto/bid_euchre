@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bideuchre/data/entity_raw_game_stats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -130,7 +132,7 @@ class Game {
     if (score[0] == score[1]) {
       return false;
     }
-    return score[winningTeamIndex] >= gameOverScore;
+    return max(score[0], score[1]) >= gameOverScore;
   }
 
   int get numRounds {
@@ -151,15 +153,18 @@ class Game {
         gameStatsMap[teamId].isFinished = true;
         gameStatsMap[teamId].won = winningTeamIndex == i;
       }
+      gameStatsMap[teamId].isFullGame = true;
       gameStatsMap[teamId].timestamp = timestamp;
     }
-    Set<String> winningPlayerIds = allTeamsPlayerIds[winningTeamIndex];
+    Set<String> winningPlayerIds = winningTeamIndex == null ? {} : allTeamsPlayerIds[winningTeamIndex];
+    Set<String> fullGamers = fullGamePlayerIds;
     for (String playerId in allPlayerIds) {
       gameStatsMap[playerId].isArchived = isArchived;
       if (isFinished) {
         gameStatsMap[playerId].isFinished = true;
         gameStatsMap[playerId].won = winningPlayerIds.contains(playerId);
       }
+      gameStatsMap[playerId].isFullGame = fullGamers.contains(playerId);
       gameStatsMap[playerId].timestamp = timestamp;
     }
     for (Round round in rounds) {
@@ -214,26 +219,12 @@ class Game {
   List<String> get teamIds {
     List<Set<String>> teamsPlayerIds = allTeamsPlayerIds;
     return [Util.teamId(teamsPlayerIds[0].toList()), Util.teamId(teamsPlayerIds[1].toList())];
-    // List<String> teamIds = [null, null];
-    // Set<String> fullGamers = fullGamePlayerIds;
-    // for (int i = 0; i < 2; i++) {
-    //   List<String> initialIds = [initialPlayerIds[i], initialPlayerIds[i + 2]];
-    //   if (initialIds
-    //       .toSet()
-    //       .intersection(fullGamers)
-    //       .length == 2) {
-    //     teamIds[i] = Util.teamId(initialIds);
-    //   }
-    // }
-    // return teamIds;
   }
 
   int get winningTeamIndex {
-    List<int> score = currentScore;
-    if (score[0] > score[1]) {
-      return 0;
-    } else if (score[1] > score[0]) {
-      return 1;
+    if (isFinished) {
+      List<int> score = currentScore;
+      return score.indexOf(max(score[0], score[1]));
     }
     return null;
   }
@@ -346,15 +337,15 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Game &&
-              runtimeType == other.runtimeType &&
-              gameId == other.gameId &&
-              userId == other.userId &&
-              gameOverScore == other.gameOverScore &&
-              initialPlayerIds == other.initialPlayerIds &&
-              _rounds == other._rounds &&
-              teamColors == other.teamColors &&
-              timestamp == other.timestamp;
+      other is Game &&
+          runtimeType == other.runtimeType &&
+          gameId == other.gameId &&
+          userId == other.userId &&
+          gameOverScore == other.gameOverScore &&
+          initialPlayerIds == other.initialPlayerIds &&
+          _rounds == other._rounds &&
+          teamColors == other.teamColors &&
+          timestamp == other.timestamp;
 
   @override
   int get hashCode =>

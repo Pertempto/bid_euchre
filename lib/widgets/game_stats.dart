@@ -119,7 +119,7 @@ class _GameStatsState extends State<GameStats> {
     List<GainedPerBidStatItem> teamGainedPerBids =
     game.teamIds.map((teamId) => GainedPerBidStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
     return statBarsSection('Gained Per Bid', teamGainedPerBids[0].toString(), teamGainedPerBids[1].toString(),
-        List.generate(2, (i) => max(0, min(1, teamGainedPerBids[i].average / 6))));
+        List.generate(2, (i) => max(0, min(1, teamGainedPerBids[i].average / 4))));
   }
 
   Widget teamBidderRatingsSection() {
@@ -202,8 +202,11 @@ class _GameStatsState extends State<GameStats> {
     ));
     List<Widget> bars = [];
     for (int i = 0; i < 2; i++) {
+      if (barPercents[i].isNaN) {
+        print(title);
+      }
       bars.add(LinearPercentIndicator(
-        percent: barPercents[i],
+        percent: barPercents[i].isNaN ? 0 : barPercents[i],
         progressColor: game.teamColors[i],
         lineHeight: 12,
         linearStrokeCap: LinearStrokeCap.butt,

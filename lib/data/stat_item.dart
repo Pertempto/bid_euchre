@@ -284,7 +284,8 @@ class WinLossRecordStatItem extends RecordStatItem {
   }
 
   static Record calculateRecord(List<EntityRawGameStats> rawStats) {
-    List<bool> recentDiffs = rawStats.map((gameStats) => gameStats.won).toList().cast<bool>();
+    List<bool> recentDiffs =
+        rawStats.where((gameStats) => gameStats.isFullGame).map((gameStats) => gameStats.won).toList().cast<bool>();
     int wins = recentDiffs.where((won) => won).length;
     int losses = recentDiffs.where((won) => !won).length;
     return Record(wins, losses);

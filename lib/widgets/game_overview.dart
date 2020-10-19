@@ -187,15 +187,15 @@ class _GameOverviewState extends State<GameOverview>
     } else {
       Color iconColor = Colors.blueGrey;
       if (game.isFinished && gameIsLocked) {
-        int teamIndex = game.winningTeamIndex;
-        String winningTeamName = game.getTeamName(teamIndex, data);
+        int winningTeamIndex = game.winningTeamIndex;
+        String winningTeamName = game.getTeamName(winningTeamIndex, data);
         rows.add(Padding(
           padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
           child: Column(
             children: <Widget>[
               Text(
                 '$winningTeamName won!!',
-                style: textTheme.headline5.copyWith(color: game.teamColors[teamIndex]),
+                style: textTheme.headline5.copyWith(color: game.teamColors[winningTeamIndex]),
               ),
               Stack(
                 children: <Widget>[

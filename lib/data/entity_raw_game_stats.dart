@@ -2,6 +2,7 @@ class EntityRawGameStats {
   String entityId;
   bool isFinished;
   bool isArchived;
+  bool isFullGame;
   bool won;
   int timestamp;
   int numRounds;
