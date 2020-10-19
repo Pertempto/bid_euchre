@@ -166,7 +166,7 @@ class Data {
         // if (true) {
         //   int correct = 0;
         //   int total = 0;
-        //   for (Game g in games.where((g) => g.isFinished)) {
+        //   for (Game g in games.where((g) => g.isFinished && !g.isArchived)) {
         //     total++;
         //     if (_statsDb.calculateWinChances(g.initialPlayerIds, [0, 0], 42,
         //             beforeGameId: g.gameId)[g.winningTeamIndex] >=

@@ -8,7 +8,6 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../data/data_store.dart';
 import '../data/game.dart';
-import '../util.dart';
 import 'game_overview.dart';
 
 class GameStats extends StatefulWidget {
@@ -32,30 +31,10 @@ class _GameStatsState extends State<GameStats> {
     textTheme = Theme.of(context).textTheme;
     List<Widget> children = [
       gameHeader(game, data, textTheme, context),
-      winningChancesSection(),
       statsSection(),
       SizedBox(height: 64),
     ];
     return SingleChildScrollView(
-      child: Column(children: children),
-    );
-  }
-
-  Widget winningChancesSection() {
-    List<double> winProbs =
-        data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore, beforeGameId: game.gameId);
-    if (!game.isFinished) {
-      winProbs = data.statsDb.calculateWinChances(game.initialPlayerIds, [0, 0], game.gameOverScore);
-    }
-    List<Widget> children = [
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-        child: Text('Pre-Game Winning Chances', style: textTheme.subtitle2),
-      ),
-      Util.winProbsBar(winProbs, game.teamColors, context),
-    ];
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Column(children: children),
     );
   }
