@@ -636,6 +636,7 @@ class _GameOverviewState extends State<GameOverview>
                               setState(() {
                                 Navigator.of(context).pop();
                                 game.addBid(selectedDealerIndex, selectedBidderIndex, selectedBid);
+                                game.updateFirestore();
                               });
                             },
                           ),

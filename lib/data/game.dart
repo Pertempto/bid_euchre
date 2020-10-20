@@ -12,6 +12,8 @@ import 'round.dart';
 import 'user.dart';
 
 class Game {
+  static const int ARCHIVE_AGE = 90;
+
   String gameId;
   String userId;
   int gameOverScore;
@@ -124,7 +126,7 @@ class Game {
 
   bool get isArchived {
     DateTime gameDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return DateTime.now().subtract(Duration(days: 90)).isAfter(gameDateTime);
+    return DateTime.now().subtract(Duration(days: ARCHIVE_AGE)).isAfter(gameDateTime);
   }
 
   bool get isFinished {
@@ -337,15 +339,15 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Game &&
-          runtimeType == other.runtimeType &&
-          gameId == other.gameId &&
-          userId == other.userId &&
-          gameOverScore == other.gameOverScore &&
-          initialPlayerIds == other.initialPlayerIds &&
-          _rounds == other._rounds &&
-          teamColors == other.teamColors &&
-          timestamp == other.timestamp;
+          other is Game &&
+              runtimeType == other.runtimeType &&
+              gameId == other.gameId &&
+              userId == other.userId &&
+              gameOverScore == other.gameOverScore &&
+              initialPlayerIds == other.initialPlayerIds &&
+              _rounds == other._rounds &&
+              teamColors == other.teamColors &&
+              timestamp == other.timestamp;
 
   @override
   int get hashCode =>

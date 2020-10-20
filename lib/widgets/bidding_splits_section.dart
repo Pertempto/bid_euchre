@@ -79,7 +79,13 @@ class _BiddingSplitsSectionState extends State<BiddingSplitsSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: CupertinoSlidingSegmentedControl(
           groupValue: numRecentBids,
-          children: Map.fromIterable([10, 20, 50, 0], value: (n) => Text(n == 0 ? 'All Time' : 'Last $n')),
+          children: Map.fromIterable([10, 20, 50, 0], value: (n) {
+            if (n == 0) {
+              return Text(DataStore.displayArchivedStats ? 'All Time' : 'Unarchived');
+            } else {
+              return Text('Last $n');
+            }
+          }),
           onValueChanged: (value) {
             setState(() {
               numRecentBids = value;
