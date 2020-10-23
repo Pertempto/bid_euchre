@@ -131,13 +131,13 @@ void main() {
     expect(game.rounds.length, 0);
   });
 
-  test('Undo new round deletes round', () {
+  test('Undo new round does nothing', () {
     final game = randomEmptyGame();
 
     game.newRound(randomPlayerIndex());
     game.undoLastAction();
 
-    expect(game.rounds.length, 0);
+    expect(game.rounds.length, 1);
   });
 
   test('Undo bid deletes bidder index', () {

@@ -8,7 +8,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../data/data_store.dart';
 import '../data/game.dart';
-import 'game_overview.dart';
+import 'game_rounds.dart';
 
 class GameStats extends StatefulWidget {
   final Game game;
@@ -96,7 +96,7 @@ class _GameStatsState extends State<GameStats> {
   Widget teamPPBSection() {
     Map rawStatsMap = game.rawStatsMap;
     List<GainedPerBidStatItem> teamGainedPerBids =
-    game.teamIds.map((teamId) => GainedPerBidStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
+        game.teamIds.map((teamId) => GainedPerBidStatItem.fromRawStats([rawStatsMap[teamId]], true)).toList();
     return statBarsSection('Gained Per Bid', teamGainedPerBids[0].toString(), teamGainedPerBids[1].toString(),
         List.generate(2, (i) => max(0, min(1, teamGainedPerBids[i].average / 4))));
   }

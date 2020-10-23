@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../util.dart';
-import 'game_overview.dart';
+import 'game_rounds.dart';
 
 class GamesSection extends StatefulWidget {
   final String id;
@@ -128,7 +128,7 @@ class _GamesSectionState extends State<GamesSection>
                     context: context,
                     backgroundColor: Colors.transparent,
                     builder: (context) {
-                      return GameOverview(game, isSummary: true);
+                      return GameRounds(game, isSummary: true);
                     },
                   );
                 } else {

@@ -313,22 +313,33 @@ class Game {
   }
 
   undoLastAction() {
-    if (_rounds.isNotEmpty) {
-      Round lastRound = _rounds.last;
-      if (lastRound.isPlayerSwitch) {
-        // delete round
-        _rounds.removeLast();
-      } else if (lastRound.bid == null) {
-        // delete round
-        _rounds.removeLast();
-      } else if (lastRound.wonTricks == null) {
-        // delete bid
-        lastRound.bidderIndex = null;
-        lastRound.bid = null;
+    if (_rounds.isEmpty) {
+      return;
+    }
+    Round lastRound = _rounds.last;
+
+    if (lastRound.isPlayerSwitch) {
+      // delete round
+      _rounds.remove(lastRound);
+    } else if (lastRound.bidderIndex == null) {
+      // if this round is only a placeholder dealer, and the round before that was a player switch
+      if (_rounds.length > 1 && _rounds[_rounds.length - 2].isPlayerSwitch) {
+        // delete player switch
+        _rounds.remove(_rounds[_rounds.length - 2]);
+        return;
       } else {
-        // delete result
-        lastRound.wonTricks = null;
+        // delete round
+        _rounds.remove(lastRound);
+        // delete thing before it
+        undoLastAction();
       }
+    } else if (lastRound.wonTricks == null) {
+      // delete bid
+      lastRound.bidderIndex = null;
+      lastRound.bid = null;
+    } else {
+      // delete result
+      lastRound.wonTricks = null;
     }
   }
 

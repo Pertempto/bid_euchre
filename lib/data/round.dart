@@ -103,6 +103,16 @@ class Round {
     return score;
   }
 
+  static String bidString(int bid) {
+    if (bid == 24) {
+      return "Alone";
+    } else if (bid == 12) {
+      return "Slide";
+    } else {
+      return bid.toString();
+    }
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

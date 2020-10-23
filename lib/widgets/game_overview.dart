@@ -1,14 +1,20 @@
+import 'dart:math';
+
 import 'package:bideuchre/data/data_store.dart';
+import 'package:bideuchre/data/entity_raw_game_stats.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/round.dart';
+import 'package:bideuchre/data/stat_item.dart';
+import 'package:bideuchre/data/stat_type.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../util.dart';
-import 'game_detail.dart';
 import 'player_profile.dart';
 import 'team_profile.dart';
 
@@ -25,15 +31,36 @@ class GameOverview extends StatefulWidget {
 class _GameOverviewState extends State<GameOverview>
     with AutomaticKeepAliveClientMixin<GameOverview>, TickerProviderStateMixin {
   Game game;
-  bool isSummary;
   Data data;
 
   AnimationController confettiController;
   TextTheme textTheme;
   bool gameIsLocked = true;
+  String selectedId;
+  bool displayActions = true;
 
   @override
   bool get wantKeepAlive => true;
+
+  bool get isSelectedTeam => selectedId.contains(" ");
+
+  Color get selectedTeamColor {
+    int teamIndex;
+    if (isSelectedTeam) {
+      teamIndex = game.teamIds.indexOf(selectedId);
+    } else {
+      teamIndex = game.currentPlayerIds.indexOf(selectedId) % 2;
+    }
+    return game.teamColors[teamIndex];
+  }
+
+  String get selectedFullName {
+    if (isSelectedTeam) {
+      return Util.teamName(selectedId, data);
+    } else {
+      return data.allPlayers[selectedId].fullName;
+    }
+  }
 
   @override
   void initState() {
@@ -51,302 +78,33 @@ class _GameOverviewState extends State<GameOverview>
   Widget build(BuildContext context) {
     super.build(context);
     game = widget.game;
-    isSummary = widget.isSummary;
     data = DataStore.currentData;
     textTheme = Theme.of(context).textTheme;
 
-    List<Widget> rows = [SizedBox(height: 8)];
-    EdgeInsets rowPadding = EdgeInsets.fromLTRB(16, 0, 4, 0);
-    for (Round round in game.rounds) {
-      List<String> playerIds = game.getPlayerIdsAfterRound(round.roundIndex - 1);
-      List<int> score = game.getScoreAfterRound(round.roundIndex);
-      Widget scoreSection = Expanded(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(Util.scoreString(score[0]), style: textTheme.bodyText1.copyWith(color: game.teamColors[0])),
-            Padding(padding: EdgeInsets.fromLTRB(1, 0, 1, 0), child: Text('-', style: textTheme.bodyText1)),
-            Text(Util.scoreString(score[1]), style: textTheme.bodyText1.copyWith(color: game.teamColors[1])),
-          ],
-        ),
-        flex: 8,
-      );
-      if (round.isPlayerSwitch) {
-        String newPlayerName = data.allPlayers[round.newPlayerId].shortName;
-        String oldPlayerName = data.allPlayers[playerIds[round.switchingPlayerIndex]].shortName;
-        Color teamColor = game.teamColors[round.switchingPlayerIndex % 2];
-        rows.add(
-          Container(
-            width: double.infinity,
-            padding: rowPadding,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text('$newPlayerName replaced $oldPlayerName',
-                      style: textTheme.bodyText1
-                          .copyWith(color: teamColor, fontWeight: FontWeight.w400, fontStyle: FontStyle.italic)),
-                  flex: 24,
-                ),
-                scoreSection,
-              ],
-            ),
-          ),
-        );
+    if (selectedId != null) {
+      if (isSelectedTeam) {
+        if (!game.teamIds.contains(selectedId)) {
+          selectedId = null;
+        }
       } else {
-        String dealerName = '';
-        Color dealerTeamColor = Colors.transparent;
-        if (round.dealerIndex != null) {
-          dealerName = data.allPlayers[playerIds[round.dealerIndex]].shortName;
-          dealerTeamColor = game.teamColors[round.dealerIndex % 2];
-        }
-        String bidderName = '';
-        Color bidderTeamColor = Colors.transparent;
-        String bidString = '';
-        if (round.bid != null) {
-          bidderName = data.allPlayers[playerIds[round.bidderIndex]].shortName;
-          bidderTeamColor = game.teamColors[round.bidderIndex % 2];
-          bidString = round.bid.toString();
-        }
-        String madeString = '';
-        if (round.wonTricks == null) {
-          scoreSection = Expanded(child: Container(), flex: 8);
-        } else {
-          madeString = round.wonTricks.toString();
-        }
-        rows.add(
-          Container(
-            width: double.infinity,
-            padding: rowPadding,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: GestureDetector(
-                    child: Text(dealerName, style: textTheme.bodyText1.copyWith(color: dealerTeamColor)),
-                    onTap: dealerName == ''
-                        ? null
-                        : () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        PlayerProfile(data.allPlayers[playerIds[round.dealerIndex]])));
-                          },
-                  ),
-                  flex: 8,
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    child: Text(bidderName, style: textTheme.bodyText1.copyWith(color: bidderTeamColor)),
-                    onTap: bidderName == ''
-                        ? null
-                        : () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        PlayerProfile(data.allPlayers[playerIds[round.bidderIndex]])));
-                          },
-                  ),
-                  flex: 8,
-                ),
-                Expanded(
-                  child: Text(
-                    bidString,
-                    style: textTheme.bodyText1.copyWith(fontWeight: FontWeight.w400),
-                    textAlign: TextAlign.center,
-                  ),
-                  flex: 3,
-                ),
-                Expanded(
-                  child: Text(
-                    madeString,
-                    style: textTheme.bodyText1.copyWith(fontWeight: FontWeight.w400),
-                    textAlign: TextAlign.center,
-                  ),
-                  flex: 5,
-                ),
-                scoreSection,
-              ],
-            ),
-          ),
-        );
-      }
-      rows.add(Divider());
-    }
-
-    if (isSummary) {
-      rows.add(Padding(
-        padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
-        child: OutlineButton(
-          child: Text('Open Game'),
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => GameDetail(game)));
-          },
-        ),
-      ));
-    } else {
-      Color iconColor = Colors.blueGrey;
-      if (game.isFinished && gameIsLocked) {
-        int winningTeamIndex = game.winningTeamIndex;
-        String winningTeamName = game.getTeamName(winningTeamIndex, data);
-        rows.add(Padding(
-          padding: EdgeInsets.fromLTRB(8, 16, 8, 32),
-          child: Column(
-            children: <Widget>[
-              Text(
-                '$winningTeamName won!!',
-                style: textTheme.headline5.copyWith(color: game.teamColors[winningTeamIndex]),
-              ),
-              Stack(
-                children: <Widget>[
-                  Align(
-                    alignment: Alignment.center,
-                    child: OutlineButton(
-                      child: Text('Celebrate!'),
-                      onPressed: () {
-                        confettiController.reset();
-                        confettiController.forward();
-                      },
-                    ),
-                  ),
-                  if (game.userId == data.currentUser.userId)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        icon: Icon(MdiIcons.lockOpen),
-                        color: iconColor,
-                        onPressed: () {
-                          setState(() {
-                            gameIsLocked = false;
-                          });
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ));
-      } else {
-        if (game.userId == data.currentUser.userId) {
-          rows.add(Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.undo),
-                  color: iconColor,
-                  onPressed: onUndoClick,
-                ),
-                IconButton(
-                  icon: Icon(MdiIcons.accountSwitch),
-                  color: iconColor,
-                  onPressed: onSubstituteClick,
-                ),
-                IconButton(
-                  icon: Icon(Icons.add),
-                  color: iconColor,
-                  onPressed: onAddClick,
-                ),
-              ],
-            ),
-          ));
-          if (game.isFinished && !gameIsLocked) {
-            rows.add(Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-              child: Row(
-                children: <Widget>[
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.lock),
-                    color: iconColor,
-                    onPressed: () {
-                      setState(() {
-                        gameIsLocked = true;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ));
-          }
-          rows.add(SizedBox(height: 16));
-        } else {
-          rows.add(SizedBox(height: 32));
+        if (!game.currentPlayerIds.contains(selectedId)) {
+          selectedId = null;
         }
       }
     }
-    TextStyle headerStyle = textTheme.subtitle2;
     Widget body = Container(
       width: double.infinity,
       color: Colors.white,
       child: Column(
-        children: <Widget>[
-          Material(
-            elevation: 1,
-            color: Colors.white,
-            child: Column(
-              children: <Widget>[
-                gameHeader(game, data, textTheme, context),
-                Container(
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: Text(game.dateString, style: textTheme.caption),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(16, 4, 4, 4),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text('Dealer', style: headerStyle),
-                        flex: 8,
-                      ),
-                      Expanded(
-                        child: Text('Bidder', style: headerStyle),
-                        flex: 8,
-                      ),
-                      Expanded(
-                        child: Text('Bid', style: headerStyle, textAlign: TextAlign.center),
-                        flex: 3,
-                      ),
-                      Expanded(
-                        child: Text('Won', style: headerStyle, textAlign: TextAlign.center),
-                        flex: 5,
-                      ),
-                      Expanded(
-                        child: Text('Score', style: headerStyle, textAlign: TextAlign.center),
-                        flex: 8,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: rows,
-              ),
-            ),
-          ),
+        children: [
+          scoreHeader(context),
+          playerLayout(context),
+          Divider(),
+          Expanded(child: bottomPane(context)),
         ],
       ),
     );
-    if (isSummary) {
-      return ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-        child: body,
-      );
-    }
+
     List<Color> confettiColors = [
       game.winningTeamIndex != null ? game.teamColors[game.winningTeamIndex] : Colors.white
     ];
@@ -362,461 +120,400 @@ class _GameOverviewState extends State<GameOverview>
     );
   }
 
-  onAddClick() {
-    if (game.rounds.isEmpty) {
-      setState(() {
-        game.newRound(0);
-      });
-      return;
-    }
-    Round lastRound = game.rounds.last;
-    if (lastRound.isPlayerSwitch) {
-      int dealerIndex = 0;
-      for (Round round in game.rounds.reversed) {
-        if (!round.isPlayerSwitch) {
-          dealerIndex = (round.dealerIndex + 1) % 4;
-          break;
-        }
-      }
-      setState(() {
-        game.newRound(dealerIndex);
-      });
-    } else if (lastRound.bid == null) {
-      selectBid();
-    } else if (lastRound.wonTricks == null) {
-      selectRoundResult();
-    } else {
-      setState(() {
-        game.newRound((lastRound.dealerIndex + 1) % 4);
-      });
-    }
-  }
-
-  onSubstituteClick() {
-    List<String> playerIds = game.getPlayerIdsAfterRound(game.rounds.length - 1);
-
-    int selectedPlayerIndex = 0;
-    String selectedPlayerId;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, innerSetState) {
-          return Wrap(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          'Replace Player',
-                          style: textTheme.headline6,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Old Player', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            [0, 1, 2, 3],
-                            key: (i) => i,
-                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedPlayerIndex = value;
-                            });
-                          },
-                          groupValue: selectedPlayerIndex,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('New Player', style: textTheme.subtitle1),
-                      Row(
-                        children: <Widget>[
-                          Text(
-                            selectedPlayerId == null ? '' : data.allPlayers[selectedPlayerId].fullName,
-                            style: textTheme.bodyText1,
-                          ),
-                          Spacer(),
-                          OutlineButton(
-                            child: Text('Select Player'),
-                            onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()))
-                                  .then((value) {
-                                if (value != null) {
-                                  innerSetState(() {
-                                    selectedPlayerId = value.playerId;
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Spacer(),
-                          FlatButton(
-                            child: Text('Replace'),
-                            onPressed: selectedPlayerId == null
-                                ? null
-                                : () {
-                                    setState(() {
-                                      Navigator.of(context).pop();
-                                      game.replacePlayer(selectedPlayerIndex, selectedPlayerId);
-                                      int dealerIndex = 0;
-                                      for (Round round in game.rounds.reversed) {
-                                        if (!round.isPlayerSwitch) {
-                                          dealerIndex = (round.dealerIndex + 1) % 4;
-                                          break;
-                                        }
-                                      }
-                                      game.newRound(dealerIndex);
-                                      game.updateFirestore();
-                                    });
-                                  },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        });
-      },
-    );
-  }
-
   onUndoClick() {
     if (game.rounds.isNotEmpty) {
       game.undoLastAction();
-      setState(() {
-        if (game.rounds.isEmpty) {
-          game.newRound(0);
-        }
-        game.updateFirestore();
-      });
+      if (game.rounds.isEmpty) {
+        game.newRound(0);
+      }
+      game.updateFirestore();
     }
   }
 
-  selectBid() {
-    Round lastRound = game.rounds.last;
-    List<String> playerIds = game.getPlayerIdsAfterRound(lastRound.roundIndex - 1);
-    int selectedDealerIndex = 0;
-    if (lastRound.dealerIndex != null) {
-      selectedDealerIndex = lastRound.dealerIndex;
+  Widget scoreHeader(BuildContext context) {
+    List<String> scoreStrings = game.currentScore.map((score) => score.toString()).toList();
+
+    double height = MediaQuery.of(context).size.height;
+    TextStyle scoreTextStyle = GoogleFonts.sourceCodePro().copyWith(
+      color: Colors.white,
+      fontSize: height * 0.08,
+      fontWeight: FontWeight.w700,
+    );
+    return Row(
+        children: List.generate(2, (index) {
+      String teamId = game.teamIds[index];
+      return Expanded(
+        child: Container(
+          margin: EdgeInsets.fromLTRB(index == 0 ? 8 : 4, 8, index == 0 ? 4 : 8, 4),
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              backgroundColor: selectedId == teamId ? Colors.white : game.teamColors[index],
+              side: BorderSide(
+                width: 8.0,
+                color: game.teamColors[index],
+              ),
+              padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+            ),
+            child: Text(
+              scoreStrings[index],
+              style: scoreTextStyle.copyWith(color: selectedId == teamId ? game.teamColors[index] : Colors.white),
+            ),
+            onPressed: () {
+              setState(() {
+                confettiController.stop();
+                if (selectedId == teamId) {
+                  selectedId = null;
+                } else {
+                  selectedId = teamId;
+                  if (game.winningTeamIndex == index) {
+                    confettiController.reset();
+                    confettiController.forward();
+                  }
+                }
+              });
+            },
+          ),
+        ),
+      );
+    }));
+  }
+
+  Widget playerLayout(BuildContext context) {
+    return Column(
+      children: List.generate(2, (playerY) {
+        return Row(
+          children: List.generate(2, (playerX) {
+            int playerIndex;
+            if (playerY == 0) {
+              playerIndex = playerX;
+            } else {
+              playerIndex = 3 - playerX;
+            }
+            String playerId = game.currentPlayerIds[playerIndex];
+            Player player = data.allPlayers[playerId];
+            Color teamColor = game.teamColors[playerIndex % 2];
+            List<String> captionStrings = [];
+            if (game.isFinished) {
+              EntityRawGameStats rawStats = game.rawStatsMap[playerId];
+              captionStrings.add('Bidding Gained: ${rawStats.gainedOnBids}');
+            } else {
+              Round lastRound = game.rounds.last;
+              if (!lastRound.isFinished) {
+                if (lastRound.dealerIndex == playerIndex) {
+                  captionStrings.add('Dealer');
+                } else if ((lastRound.dealerIndex + 1) % 4 == playerIndex) {
+                  captionStrings.add('Lead');
+                }
+                if (lastRound.bidderIndex == playerIndex) {
+                  captionStrings.add('Bidder (${Round.bidString(lastRound.bid)})');
+                }
+              }
+            }
+            return Expanded(
+                child: Container(
+              padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+              alignment: Alignment.center,
+              child: FlatButton(
+                color: selectedId == playerId ? Colors.grey[200] : null,
+                padding: EdgeInsets.fromLTRB(12, 4, 12, 4),
+                child: Column(
+                  children: [
+                    Text(player.shortName, style: textTheme.headline4.copyWith(color: teamColor)),
+                    if (captionStrings.isNotEmpty) Text(captionStrings.join(', '), style: textTheme.bodyText1),
+                  ],
+                ),
+                onPressed: () {
+                  setState(() {
+                    confettiController.stop();
+                    if (selectedId == playerId) {
+                      selectedId = null;
+                    } else {
+                      selectedId = playerId;
+                    }
+                  });
+                },
+              ),
+            ));
+          }),
+        );
+      }),
+    );
+  }
+
+  Widget bottomPane(BuildContext context) {
+    if (selectedId == null) {
+      return Container(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+          alignment: Alignment.center,
+          child: Text(
+            'Select a team or player to view them here',
+            style: textTheme.subtitle1,
+          ));
     }
-    int selectedBidderIndex = (selectedDealerIndex + 1) % 4;
-    int selectedBid = 3;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, innerSetState) {
-          return Wrap(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          'Add Bid',
-                          style: textTheme.headline6,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Dealer', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            [0, 1, 2, 3],
-                            key: (i) => i,
-                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedDealerIndex = value;
-                            });
-                          },
-                          groupValue: selectedDealerIndex,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Bidder', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            [0, 1, 2, 3],
-                            key: (i) => i,
-                            value: (i) => Text(data.allPlayers[playerIds[i]].shortName),
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedBidderIndex = value;
-                            });
-                          },
-                          groupValue: selectedBidderIndex,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Bid', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children: Map.fromIterable(
-                            Round.ALL_BIDS,
-                            key: (i) => i,
-                            value: (i) {
-                              if (i == 24) {
-                                return Text('Alone');
-                              } else if (i == 12) {
-                                return Text('Slide');
-                              } else {
-                                return Text(i.toString());
-                              }
-                            },
-                          ),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedBid = value;
-                            });
-                          },
-                          groupValue: selectedBid,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Spacer(),
-                          FlatButton(
-                            child: Text('Add'),
-                            onPressed: () {
-                              setState(() {
-                                Navigator.of(context).pop();
-                                game.addBid(selectedDealerIndex, selectedBidderIndex, selectedBid);
-                                game.updateFirestore();
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        });
-      },
-    );
-  }
 
-  selectRoundResult() {
-    Round lastRound = game.rounds.last;
-    int selectedWonTricks = lastRound.bid > 6 ? 6 : lastRound.bid;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, innerSetState) {
-          return Wrap(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          'Add Result',
-                          style: textTheme.headline6,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text('Won Tricks', style: textTheme.subtitle1),
-                      Container(
-                        width: double.infinity,
-                        child: CupertinoSlidingSegmentedControl(
-                          children:
-                              Map.fromIterable([0, 1, 2, 3, 4, 5, 6], key: (i) => i, value: (i) => Text(i.toString())),
-                          onValueChanged: (value) {
-                            innerSetState(() {
-                              selectedWonTricks = value;
-                            });
-                          },
-                          groupValue: selectedWonTricks,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Spacer(),
-                          FlatButton(
-                            child: Text('Add'),
-                            onPressed: () {
-                              setState(() {
-                                Navigator.of(context).pop();
-                                game.addRoundResult(selectedWonTricks);
-                                if (!game.isFinished) {
-                                  game.newRound((lastRound.dealerIndex + 1) % 4);
-                                }
-                                game.updateFirestore();
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        });
-      },
-    );
-  }
-}
-
-Widget gameHeader(Game game, Data data, TextTheme textTheme, BuildContext context) {
-  List<Player> players = game.currentPlayerIds.map((id) => data.allPlayers[id]).toList();
-  List<String> scoreStrings = game.currentScore.map(Util.scoreString).toList();
-  Widget playerTitle(int index) {
-    return GestureDetector(
-      child: Text(
-        players[index].shortName,
-        style: textTheme.headline5.copyWith(color: game.teamColors[index % 2], height: 1.1),
+    List<Widget> children = [
+      Padding(
+        padding: EdgeInsets.fromLTRB(0, 4, 0, 8),
+        child: GestureDetector(
+            child: Text(selectedFullName, style: textTheme.headline5.copyWith(color: selectedTeamColor)),
+            onTap: () {
+              if (isSelectedTeam) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(selectedId)));
+              } else {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => PlayerProfile(data.allPlayers[selectedId])));
+              }
+            }),
       ),
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    TeamProfile(Util.teamId([players[index].playerId, players[(index + 2) % 4].playerId]))));
-      },
+      if (!isSelectedTeam && !game.isFinished)
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
+          child: CupertinoSlidingSegmentedControl(
+            children: Map.fromIterable(
+              [true, false],
+              key: (i) => i,
+              value: (i) => Text(i ? 'Actions' : 'Info'),
+            ),
+            onValueChanged: (value) {
+              setState(() {
+                displayActions = value;
+              });
+            },
+            groupValue: displayActions,
+          ),
+        ),
+    ];
+    Widget bodyWidget;
+    if (game.isFinished || isSelectedTeam || !displayActions) {
+      bodyWidget = infoSection();
+    } else {
+      bodyWidget = actionsSection();
+    }
+    children.add(Expanded(child: bodyWidget));
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Column(children: children),
     );
   }
 
-  return Column(
-    children: [
-      Container(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
+  Widget infoSection() {
+    EntityRawGameStats rawStats = game.rawStatsMap[selectedId];
+    int numRounds = game.numRounds;
+    double biddingGainedPercent = 0;
+    if (numRounds != 0) {
+      biddingGainedPercent = rawStats.gainedOnBids / numRounds;
+      if (isSelectedTeam) {
+        biddingGainedPercent /= 2;
+      }
+      biddingGainedPercent = max(0, min(1, biddingGainedPercent));
+    }
+    double madeBidPercent = MadeBidPercentageStatItem.fromRawStats([rawStats], isSelectedTeam).percentage;
+    BidderRatingStatItem thisGameBidderRating = BidderRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
+    BidderRatingStatItem bidderRating = data.statsDb.getStat(selectedId, StatType.bidderRating, false);
+    BiddingFrequencyStatItem biddingFrequency = data.statsDb.getStat(selectedId, StatType.biddingFrequency, false);
+    GainedPerBidStatItem gainedPerBid = data.statsDb.getStat(selectedId, StatType.gainedPerBid, false);
+    return SingleChildScrollView(
+      child: Column(children: [
+        Column(
+          children: [
+            Text('Game Stats', style: textTheme.subtitle2),
+            statBar('Bidding Points Gained', rawStats.gainedOnBids.toString(), biddingGainedPercent, selectedTeamColor),
+            statBar('Made Bids', '${rawStats.madeBids}/${rawStats.numBids}', madeBidPercent, selectedTeamColor),
+            statBar(
+                'Bidder Rating', thisGameBidderRating.toString(), thisGameBidderRating.rating / 100, selectedTeamColor),
+          ],
+        ),
+        SizedBox(height: 16),
+        Column(
+          children: [
+            Text('Bidder Profile', style: textTheme.subtitle2),
+            statBar('Bidder Rating', bidderRating.toString(), bidderRating.rating / 100, selectedTeamColor),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text('Bidding Freq'),
+                      Spacer(),
+                      Text(biddingFrequency.toString(), style: textTheme.subtitle2),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text('Gained Per Bid'),
+                      Spacer(),
+                      Text(gainedPerBid.toString(), style: textTheme.subtitle2),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+        SizedBox(height: 16),
+      ]),
+    );
+  }
+
+  Widget actionsSection() {
+    Round lastRound = game.rounds.last;
+    List<Widget> children = [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          TextButton.icon(
+            icon: Icon(MdiIcons.undo),
+            label: Text('Undo'),
+            onPressed: onUndoClick,
+          ),
+          TextButton.icon(
+            icon: Icon(MdiIcons.accountSwitch),
+            label: Text('Replace'),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection())).then((value) {
+                if (value != null) {
+                  game.replacePlayer(game.currentPlayerIds.indexOf(selectedId), value.playerId);
+                  selectedId = value.playerId;
+                  int dealerIndex = 0;
+                  for (Round round in game.rounds.reversed) {
+                    if (!round.isPlayerSwitch) {
+                      dealerIndex = (round.dealerIndex + 1) % 4;
+                      break;
+                    }
+                  }
+                  game.newRound(dealerIndex);
+                  game.updateFirestore();
+                }
+              });
+            },
+          ),
+          if (lastRound.bidderIndex == null)
+            TextButton.icon(
+              icon: Icon(MdiIcons.accountCowboyHat),
+              label: Text('Make Dealer'),
+              onPressed: () {
+                game.rounds.last.dealerIndex = game.currentPlayerIds.indexOf(selectedId);
+                game.updateFirestore();
+              },
+            ),
+        ],
+      ),
+      Spacer(),
+    ];
+
+    if (!lastRound.isPlayerSwitch) {
+      if (lastRound.bidderIndex == null) {
+        int selectedBid = 3;
+        children.add(
+          StatefulBuilder(
+            builder: (context, innerSetState) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  playerTitle(0),
-                  playerTitle(2),
+                children: [
+                  Text('Bid', style: textTheme.subtitle2),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(0, 2, 0, 4),
+                    child: CupertinoSlidingSegmentedControl(
+                      children: Map.fromIterable(
+                        Round.ALL_BIDS,
+                        key: (i) => i,
+                        value: (i) => Text(Round.bidString(i)),
+                      ),
+                      onValueChanged: (value) {
+                        innerSetState(() {
+                          selectedBid = value;
+                        });
+                      },
+                      groupValue: selectedBid,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      RaisedButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text('Add Bid'),
+                        onPressed: () {
+                          game.addBid(lastRound.dealerIndex, game.currentPlayerIds.indexOf(selectedId), selectedBid);
+                          game.updateFirestore();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      } else if (lastRound.wonTricks == null && game.currentPlayerIds[lastRound.bidderIndex] == selectedId) {
+        int selectedWonTricks = lastRound.bid > 6 ? 6 : lastRound.bid;
+        children.add(StatefulBuilder(builder: (context, innerSetState) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Won Tricks', style: textTheme.subtitle2),
+              Container(
+                width: double.infinity,
+                child: CupertinoSlidingSegmentedControl(
+                  children: Map.fromIterable([0, 1, 2, 3, 4, 5, 6], key: (i) => i, value: (i) => Text(i.toString())),
+                  onValueChanged: (value) {
+                    innerSetState(() {
+                      selectedWonTricks = value;
+                    });
+                  },
+                  groupValue: selectedWonTricks,
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  RaisedButton.icon(
+                    icon: Icon(Icons.add),
+                    label: Text('Add Result'),
+                    onPressed: () {
+                      game.addRoundResult(selectedWonTricks);
+                      if (!game.isFinished) {
+                        game.newRound((lastRound.dealerIndex + 1) % 4);
+                      }
+                      game.updateFirestore();
+                    },
+                  ),
                 ],
               ),
-              flex: 7,
-            ),
-            Expanded(
-              child: Text('vs', textAlign: TextAlign.center),
-              flex: 1,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  playerTitle(1),
-                  playerTitle(3),
-                ],
-              ),
-              flex: 7,
-            ),
-          ],
+            ],
+          );
+        }));
+      }
+    }
+    return Column(children: children, crossAxisAlignment: CrossAxisAlignment.start);
+  }
+
+  Widget statBar(String title, String leftLabel, double percent, Color color) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(
+        children: [
+          Text(title),
+          Spacer(),
+          Text(leftLabel, style: textTheme.subtitle2),
+        ],
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(0, 2, 0, 4),
+        child: LinearPercentIndicator(
+          percent: min(1, max(0, percent)),
+          progressColor: color,
+          lineHeight: 12,
+          linearStrokeCap: LinearStrokeCap.butt,
+          padding: EdgeInsets.all(0),
         ),
       ),
-      Container(
-        width: double.infinity,
-        alignment: Alignment.center,
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                scoreStrings[0],
-                style:
-                    textTheme.headline5.copyWith(fontWeight: FontWeight.w900, fontSize: 40, color: game.teamColors[0]),
-                textAlign: TextAlign.end,
-              ),
-              flex: 7,
-            ),
-            Expanded(child: Text('-', style: textTheme.headline5, textAlign: TextAlign.center), flex: 1),
-            Expanded(
-              child: Text(
-                scoreStrings[1],
-                style:
-                    textTheme.headline5.copyWith(fontWeight: FontWeight.w900, fontSize: 40, color: game.teamColors[1]),
-                textAlign: TextAlign.start,
-              ),
-              flex: 7,
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
+    ]);
+  }
 }

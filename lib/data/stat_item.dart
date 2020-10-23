@@ -191,6 +191,8 @@ class BidderRatingStatItem extends RatingStatItem {
 abstract class PercentageStatItem extends DoubleStatItem {
   PercentageStatItem(double percentage) : super(percentage);
 
+  double get percentage => _value;
+
   @override
   String toString() {
     return (_value * 100).toStringAsFixed(1) + '%';
