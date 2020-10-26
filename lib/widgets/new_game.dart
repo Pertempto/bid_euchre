@@ -225,7 +225,6 @@ class _NewGameState extends State<NewGame> {
     Player player = await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection()));
     if (player != null) {
       setState(() {
-        print('player name: ${player.fullName}');
         initialPlayerIds[playerIndex] = player.playerId;
         updateTeamColors();
       });

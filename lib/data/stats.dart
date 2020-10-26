@@ -38,29 +38,24 @@ class StatsDb {
     }
   }
 
-  List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore,
-      {String beforeGameId}) {
+  List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore) {
     List<double> teamRatings = [];
     for (int i = 0; i < 2; i++) {
       String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
-      double teamRating = 0;
-      if (beforeGameId != null) {
-        teamRating += getRatingBeforeGame(teamId, beforeGameId);
-      } else {
-        teamRating += (getStat(teamId, StatType.overallRating, false) as RatingStatItem).rating;
-      }
-      double totalPlayerRating = 0;
-      for (int j = 0; j < 2; j++) {
-        String playerId = currentPlayerIds[i + j * 2];
-        if (beforeGameId != null) {
-          totalPlayerRating += getRatingBeforeGame(playerId, beforeGameId);
-        } else {
-          totalPlayerRating += (getStat(playerId, StatType.overallRating, false) as RatingStatItem).rating;
+      List<Game> games = getGames(teamId, false);
+      double teamRating;
+      if (games.length < MIN_GAMES) {
+        double totalPlayerRating = 0;
+        for (int j = 0; j < 2; j++) {
+          String playerId = currentPlayerIds[i + j * 2];
+          totalPlayerRating += (getStat(playerId, StatType.overallRating, false) as OverallRatingStatItem).rating;
         }
+        teamRating = totalPlayerRating / 2 * (MIN_GAMES - games.length);
+        teamRating += (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating * games.length;
+        teamRating /= MIN_GAMES;
+      } else {
+        teamRating = (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating;
       }
-      totalPlayerRating /= 2;
-      teamRating *= 0.5;
-      teamRating += 0.5 * totalPlayerRating;
       teamRatings.add(teamRating);
     }
     List<double> winChances = ratingsToWinChances(teamRatings);
@@ -182,17 +177,6 @@ class StatsDb {
   double getRatingAfterGame(String entityId, String gameId, {bool includeArchived = false}) {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
-    return OverallRatingStatItem.calculateOverallRating(
-        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '));
-  }
-
-  double getRatingBeforeGame(String entityId, String gameId, {bool includeArchived = false}) {
-    List<String> gameIds = _entitiesGameIdsHistories.containsKey(entityId) ? _entitiesGameIdsHistories[entityId] : [];
-    int endIndex = gameIds.indexOf(gameId);
-    if (endIndex <= 0) {
-      return 0;
-    }
-    gameIds = gameIds.sublist(0, endIndex);
     return OverallRatingStatItem.calculateOverallRating(
         getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '));
   }
