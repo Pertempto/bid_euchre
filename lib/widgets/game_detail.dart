@@ -7,7 +7,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'game_overview.dart';
 import 'game_rounds.dart';
 import 'game_settings.dart';
-import 'game_stats.dart';
 
 class GameDetail extends StatefulWidget {
   final Game game;
@@ -26,7 +25,7 @@ class _GameDetailState extends State<GameDetail> {
       bool notLoaded = !data.loaded || game == null;
       Widget loadingWidget = Center(child: CircularProgressIndicator());
       return DefaultTabController(
-        length: 4,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             title: Text('Game Details'),
@@ -34,7 +33,6 @@ class _GameDetailState extends State<GameDetail> {
               tabs: <Widget>[
                 Tab(icon: Icon(MdiIcons.scoreboard), text: 'Overview'),
                 Tab(icon: Icon(MdiIcons.viewList), text: 'Rounds'),
-                Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
                 Tab(icon: Icon(Icons.settings), text: 'Settings'),
               ],
             ),
@@ -45,7 +43,6 @@ class _GameDetailState extends State<GameDetail> {
               children: <Widget>[
                 notLoaded ? loadingWidget : GameOverview(game),
                 notLoaded ? loadingWidget : GameRounds(game),
-                notLoaded ? loadingWidget : GameStats(game),
                 notLoaded ? loadingWidget : GameSettings(game),
               ],
             ),

@@ -265,7 +265,7 @@ class _GameOverviewState extends State<GameOverview>
               }
             }),
       ),
-      if (!isSelectedTeam && !game.isFinished)
+      if (game.userId == data.currentUser.userId && !isSelectedTeam && !game.isFinished)
         Container(
           width: double.infinity,
           padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
@@ -285,7 +285,7 @@ class _GameOverviewState extends State<GameOverview>
         ),
     ];
     Widget bodyWidget;
-    if (game.isFinished || isSelectedTeam || !displayActions) {
+    if (game.userId != data.currentUser.userId || game.isFinished || isSelectedTeam || !displayActions) {
       bodyWidget = infoSection();
     } else {
       bodyWidget = actionsSection();
