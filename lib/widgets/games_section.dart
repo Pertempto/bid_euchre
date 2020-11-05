@@ -4,6 +4,7 @@ import 'package:bideuchre/data/stat_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../util.dart';
 import 'game_rounds.dart';
@@ -36,11 +37,14 @@ class _GamesSectionState extends State<GamesSection>
     super.build(context);
     id = widget.id;
     data = DataStore.currentData;
-    List<Game> games = data.statsDb.getGames(id, true);
+    List<Game> games = data.statsDb.getGames(id, DataStore.displayArchivedStats);
     if (games.isEmpty) {
       return Container();
     }
-
+    OverallRatingStatItem ovrRating =
+        OverallRatingStatItem.fromRawStats(games.map((g) => g.rawStatsMap[id]).toList(), isTeam);
+    BidderRatingStatItem bidderRating =
+        BidderRatingStatItem.fromRawStats(games.map((g) => g.rawStatsMap[id]).toList(), isTeam);
     Map<String, String> gameStatuses = {};
     Map<String, bool> flipScores = {};
     for (Game game in games) {
@@ -81,7 +85,7 @@ class _GamesSectionState extends State<GamesSection>
       ),
     ];
     children.add(Container(
-      height: 126,
+      height: 114,
       child: ListView.builder(
         itemBuilder: (context, index) {
           if (index == 0 || index == games.length + 1) {
@@ -100,8 +104,8 @@ class _GamesSectionState extends State<GamesSection>
           DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
           String dateString = intl.DateFormat.yMd().format(date);
           String timeString = intl.DateFormat.jm().format(date);
-          StatItem bidderRating = BidderRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
-          String ratingString = 'Bidding: ${bidderRating.toString()}';
+          OverallRatingStatItem gameRating = OverallRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
+          BidderRatingStatItem gameBidderRating = BidderRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
           return Card(
             color: game.isArchived ? Colors.grey[50] : Colors.white,
             child: InkWell(
@@ -113,9 +117,24 @@ class _GamesSectionState extends State<GamesSection>
                 margin: EdgeInsets.all(8),
                 child: Column(
                   children: <Widget>[
-                    Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
+                    Container(
+                      width: 100,
+                      child: Row(
+                        children: [
+                          Icon(
+                            gameRating.rating > ovrRating.rating ? MdiIcons.chevronUp : MdiIcons.chevronDown,
+                            color: gameRating.rating > ovrRating.rating ? Colors.green : Colors.red,
+                          ),
+                          Text(gameStatuses[game.gameId], style: textTheme.bodyText1),
+                          Icon(
+                            gameBidderRating.rating > bidderRating.rating ? MdiIcons.chevronUp : MdiIcons.chevronDown,
+                            color: gameBidderRating.rating > bidderRating.rating ? Colors.green : Colors.red,
+                          ),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                    ),
                     Row(children: scoreChildren),
-                    Text(ratingString, style: textTheme.bodyText2),
                     Text(dateString, style: textTheme.caption),
                     Text(game.isArchived ? 'Archived' : timeString, style: textTheme.caption),
                   ],
