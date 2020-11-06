@@ -14,6 +14,7 @@ import 'stat_type.dart';
 
 class StatsDb {
   static const int MIN_GAMES = 3;
+  static const int MIN_ROUNDS = 10;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<String>> _entitiesGameIdsHistories;
@@ -77,7 +78,8 @@ class StatsDb {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
     return BidderRatingStatItem.calculateBidderRating(
-        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '));
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '),
+        isAdjusted: true);
   }
 
   Map<int, BiddingSplit> getBiddingSplits(String entityId, {int numRecent = 0, bool includeArchived = false}) {
@@ -178,7 +180,7 @@ class StatsDb {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
     return OverallRatingStatItem.calculateOverallRating(
-        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '));
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '), isAdjusted: true);
   }
 
   List<EntityRawGameStats> getRawStats(String entityId, List<String> gameIds, bool includeArchived) {
@@ -192,22 +194,38 @@ class StatsDb {
     return rawStats;
   }
 
-  StatItem getRecentStat(String entityId, StatType statType) {
+  RatingStatItem getRecentRating(String entityId, StatType statType) {
     if (!_entitiesGameIdsHistories.containsKey(entityId)) {
       return StatItem.empty(statType);
     }
     List<String> gameIds = _entitiesGameIdsHistories[entityId];
     gameIds = gameIds.sublist(max(gameIds.length - MIN_GAMES, 0));
-
-    return StatItem.fromRawStats(statType, getRawStats(entityId, gameIds, false), entityId.contains(' '));
+    switch (statType) {
+      case StatType.overallRating:
+        return OverallRatingStatItem.fromRawStats(getRawStats(entityId, gameIds, false), entityId.contains(' '));
+      case StatType.bidderRating:
+        return BidderRatingStatItem.fromRawStats(getRawStats(entityId, gameIds, false), entityId.contains(' '));
+      default:
+        throw Exception('Stat type is not a rating: $statType');
+    }
   }
 
   StatItem getStat(String entityId, StatType statType, bool includeArchived) {
-    if (!_entitiesGameIdsHistories.containsKey(entityId)) {
-      return StatItem.empty(statType);
-    }
     List<String> gameIds = _entitiesGameIdsHistories[entityId];
-    return StatItem.fromRawStats(statType, getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '));
+    if (gameIds == null) {
+      gameIds = [];
+    }
+    List<EntityRawGameStats> rawStats = getRawStats(entityId, gameIds, includeArchived);
+    switch (statType) {
+      case StatType.overallRating:
+        return OverallRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
+      case StatType.bidderRating:
+        return BidderRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
+      case StatType.winnerRating:
+        return WinnerRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
+      default:
+        return StatItem.fromRawStats(statType, rawStats, entityId.contains(' '));
+    }
   }
 
   List<String> getTeamIds(Set<String> playerIds) {

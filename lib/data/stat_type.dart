@@ -1,6 +1,7 @@
 enum StatType {
   overallRating,
   bidderRating,
+  winnerRating,
   record,
   biddingRecord,
   winningPercentage,

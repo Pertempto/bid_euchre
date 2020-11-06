@@ -54,7 +54,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       if (!showInfrequent) {
         ids = ids.where((id) {
           bool hasEnoughGames =
-              (data.statsDb.getStat(id, StatType.numGames, false) as IntStatItem).value >= StatsDb.MIN_GAMES;
+              (data.statsDb.getStat(id, StatType.numRounds, false) as IntStatItem).value >= StatsDb.MIN_ROUNDS;
           return hasEnoughGames;
         }).toList();
       }
@@ -142,7 +142,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
           Icon trendIcon;
           if (!showInfrequent &&
               (displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating)) {
-            double recentRating = (data.statsDb.getRecentStat(id, displayStatType) as RatingStatItem).rating;
+            double recentRating = data.statsDb.getRecentRating(id, displayStatType).rating;
             double rating = (statItem as RatingStatItem).rating;
             if (recentRating > rating + 20) {
               trendIcon = Icon(Icons.trending_up, color: Colors.green);

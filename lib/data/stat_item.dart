@@ -16,6 +16,8 @@ abstract class StatItem {
         return OverallRatingStatItem(0);
       case StatType.bidderRating:
         return BidderRatingStatItem(0);
+      case StatType.winnerRating:
+        return WinnerRatingStatItem(0);
       case StatType.record:
         return WinLossRecordStatItem(Record(0, 0));
       case StatType.biddingRecord:
@@ -47,9 +49,11 @@ abstract class StatItem {
   factory StatItem.fromRawStats(StatType statType, List<EntityRawGameStats> rawStats, bool isTeam) {
     switch (statType) {
       case StatType.overallRating:
-        return OverallRatingStatItem.fromRawStats(rawStats, isTeam);
+        throw Exception('Do not get overall rating this way');
       case StatType.bidderRating:
-        return BidderRatingStatItem.fromRawStats(rawStats, isTeam);
+        throw Exception('Do not get bidder rating this way');
+      case StatType.winnerRating:
+        throw Exception('Do not get winner rating this way');
       case StatType.record:
         return WinLossRecordStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingRecord:
@@ -109,6 +113,8 @@ abstract class StatItem {
         return 'Bidder Rating';
       case StatType.overallRating:
         return 'Overall Rating';
+      case StatType.winnerRating:
+        return 'Winner Rating';
     }
     return '';
   }
@@ -142,18 +148,15 @@ class OverallRatingStatItem extends RatingStatItem {
 
   OverallRatingStatItem(double overallRating) : super(overallRating);
 
-  factory OverallRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
-    return OverallRatingStatItem(calculateOverallRating(rawStats, isTeam));
+  factory OverallRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam,
+      {bool isAdjusted = false}) {
+    return OverallRatingStatItem(calculateOverallRating(rawStats, isTeam, isAdjusted: isAdjusted));
   }
 
-  static double calculateOverallRating(List<EntityRawGameStats> rawStats, bool isTeam) {
-    double bidderRating = BidderRatingStatItem.calculateBidderRating(rawStats, isTeam);
-    Record record = WinLossRecordStatItem.calculateRecord(rawStats);
-    double winningRating = 0;
-    if (record.total != 0) {
-      winningRating = record.winningPercentage * 100;
-    }
-    double ovr = bidderRating * 0.5 + winningRating * 0.5;
+  static double calculateOverallRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    double bidderRating = BidderRatingStatItem.calculateBidderRating(rawStats, isTeam, isAdjusted: isAdjusted);
+    double winnerRating = WinnerRatingStatItem.calculateWinnerRating(rawStats, isTeam, isAdjusted: isAdjusted);
+    double ovr = bidderRating * 0.5 + winnerRating * 0.5;
     return ovr;
   }
 }
@@ -163,21 +166,30 @@ class BidderRatingStatItem extends RatingStatItem {
 
   BidderRatingStatItem(double bidderRating) : super(bidderRating);
 
-  factory BidderRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
-    return BidderRatingStatItem(calculateBidderRating(rawStats, isTeam));
+  factory BidderRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    return BidderRatingStatItem(calculateBidderRating(rawStats, isTeam, isAdjusted: isAdjusted));
   }
 
-  static double calculateBidderRating(List<EntityRawGameStats> rawStats, bool isTeam) {
+  static double calculateBidderRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
     int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
     int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
+    double totalGainedAdj = 0;
+    if (isAdjusted && numRounds < 120) {
+      if (isTeam) {
+        totalGainedAdj = (120 - numRounds).toDouble();
+      } else {
+        totalGainedAdj = (120 - numRounds) / 2;
+      }
+      numRounds = 120;
+    }
     if (numRounds == 0) {
       return 0;
     }
-    double gainedPerRound = 0;
+    double totalGained = totalGainedAdj;
     if (numBids != 0) {
-      int totalGained = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
-      gainedPerRound = totalGained / numRounds;
+      totalGained += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
     }
+    double gainedPerRound = totalGained / numRounds;
     double rating;
     if (isTeam) {
       rating = gainedPerRound / 2 * 100;
@@ -185,6 +197,29 @@ class BidderRatingStatItem extends RatingStatItem {
       rating = gainedPerRound / 1 * 100;
     }
     return rating;
+  }
+}
+
+class WinnerRatingStatItem extends RatingStatItem {
+  String get statName => 'Winner Rating';
+
+  WinnerRatingStatItem(double winnerRating) : super(winnerRating);
+
+  factory WinnerRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    return WinnerRatingStatItem(calculateWinnerRating(rawStats, isTeam, isAdjusted: isAdjusted));
+  }
+
+  static double calculateWinnerRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    Record record = WinLossRecordStatItem.calculateRecord(rawStats);
+    double wins = record.wins.toDouble();
+    double losses = record.losses.toDouble();
+    if (isAdjusted) {
+      double extra = wins + losses >= 10 ? 0 : 10 - (wins + losses);
+      wins += extra / 2;
+      losses += extra / 2;
+    }
+    double total = wins + losses;
+    return total == 0 ? 0 : wins / (wins + losses) * 100;
   }
 }
 

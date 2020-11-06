@@ -1,5 +1,4 @@
 import 'package:bideuchre/data/data_store.dart';
-import 'package:bideuchre/data/record.dart';
 import 'package:bideuchre/data/stat_item.dart';
 import 'package:bideuchre/data/stat_type.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,8 +36,7 @@ class _OverviewSectionState extends State<OverviewSection>
     OverallRatingStatItem overallRating =
         data.statsDb.getStat(id, StatType.overallRating, DataStore.displayArchivedStats);
     BidderRatingStatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating, DataStore.displayArchivedStats);
-    Record record =
-        (data.statsDb.getStat(id, StatType.record, DataStore.displayArchivedStats) as RecordStatItem).record;
+    WinnerRatingStatItem winnerRating = data.statsDb.getStat(id, StatType.winnerRating, DataStore.displayArchivedStats);
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -98,9 +96,9 @@ class _OverviewSectionState extends State<OverviewSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Text('Record', style: titleStyle),
+            Text('Winner Rating', style: titleStyle),
             Spacer(),
-            Text(record.toString(), style: statStyle, textAlign: TextAlign.end),
+            Text(winnerRating.toString(), style: statStyle, textAlign: TextAlign.end),
           ],
         ),
       ),
@@ -110,11 +108,11 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Expanded(
               child: Container(height: 4, color: data.statsDb.getColor(id)),
-              flex: record.wins,
+              flex: (winnerRating.rating * 10).round(),
             ),
             Expanded(
               child: Container(height: 4),
-              flex: record.losses,
+              flex: ((100 - winnerRating.rating) * 10).round(),
             ),
           ],
         ),
@@ -125,7 +123,7 @@ class _OverviewSectionState extends State<OverviewSection>
           children: <Widget>[
             Expanded(child: Text('Recent Rating', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getRecentStat(id, StatType.overallRating).toString(),
+              child: Text(data.statsDb.getRecentRating(id, StatType.overallRating).toString(),
                   style: statStyle, textAlign: TextAlign.end),
               flex: 2,
             ),
