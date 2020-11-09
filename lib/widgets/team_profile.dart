@@ -6,7 +6,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import '../data/data_store.dart';
 import '../util.dart';
 import 'compare.dart';
-import 'team_overview.dart';
+import 'entity_overview.dart';
 import 'team_selection.dart';
 
 class TeamProfile extends StatefulWidget {
@@ -34,7 +34,7 @@ class _TeamProfileState extends State<TeamProfile> {
           bottom: TabBar(
             tabs: <Widget>[
               Tab(icon: Icon(Icons.people), text: 'Overview'),
-              Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
+              Tab(icon: Icon(MdiIcons.chartLine), text: 'Graphs'),
             ],
           ),
           actions: <Widget>[
@@ -57,8 +57,8 @@ class _TeamProfileState extends State<TeamProfile> {
         ),
         body: TabBarView(
           children: <Widget>[
-            teamName == null ? Container() : TeamOverview(teamId),
-            teamName == null ? Container() : EntityStats(teamId),
+            teamName == null ? Container() : EntityOverview(teamId),
+            teamName == null ? Container() : EntityGraphs(teamId),
           ],
         ),
       ),

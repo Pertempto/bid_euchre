@@ -1,20 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'bidding_section.dart';
 import 'bidding_splits_section.dart';
 import 'trends_section.dart';
 
-class EntityStats extends StatefulWidget {
+class EntityGraphs extends StatefulWidget {
   final String id;
 
-  EntityStats(this.id);
+  EntityGraphs(this.id);
 
   @override
-  _EntityStatsState createState() => _EntityStatsState();
+  _EntityGraphsState createState() => _EntityGraphsState();
 }
 
-class _EntityStatsState extends State<EntityStats> with AutomaticKeepAliveClientMixin<EntityStats> {
+class _EntityGraphsState extends State<EntityGraphs> with AutomaticKeepAliveClientMixin<EntityGraphs> {
   @override
   bool get wantKeepAlive => true;
 
@@ -24,7 +23,6 @@ class _EntityStatsState extends State<EntityStats> with AutomaticKeepAliveClient
     String id = widget.id;
     List<Widget> children = [
       SizedBox(height: 8), // balance out dividers
-      BiddingSection(id),
       BiddingSplitsSection(id),
       TrendsSection(id),
       SizedBox(height: 64),

@@ -1,12 +1,12 @@
-import 'package:bideuchre/widgets/compare.dart';
-import 'package:bideuchre/widgets/entity_stats.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../data/data_store.dart';
 import '../data/player.dart';
-import 'player_overview.dart';
+import 'compare.dart';
+import 'entity_overview.dart';
+import 'entity_stats.dart';
 import 'player_selection.dart';
 import 'player_settings.dart';
 
@@ -34,7 +34,7 @@ class _PlayerProfileState extends State<PlayerProfile> {
           bottom: TabBar(
             tabs: <Widget>[
               Tab(icon: Icon(Icons.person), text: 'Overview'),
-              Tab(icon: Icon(MdiIcons.chartLine), text: 'Stats'),
+              Tab(icon: Icon(MdiIcons.chartLine), text: 'Graphs'),
               Tab(icon: Icon(Icons.settings), text: 'Settings'),
             ],
           ),
@@ -58,8 +58,8 @@ class _PlayerProfileState extends State<PlayerProfile> {
         ),
         body: TabBarView(
           children: <Widget>[
-            player == null ? Container() : PlayerOverview(player),
-            player == null ? Container() : EntityStats(player.playerId),
+            player == null ? Container() : EntityOverview(player.playerId),
+            player == null ? Container() : EntityGraphs(player.playerId),
             player == null ? Container() : PlayerSettings(player),
           ],
         ),
