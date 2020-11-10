@@ -235,6 +235,14 @@ class StatsDb {
     }).toList();
   }
 
+  double getWinnerRatingAfterGame(String entityId, String gameId, {bool includeArchived = false}) {
+    int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
+    List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
+    return WinnerRatingStatItem.calculateWinnerRating(
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '),
+        isAdjusted: true);
+  }
+
   static List<double> ratingsToWinChances(List<double> teamRatings) {
     double team1WinChance = 1 / (pow(10, ((teamRatings[1] - teamRatings[0]) / 40)) + 1);
     return [team1WinChance, 1 - team1WinChance];

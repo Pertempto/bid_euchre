@@ -20,7 +20,7 @@ class TrendsSection extends StatefulWidget {
 
 class _TrendsSectionState extends State<TrendsSection>
     with AutomaticKeepAliveClientMixin<TrendsSection>, SingleTickerProviderStateMixin {
-  static const List<StatType> SELECTABLE_STATS = [StatType.overallRating, StatType.bidderRating];
+  static const List<StatType> SELECTABLE_STATS = [StatType.overallRating, StatType.bidderRating, StatType.winnerRating];
   String id;
   Data data;
   StatType displayStat = StatType.overallRating;
@@ -84,6 +84,9 @@ class _TrendsSectionState extends State<TrendsSection>
                             includeArchived: DataStore.displayArchivedStats);
                       } else if (stat == StatType.bidderRating) {
                         rating = data.statsDb.getBidderRatingAfterGame(id, games[index].gameId,
+                            includeArchived: DataStore.displayArchivedStats);
+                      } else if (stat == StatType.winnerRating) {
+                        rating = data.statsDb.getWinnerRatingAfterGame(id, games[index].gameId,
                             includeArchived: DataStore.displayArchivedStats);
                       }
                       rating = (rating * 10).round() / 10.0;
