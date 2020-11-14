@@ -15,6 +15,10 @@ import 'stat_type.dart';
 class StatsDb {
   static const int MIN_GAMES = 3;
   static const int MIN_ROUNDS = 10;
+  static const double AVG_PLAYER_GAINED_PER_ROUND = 0.56;
+  static const double AVG_TEAM_GAINED_PER_ROUND = 1.12;
+  static const double AVG_PLAYER_SUPPORT_PER_ROUND = 1.81;
+  static const double AVG_TEAM_SUPPORT_PER_ROUND = 0.83;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<String>> _entitiesGameIdsHistories;
@@ -28,15 +32,22 @@ class StatsDb {
     _entitiesGameIdsHistories = {};
     _gameRawStats = {};
 
+    int total = 0;
+    int count = 0;
     // only finished games for now
     for (Game g in allGames.reversed.where((g) => g.isFinished)) {
       Map gameRawStatsMap = g.rawStatsMap;
       for (String id in gameRawStatsMap.keys) {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
+        if (!id.contains(" ")) {
+          total += gameRawStatsMap[id].supportedGain;
+          count += gameRawStatsMap[id].numRounds;
+        }
       }
       _gameRawStats[g.gameId] = gameRawStatsMap;
     }
+    print("$total $count ${total / count}");
   }
 
   List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore) {
@@ -223,6 +234,8 @@ class StatsDb {
         return BidderRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
       case StatType.winnerRating:
         return WinnerRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
+      case StatType.supportRating:
+        return SupportRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
       default:
         return StatItem.fromRawStats(statType, rawStats, entityId.contains(' '));
     }

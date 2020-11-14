@@ -180,12 +180,14 @@ class Game {
           gameStatsMap[teamId].numPoints += round.score[i];
           if (round.bidderIndex % 2 == i) {
             gameStatsMap[teamId].numBids++;
+            int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
             if (round.madeBid) {
               gameStatsMap[teamId].madeBids++;
+            } else {
+              gameStatsMap[teamIds[1 - i]].supportedGain += -gainedPts;
             }
             gameStatsMap[teamId].biddingTotal += round.bid;
-            gameStatsMap[teamId].gainedOnBids +=
-                round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
+            gameStatsMap[teamId].gainedOnBids += gainedPts;
           }
         }
       }
@@ -198,12 +200,16 @@ class Game {
         }
         String bidderId = rPlayerIds[round.bidderIndex];
         gameStatsMap[bidderId].numBids++;
+        int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
         if (round.madeBid) {
           gameStatsMap[bidderId].madeBids++;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 2) % 4]].supportedGain += gainedPts;
+        } else {
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].supportedGain += -gainedPts;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].supportedGain += -gainedPts;
         }
         gameStatsMap[bidderId].biddingTotal += round.bid;
-        gameStatsMap[bidderId].gainedOnBids +=
-            round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
+        gameStatsMap[bidderId].gainedOnBids += gainedPts;
       }
     }
     return gameStatsMap;
@@ -350,15 +356,15 @@ class Game {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Game &&
-              runtimeType == other.runtimeType &&
-              gameId == other.gameId &&
-              userId == other.userId &&
-              gameOverScore == other.gameOverScore &&
-              initialPlayerIds == other.initialPlayerIds &&
-              _rounds == other._rounds &&
-              teamColors == other.teamColors &&
-              timestamp == other.timestamp;
+      other is Game &&
+          runtimeType == other.runtimeType &&
+          gameId == other.gameId &&
+          userId == other.userId &&
+          gameOverScore == other.gameOverScore &&
+          initialPlayerIds == other.initialPlayerIds &&
+          _rounds == other._rounds &&
+          teamColors == other.teamColors &&
+          timestamp == other.timestamp;
 
   @override
   int get hashCode =>

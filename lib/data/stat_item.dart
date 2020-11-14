@@ -1,4 +1,5 @@
 import 'package:bideuchre/data/entity_raw_game_stats.dart';
+import 'package:bideuchre/data/stats.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'record.dart';
@@ -18,6 +19,8 @@ abstract class StatItem {
         return BidderRatingStatItem(0);
       case StatType.winnerRating:
         return WinnerRatingStatItem(0);
+      case StatType.supportRating:
+        return SupportRatingStatItem(0);
       case StatType.record:
         return WinLossRecordStatItem(Record(0, 0));
       case StatType.biddingRecord:
@@ -54,6 +57,8 @@ abstract class StatItem {
         throw Exception('Do not get bidder rating this way');
       case StatType.winnerRating:
         throw Exception('Do not get winner rating this way');
+      case StatType.supportRating:
+        throw Exception('Do not get support rating this way');
       case StatType.record:
         return WinLossRecordStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingRecord:
@@ -115,6 +120,8 @@ abstract class StatItem {
         return 'Overall Rating';
       case StatType.winnerRating:
         return 'Winner Rating';
+      case StatType.supportRating:
+        return 'Support Rating';
     }
     return '';
   }
@@ -176,9 +183,9 @@ class BidderRatingStatItem extends RatingStatItem {
     double totalGainedAdj = 0;
     if (isAdjusted && numRounds < 120) {
       if (isTeam) {
-        totalGainedAdj = (120 - numRounds).toDouble();
+        totalGainedAdj = (120 - numRounds) * StatsDb.AVG_TEAM_GAINED_PER_ROUND;
       } else {
-        totalGainedAdj = (120 - numRounds) / 2;
+        totalGainedAdj = (120 - numRounds) * StatsDb.AVG_PLAYER_GAINED_PER_ROUND;
       }
       numRounds = 120;
     }
@@ -192,15 +199,17 @@ class BidderRatingStatItem extends RatingStatItem {
     double gainedPerRound = totalGained / numRounds;
     double rating;
     if (isTeam) {
-      rating = gainedPerRound / 2 * 100;
+      rating = gainedPerRound / (StatsDb.AVG_TEAM_GAINED_PER_ROUND * 2) * 100;
     } else {
-      rating = gainedPerRound / 1 * 100;
+      rating = gainedPerRound / (StatsDb.AVG_PLAYER_GAINED_PER_ROUND * 2) * 100;
     }
     return rating;
   }
 }
 
 class WinnerRatingStatItem extends RatingStatItem {
+  static const double STRETCH_FACTOR = 2.5;
+
   String get statName => 'Winner Rating';
 
   WinnerRatingStatItem(double winnerRating) : super(winnerRating);
@@ -219,7 +228,45 @@ class WinnerRatingStatItem extends RatingStatItem {
       losses += extra / 2;
     }
     double total = wins + losses;
-    return total == 0 ? 0 : wins / (wins + losses) * 100;
+    double winningPct = total == 0 ? 0 : wins / (wins + losses) * 100;
+    return winningPct;
+  }
+}
+
+class SupportRatingStatItem extends RatingStatItem {
+  String get statName => 'Support Rating';
+
+  SupportRatingStatItem(double supportRating) : super(supportRating);
+
+  factory SupportRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam,
+      {bool isAdjusted = false}) {
+    return SupportRatingStatItem(calculateSupportRating(rawStats, isTeam, isAdjusted: isAdjusted));
+  }
+
+  static double calculateSupportRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
+    double totalSupportAdj = 0;
+    if (isAdjusted && numRounds < 120) {
+      if (isTeam) {
+        totalSupportAdj = (120 - numRounds) * StatsDb.AVG_TEAM_SUPPORT_PER_ROUND;
+      } else {
+        totalSupportAdj = (120 - numRounds) * StatsDb.AVG_PLAYER_SUPPORT_PER_ROUND;
+      }
+      numRounds = 120;
+    }
+    if (numRounds == 0) {
+      return 0;
+    }
+    double totalSupported = totalSupportAdj;
+    totalSupported += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.SupportedGain);
+    double supportedPerRound = totalSupported / numRounds;
+    double rating;
+    if (isTeam) {
+      rating = supportedPerRound / (StatsDb.AVG_TEAM_SUPPORT_PER_ROUND * 2) * 100;
+    } else {
+      rating = supportedPerRound / (StatsDb.AVG_PLAYER_SUPPORT_PER_ROUND * 2) * 100;
+    }
+    return rating;
   }
 }
 
