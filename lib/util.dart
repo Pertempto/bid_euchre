@@ -34,7 +34,7 @@ class Util {
     List<String> playerNames = players.map((p) => p.shortName).toList();
     playerNames.sort();
     if (playerNames.length > 3) {
-      playerNames = playerNames.sublist(0, 4);
+      playerNames = playerNames.sublist(0, 3);
       playerNames.add('...');
     }
     return playerNames.join(' & ');
