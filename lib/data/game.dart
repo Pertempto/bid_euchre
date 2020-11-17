@@ -184,7 +184,7 @@ class Game {
             if (round.madeBid) {
               gameStatsMap[teamId].madeBids++;
             } else {
-              gameStatsMap[teamIds[1 - i]].supportedGain += -gainedPts;
+              gameStatsMap[teamIds[1 - i]].gainedBySet += -gainedPts;
             }
             gameStatsMap[teamId].biddingTotal += round.bid;
             gameStatsMap[teamId].gainedOnBids += gainedPts;
@@ -204,8 +204,8 @@ class Game {
         if (round.madeBid) {
           gameStatsMap[bidderId].madeBids++;
         } else {
-          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].supportedGain += -gainedPts;
-          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].supportedGain += -gainedPts;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].gainedBySet += -gainedPts;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].gainedBySet += -gainedPts;
         }
         gameStatsMap[bidderId].biddingTotal += round.bid;
         gameStatsMap[bidderId].gainedOnBids += gainedPts;

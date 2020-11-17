@@ -1,5 +1,4 @@
 import 'package:bideuchre/data/entity_raw_game_stats.dart';
-import 'package:bideuchre/data/stats.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'record.dart';
@@ -19,8 +18,8 @@ abstract class StatItem {
         return BidderRatingStatItem(0);
       case StatType.winnerRating:
         return WinnerRatingStatItem(0);
-      case StatType.supportRating:
-        return SupportRatingStatItem(0);
+      case StatType.setterRating:
+        return SetterRatingStatItem(0);
       case StatType.record:
         return WinLossRecordStatItem(Record(0, 0));
       case StatType.biddingRecord:
@@ -57,8 +56,8 @@ abstract class StatItem {
         throw Exception('Do not get bidder rating this way');
       case StatType.winnerRating:
         throw Exception('Do not get winner rating this way');
-      case StatType.supportRating:
-        throw Exception('Do not get support rating this way');
+      case StatType.setterRating:
+        throw Exception('Do not get setter rating this way');
       case StatType.record:
         return WinLossRecordStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingRecord:
@@ -120,8 +119,8 @@ abstract class StatItem {
         return 'Overall Rating';
       case StatType.winnerRating:
         return 'Winner Rating';
-      case StatType.supportRating:
-        return 'Support Rating';
+      case StatType.setterRating:
+        return 'Setter Rating';
     }
     return '';
   }
@@ -211,8 +210,6 @@ class BidderRatingStatItem extends RatingStatItem {
 }
 
 class WinnerRatingStatItem extends RatingStatItem {
-  static const double STRETCH_FACTOR = 2.5;
-
   String get statName => 'Winner Rating';
 
   WinnerRatingStatItem(double winnerRating) : super(winnerRating);
@@ -236,40 +233,31 @@ class WinnerRatingStatItem extends RatingStatItem {
   }
 }
 
-class SupportRatingStatItem extends RatingStatItem {
-  String get statName => 'Support Rating';
+class SetterRatingStatItem extends RatingStatItem {
+  static const MIDDLE_GAINED_BY_SET_PER_ROUND = 7 / 8;
 
-  SupportRatingStatItem(double supportRating) : super(supportRating);
+  String get statName => 'Setter Rating';
 
-  factory SupportRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam,
-      {bool isAdjusted = false}) {
-    return SupportRatingStatItem(calculateSupportRating(rawStats, isTeam, isAdjusted: isAdjusted));
+  SetterRatingStatItem(double setterRating) : super(setterRating);
+
+  factory SetterRatingStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+    return SetterRatingStatItem(calculateSetterRating(rawStats, isTeam, isAdjusted: isAdjusted));
   }
 
-  static double calculateSupportRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
+  static double calculateSetterRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
     int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
-    double totalSupportAdj = 0;
+    double totalSetterAdj = 0;
     if (isAdjusted && numRounds < 120) {
-      if (isTeam) {
-        totalSupportAdj = (120 - numRounds) * StatsDb.AVG_TEAM_SUPPORT_PER_ROUND;
-      } else {
-        totalSupportAdj = (120 - numRounds) * StatsDb.AVG_PLAYER_SUPPORT_PER_ROUND;
-      }
+      totalSetterAdj = (120 - numRounds) * MIDDLE_GAINED_BY_SET_PER_ROUND;
       numRounds = 120;
     }
     if (numRounds == 0) {
       return 0;
     }
-    double totalSupported = totalSupportAdj;
-    totalSupported += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.SupportedGain);
-    double supportedPerRound = totalSupported / numRounds;
-    double rating;
-    if (isTeam) {
-      rating = supportedPerRound / (StatsDb.AVG_TEAM_SUPPORT_PER_ROUND * 2) * 100;
-    } else {
-      rating = supportedPerRound / (StatsDb.AVG_PLAYER_SUPPORT_PER_ROUND * 2) * 100;
-    }
-    return rating;
+    double totalGainedBySetting = totalSetterAdj;
+    totalGainedBySetting += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedBySet);
+    double setGainPerRound = totalGainedBySetting / numRounds;
+    return setGainPerRound / (MIDDLE_GAINED_BY_SET_PER_ROUND * 2) * 100;
   }
 }
 

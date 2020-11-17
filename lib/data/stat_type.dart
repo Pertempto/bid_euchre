@@ -2,7 +2,7 @@ enum StatType {
   overallRating,
   bidderRating,
   winnerRating,
-  supportRating,
+  setterRating,
   record,
   biddingRecord,
   winningPercentage,

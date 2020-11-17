@@ -15,8 +15,6 @@ import 'stat_type.dart';
 class StatsDb {
   static const int MIN_GAMES = 3;
   static const int MIN_ROUNDS = 10;
-  static const double AVG_PLAYER_SUPPORT_PER_ROUND = 0.835;
-  static const double AVG_TEAM_SUPPORT_PER_ROUND = 0.835;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<String>> _entitiesGameIdsHistories;
@@ -38,8 +36,8 @@ class StatsDb {
       for (String id in gameRawStatsMap.keys) {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
-        if (!id.contains(" ")) {
-          total += gameRawStatsMap[id].supportedGain;
+        if (id.contains(" ")) {
+          total += gameRawStatsMap[id].gainedBySet;
           count += gameRawStatsMap[id].numRounds;
         }
       }
@@ -232,8 +230,8 @@ class StatsDb {
         return BidderRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
       case StatType.winnerRating:
         return WinnerRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
-      case StatType.supportRating:
-        return SupportRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
+      case StatType.setterRating:
+        return SetterRatingStatItem.fromRawStats(rawStats, entityId.contains(' '), isAdjusted: true);
       default:
         return StatItem.fromRawStats(statType, rawStats, entityId.contains(' '));
     }
