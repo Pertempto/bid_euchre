@@ -15,10 +15,8 @@ import 'stat_type.dart';
 class StatsDb {
   static const int MIN_GAMES = 3;
   static const int MIN_ROUNDS = 10;
-  static const double AVG_PLAYER_GAINED_PER_ROUND = 0.56;
-  static const double AVG_TEAM_GAINED_PER_ROUND = 1.12;
-  static const double AVG_PLAYER_SUPPORT_PER_ROUND = 1.81;
-  static const double AVG_TEAM_SUPPORT_PER_ROUND = 0.83;
+  static const double AVG_PLAYER_SUPPORT_PER_ROUND = 0.835;
+  static const double AVG_TEAM_SUPPORT_PER_ROUND = 0.835;
   List<Game> allGames;
   Map<String, Player> allPlayers;
   Map<String, List<String>> _entitiesGameIdsHistories;

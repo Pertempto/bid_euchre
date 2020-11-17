@@ -169,6 +169,9 @@ class OverallRatingStatItem extends RatingStatItem {
 }
 
 class BidderRatingStatItem extends RatingStatItem {
+  static const MIDDLE_TEAM_GAINED_PER_ROUND = 1.0;
+  static const MIDDLE_PLAYER_GAINED_PER_ROUND = 0.5;
+
   String get statName => 'Bidder Rating';
 
   BidderRatingStatItem(double bidderRating) : super(bidderRating);
@@ -183,9 +186,9 @@ class BidderRatingStatItem extends RatingStatItem {
     double totalGainedAdj = 0;
     if (isAdjusted && numRounds < 120) {
       if (isTeam) {
-        totalGainedAdj = (120 - numRounds) * StatsDb.AVG_TEAM_GAINED_PER_ROUND;
+        totalGainedAdj = (120 - numRounds) * MIDDLE_TEAM_GAINED_PER_ROUND;
       } else {
-        totalGainedAdj = (120 - numRounds) * StatsDb.AVG_PLAYER_GAINED_PER_ROUND;
+        totalGainedAdj = (120 - numRounds) * MIDDLE_PLAYER_GAINED_PER_ROUND;
       }
       numRounds = 120;
     }
@@ -199,9 +202,9 @@ class BidderRatingStatItem extends RatingStatItem {
     double gainedPerRound = totalGained / numRounds;
     double rating;
     if (isTeam) {
-      rating = gainedPerRound / (StatsDb.AVG_TEAM_GAINED_PER_ROUND * 2) * 100;
+      rating = gainedPerRound / (MIDDLE_TEAM_GAINED_PER_ROUND * 2) * 100;
     } else {
-      rating = gainedPerRound / (StatsDb.AVG_PLAYER_GAINED_PER_ROUND * 2) * 100;
+      rating = gainedPerRound / (MIDDLE_PLAYER_GAINED_PER_ROUND * 2) * 100;
     }
     return rating;
   }
