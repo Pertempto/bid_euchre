@@ -37,6 +37,7 @@ class _OverviewSectionState extends State<OverviewSection>
         data.statsDb.getStat(id, StatType.overallRating, DataStore.displayArchivedStats);
     BidderRatingStatItem bidderRating = data.statsDb.getStat(id, StatType.bidderRating, DataStore.displayArchivedStats);
     WinnerRatingStatItem winnerRating = data.statsDb.getStat(id, StatType.winnerRating, DataStore.displayArchivedStats);
+    SetterRatingStatItem setterRating = data.statsDb.getStat(id, StatType.setterRating, DataStore.displayArchivedStats);
     List<Widget> children = [
       ListTile(
         title: Text('Overview', style: textTheme.headline6),
@@ -113,6 +114,31 @@ class _OverviewSectionState extends State<OverviewSection>
             Expanded(
               child: Container(height: 4),
               flex: ((100 - winnerRating.rating) * 10).round(),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+        child: Row(
+          children: <Widget>[
+            Text('Setter Rating', style: titleStyle),
+            Spacer(),
+            Text(setterRating.toString(), style: statStyle, textAlign: TextAlign.end),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 2, 16, 4),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Container(height: 4, color: data.statsDb.getColor(id)),
+              flex: (setterRating.rating * 10).round(),
+            ),
+            Expanded(
+              child: Container(height: 4),
+              flex: ((100 - setterRating.rating) * 10).round(),
             ),
           ],
         ),

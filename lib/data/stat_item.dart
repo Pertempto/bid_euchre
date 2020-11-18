@@ -162,7 +162,8 @@ class OverallRatingStatItem extends RatingStatItem {
   static double calculateOverallRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
     double bidderRating = BidderRatingStatItem.calculateBidderRating(rawStats, isTeam, isAdjusted: isAdjusted);
     double winnerRating = WinnerRatingStatItem.calculateWinnerRating(rawStats, isTeam, isAdjusted: isAdjusted);
-    double ovr = bidderRating * 0.5 + winnerRating * 0.5;
+    double setterRating = SetterRatingStatItem.calculateSetterRating(rawStats, isTeam, isAdjusted: isAdjusted);
+    double ovr = bidderRating * 0.4 + winnerRating * 0.4 + setterRating * 0.2;
     return ovr;
   }
 }
@@ -198,6 +199,7 @@ class BidderRatingStatItem extends RatingStatItem {
     if (numBids != 0) {
       totalGained += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
     }
+    // TODO: should not include rounds where partner bid
     double gainedPerRound = totalGained / numRounds;
     double rating;
     if (isTeam) {
@@ -257,6 +259,7 @@ class SetterRatingStatItem extends RatingStatItem {
     double totalGainedBySetting = totalSetterAdj;
     totalGainedBySetting += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedBySet);
     double setGainPerRound = totalGainedBySetting / numRounds;
+    // TODO: should be based on amount of times other team bid, not on total rounds. Right now it penalizes entities that bid a lot
     return setGainPerRound / (MIDDLE_GAINED_BY_SET_PER_ROUND * 2) * 100;
   }
 }
