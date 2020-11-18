@@ -8,6 +8,7 @@ class EntityRawGameStats {
   int numRounds;
   int numPoints;
   int numBids;
+  int numOBids;
   int madeBids;
   int biddingTotal;
   int gainedOnBids;
@@ -17,6 +18,7 @@ class EntityRawGameStats {
     this.numRounds = 0;
     this.numPoints = 0;
     this.numBids = 0;
+    this.numOBids = 0;
     this.madeBids = 0;
     this.biddingTotal = 0;
     this.gainedOnBids = 0;
@@ -39,6 +41,9 @@ class EntityRawGameStats {
         case CombinableRawStat.NumBids:
           total += gameRawStats.numBids;
           break;
+        case CombinableRawStat.NumOBids:
+          total += gameRawStats.numOBids;
+          break;
         case CombinableRawStat.MadeBids:
           total += gameRawStats.madeBids;
           break;
@@ -57,4 +62,14 @@ class EntityRawGameStats {
   }
 }
 
-enum CombinableRawStat { NumGames, NumRounds, NumPoints, NumBids, MadeBids, BiddingTotal, GainedOnBids, GainedBySet }
+enum CombinableRawStat {
+  NumGames,
+  NumRounds,
+  NumPoints,
+  NumBids,
+  NumOBids,
+  MadeBids,
+  BiddingTotal,
+  GainedOnBids,
+  GainedBySet
+}

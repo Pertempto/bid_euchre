@@ -169,8 +169,9 @@ class OverallRatingStatItem extends RatingStatItem {
 }
 
 class BidderRatingStatItem extends RatingStatItem {
-  static const MIDDLE_TEAM_GAINED_PER_ROUND = 1.0;
-  static const MIDDLE_PLAYER_GAINED_PER_ROUND = 0.5;
+  static const MIN_NUM_OPPORTUNITIES = 120;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.12;
+  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.745;
 
   String get statName => 'Bidder Rating';
 
@@ -182,32 +183,30 @@ class BidderRatingStatItem extends RatingStatItem {
 
   static double calculateBidderRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
     int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
-    int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
+    int numOBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumOBids);
+    int numOpportunities = numBids + numOBids;
     double totalGainedAdj = 0;
-    if (isAdjusted && numRounds < 120) {
+    if (isAdjusted && numOpportunities < MIN_NUM_OPPORTUNITIES) {
       if (isTeam) {
-        totalGainedAdj = (120 - numRounds) * MIDDLE_TEAM_GAINED_PER_ROUND;
+        totalGainedAdj = (MIN_NUM_OPPORTUNITIES - numOpportunities) * MIDDLE_TEAM_GAINED_PER_OPPORTUNITY;
       } else {
-        totalGainedAdj = (120 - numRounds) * MIDDLE_PLAYER_GAINED_PER_ROUND;
+        totalGainedAdj = (MIN_NUM_OPPORTUNITIES - numOpportunities) * MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY;
       }
-      numRounds = 120;
+      numOpportunities = MIN_NUM_OPPORTUNITIES;
     }
-    if (numRounds == 0) {
+    if (numOpportunities == 0) {
       return 0;
     }
     double totalGained = totalGainedAdj;
     if (numBids != 0) {
       totalGained += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
     }
-    // TODO: should not include rounds where partner bid
-    double gainedPerRound = totalGained / numRounds;
-    double rating;
+    double gainedPerOpportunity = totalGained / numOpportunities;
     if (isTeam) {
-      rating = gainedPerRound / (MIDDLE_TEAM_GAINED_PER_ROUND * 2) * 100;
+      return gainedPerOpportunity / (MIDDLE_TEAM_GAINED_PER_OPPORTUNITY * 2) * 100;
     } else {
-      rating = gainedPerRound / (MIDDLE_PLAYER_GAINED_PER_ROUND * 2) * 100;
+      return gainedPerOpportunity / (MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY * 2) * 100;
     }
-    return rating;
   }
 }
 
@@ -236,7 +235,8 @@ class WinnerRatingStatItem extends RatingStatItem {
 }
 
 class SetterRatingStatItem extends RatingStatItem {
-  static const MIDDLE_GAINED_BY_SET_PER_ROUND = 7 / 8;
+  static const MIN_NUM_O_BIDS = 60;
+  static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.68;
 
   String get statName => 'Setter Rating';
 
@@ -247,20 +247,19 @@ class SetterRatingStatItem extends RatingStatItem {
   }
 
   static double calculateSetterRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
-    int numRounds = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumRounds);
+    int numOBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumOBids);
     double totalSetterAdj = 0;
-    if (isAdjusted && numRounds < 120) {
-      totalSetterAdj = (120 - numRounds) * MIDDLE_GAINED_BY_SET_PER_ROUND;
-      numRounds = 120;
+    if (isAdjusted && numOBids < MIN_NUM_O_BIDS) {
+      totalSetterAdj = (MIN_NUM_O_BIDS - numOBids) * MIDDLE_GAINED_BY_SET_PER_O_BID;
+      numOBids = MIN_NUM_O_BIDS;
     }
-    if (numRounds == 0) {
+    if (numOBids == 0) {
       return 0;
     }
     double totalGainedBySetting = totalSetterAdj;
     totalGainedBySetting += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedBySet);
-    double setGainPerRound = totalGainedBySetting / numRounds;
-    // TODO: should be based on amount of times other team bid, not on total rounds. Right now it penalizes entities that bid a lot
-    return setGainPerRound / (MIDDLE_GAINED_BY_SET_PER_ROUND * 2) * 100;
+    double setGainPerOBid = totalGainedBySetting / numOBids;
+    return setGainPerOBid / (MIDDLE_GAINED_BY_SET_PER_O_BID * 2) * 100;
   }
 }
 

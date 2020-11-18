@@ -172,6 +172,7 @@ class Game {
     for (Round round in rounds) {
       for (int i = 0; i < 2; i++) {
         String teamId = teamIds[i];
+        String oTeamId = teamIds[1 - i];
         if (teamId == null) {
           continue;
         }
@@ -180,11 +181,12 @@ class Game {
           gameStatsMap[teamId].numPoints += round.score[i];
           if (round.bidderIndex % 2 == i) {
             gameStatsMap[teamId].numBids++;
+            gameStatsMap[oTeamId].numOBids++;
             int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
             if (round.madeBid) {
               gameStatsMap[teamId].madeBids++;
             } else {
-              gameStatsMap[teamIds[1 - i]].gainedBySet += -gainedPts;
+              gameStatsMap[oTeamId].gainedBySet += -gainedPts;
             }
             gameStatsMap[teamId].biddingTotal += round.bid;
             gameStatsMap[teamId].gainedOnBids += gainedPts;
@@ -200,6 +202,8 @@ class Game {
         }
         String bidderId = rPlayerIds[round.bidderIndex];
         gameStatsMap[bidderId].numBids++;
+        gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].numOBids++;
+        gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].numOBids++;
         int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
         if (round.madeBid) {
           gameStatsMap[bidderId].madeBids++;

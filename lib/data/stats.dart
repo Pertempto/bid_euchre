@@ -37,8 +37,8 @@ class StatsDb {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
         if (id.contains(" ")) {
-          total += gameRawStatsMap[id].gainedBySet;
-          count += gameRawStatsMap[id].numRounds;
+          total += gameRawStatsMap[id].gainedOnBids;
+          count += gameRawStatsMap[id].numOBids + gameRawStatsMap[id].numBids;
         }
       }
       _gameRawStats[g.gameId] = gameRawStatsMap;
