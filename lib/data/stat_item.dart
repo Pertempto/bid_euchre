@@ -169,8 +169,8 @@ class OverallRatingStatItem extends RatingStatItem {
 }
 
 class BidderRatingStatItem extends RatingStatItem {
-  static const MIN_NUM_OPPORTUNITIES = 120;
-  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.12;
+  static const MIN_NUM_OPPORTUNITIES = 240;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.117;
   static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.745;
 
   String get statName => 'Bidder Rating';
@@ -211,6 +211,8 @@ class BidderRatingStatItem extends RatingStatItem {
 }
 
 class WinnerRatingStatItem extends RatingStatItem {
+  static const MIN_NUM_GAMES = 20;
+
   String get statName => 'Winner Rating';
 
   WinnerRatingStatItem(double winnerRating) : super(winnerRating);
@@ -224,7 +226,7 @@ class WinnerRatingStatItem extends RatingStatItem {
     double wins = record.wins.toDouble();
     double losses = record.losses.toDouble();
     if (isAdjusted) {
-      double extra = wins + losses >= 10 ? 0 : 10 - (wins + losses);
+      double extra = wins + losses >= MIN_NUM_GAMES ? 0 : MIN_NUM_GAMES - (wins + losses);
       wins += extra / 2;
       losses += extra / 2;
     }
@@ -235,7 +237,7 @@ class WinnerRatingStatItem extends RatingStatItem {
 }
 
 class SetterRatingStatItem extends RatingStatItem {
-  static const MIN_NUM_O_BIDS = 60;
+  static const MIN_NUM_O_BIDS = 120;
   static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.68;
 
   String get statName => 'Setter Rating';
