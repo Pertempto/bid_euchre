@@ -1,7 +1,7 @@
 import 'package:bideuchre/data/data_store.dart';
+import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/stat_item.dart';
 import 'package:bideuchre/data/stat_type.dart';
-import 'package:bideuchre/data/stats.dart';
 import 'package:bideuchre/widgets/stat_selection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,18 +11,16 @@ import 'player_profile.dart';
 import 'team_profile.dart';
 
 class StatsList extends StatefulWidget {
-  final bool teams;
-
-  StatsList(this.teams);
+  StatsList();
 
   @override
   _StatsListState createState() => _StatsListState();
 }
 
 class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixin<StatsList> {
-  bool teams;
   StatType displayStatType = StatType.overallRating;
-  bool showInfrequent = false;
+  bool teams = false;
+  bool showAll = false;
   String filterText;
   TextEditingController searchController;
   TextTheme textTheme;
@@ -39,7 +37,6 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    teams = widget.teams;
     textTheme = Theme.of(context).textTheme;
     if (filterText == null) {
       filterText = '';
@@ -51,11 +48,9 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       } else {
         ids = data.players.keys.toList();
       }
-      if (!showInfrequent) {
+      if (!showAll) {
         ids = ids.where((id) {
-          bool hasEnoughGames =
-              (data.statsDb.getStat(id, StatType.numRounds, false) as IntStatItem).value >= StatsDb.MIN_ROUNDS;
-          return hasEnoughGames;
+          return (data.statsDb.getStat(id, StatType.numRounds, false) as IntStatItem).value >= 36;
         }).toList();
       }
       Map<String, String> names = {};
@@ -70,69 +65,21 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
       }
       ids.sort((a, b) {
         int statCmp = data.statsDb
-            .getStat(a, displayStatType, false)
+            .getStat(a, displayStatType, DataStore.displayArchivedStats)
             .sortValue
-            .compareTo(data.statsDb.getStat(b, displayStatType, false).sortValue);
+            .compareTo(data.statsDb.getStat(b, displayStatType, DataStore.displayArchivedStats).sortValue);
         if (statCmp != 0) {
           return statCmp;
         }
         return names[a].compareTo(names[b]);
       });
 
-      List<Widget> children = [
-        ExpansionTile(
-          title: Text(StatItem.getStatName(displayStatType), style: textTheme.headline6),
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: Row(
-                children: <Widget>[
-                  OutlineButton(
-                    child: Text('Select Stat'),
-                    onPressed: selectStat,
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                          hintText: teams ? 'Team Search' : 'Player Search', prefixIcon: Icon(Icons.search)),
-                      onChanged: (value) {
-                        setState(() {
-                          filterText = value.trim().toLowerCase();
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: Row(
-                children: <Widget>[
-                  Text(teams ? 'Show Infrequent Teams:' : 'Show Infrequent Players:', style: textTheme.subtitle1),
-                  Spacer(),
-                  Switch.adaptive(
-                    value: showInfrequent,
-                    onChanged: (value) {
-                      setState(() {
-                        showInfrequent = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-      ];
+      List<Widget> children = [SizedBox(height: 8)];
       int placeNum = 0;
       int playerNum = 0;
       double lastSortValue;
       for (String id in ids) {
-        StatItem statItem = data.statsDb.getStat(id, displayStatType, false);
+        StatItem statItem = data.statsDb.getStat(id, displayStatType, DataStore.displayArchivedStats);
         playerNum++;
         if (statItem.sortValue != lastSortValue) {
           placeNum = playerNum;
@@ -140,8 +87,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
         }
         if (filterText.isEmpty || names[id].toLowerCase().contains(filterText)) {
           Icon trendIcon;
-          if (!showInfrequent &&
-              (displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating)) {
+          if ((displayStatType == StatType.overallRating || displayStatType == StatType.bidderRating)) {
             double recentRating = data.statsDb.getRecentRating(id, displayStatType).rating;
             double rating = (statItem as RatingStatItem).rating;
             if (recentRating > rating + 20) {
@@ -199,8 +145,102 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
         }
       }
       children.add(SizedBox(height: 32));
-      return SingleChildScrollView(
-        child: Column(children: children),
+      return Column(
+        children: [
+          Material(
+            elevation: 1,
+            child: Column(
+              children: [
+                Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: CupertinoSlidingSegmentedControl(
+                      children: Map.fromIterable(
+                        [false, true],
+                        key: (i) => i,
+                        value: (i) => Text(i ? 'Teams' : 'Players'),
+                      ),
+                      onValueChanged: (value) {
+                        setState(() {
+                          teams = value;
+                        });
+                      },
+                      groupValue: teams,
+                    )),
+                ExpansionTile(
+                  title: Column(
+                    children: [
+                      Text(StatItem.getStatName(displayStatType), style: textTheme.headline6),
+                    ],
+                  ),
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                      child: Row(
+                        children: <Widget>[
+                          OutlineButton(
+                            child: Text('Select Stat'),
+                            onPressed: selectStat,
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(hintText: 'Search', prefixIcon: Icon(Icons.search)),
+                              onChanged: (value) {
+                                setState(() {
+                                  filterText = value.trim().toLowerCase();
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            [false, true],
+                            key: (i) => i,
+                            value: (i) => Text(i ? 'All Time' : 'Last ${Game.ARCHIVE_AGE} Days'),
+                          ),
+                          onValueChanged: (value) {
+                            setState(() {
+                              DataStore.displayArchivedStats = value;
+                            });
+                          },
+                          groupValue: DataStore.displayArchivedStats,
+                        )),
+                    Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: CupertinoSlidingSegmentedControl(
+                          children: Map.fromIterable(
+                            [false, true],
+                            key: (i) => i,
+                            value: (i) => Text(i ? 'All' : 'Active'),
+                          ),
+                          onValueChanged: (value) {
+                            setState(() {
+                              showAll = value;
+                            });
+                          },
+                          groupValue: showAll,
+                        )),
+                    SizedBox(height: 8)
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(children: children),
+            ),
+          ),
+        ],
       );
     });
   }

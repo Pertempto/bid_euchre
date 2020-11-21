@@ -15,25 +15,11 @@ class _StatsPageState extends State<StatsPage> {
   @override
   Widget build(BuildContext context) {
     return DataStore.dataWrap((data) {
-      return DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Stats'),
-            bottom: TabBar(
-              tabs: <Widget>[
-                Tab(icon: Icon(Icons.person), text: 'Players'),
-                Tab(icon: Icon(Icons.people), text: 'Teams'),
-              ],
-            ),
-          ),
-          body: TabBarView(
-            children: <Widget>[
-              StatsList(false),
-              StatsList(true),
-            ],
-          ),
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Stats'),
         ),
+        body: StatsList(),
       );
     });
   }
