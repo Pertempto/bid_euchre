@@ -4,7 +4,6 @@ import 'package:bideuchre/data/data_store.dart';
 import 'package:bideuchre/data/game.dart';
 import 'package:bideuchre/data/stat_item.dart';
 import 'package:bideuchre/data/stat_type.dart';
-import 'package:bideuchre/data/stats.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,12 @@ class TrendsSection extends StatefulWidget {
 
 class _TrendsSectionState extends State<TrendsSection>
     with AutomaticKeepAliveClientMixin<TrendsSection>, SingleTickerProviderStateMixin {
-  static const List<StatType> SELECTABLE_STATS = [StatType.overallRating, StatType.bidderRating, StatType.winnerRating];
+  static const List<StatType> SELECTABLE_STATS = [
+    StatType.overallRating,
+    StatType.bidderRating,
+    StatType.winnerRating,
+    StatType.setterRating
+  ];
   String id;
   Data data;
   StatType displayStat = StatType.overallRating;
@@ -40,7 +44,7 @@ class _TrendsSectionState extends State<TrendsSection>
     id = widget.id;
     data = DataStore.currentData;
     List<Game> games = data.statsDb.getGames(id, DataStore.displayArchivedStats);
-    if (games.length < StatsDb.MIN_GAMES) {
+    if (games.length < 2) {
       return Container();
     }
     int numGames = min(games.length, 20);
@@ -56,7 +60,7 @@ class _TrendsSectionState extends State<TrendsSection>
       padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: CupertinoSlidingSegmentedControl(
         groupValue: displayStat,
-        children: Map.fromIterable(SELECTABLE_STATS, value: (st) => Text(StatItem.getStatName(st))),
+        children: Map.fromIterable(SELECTABLE_STATS, value: (st) => Text(StatItem.getStatName(st).split(' ')[0])),
         onValueChanged: (value) {
           setState(() {
             displayStat = value;
@@ -79,6 +83,7 @@ class _TrendsSectionState extends State<TrendsSection>
                     show: stat == displayStat,
                     spots: List.generate(numGames, (index) {
                       double rating;
+                      // TODO: combine different ___RatingAfterGame methods
                       if (stat == StatType.overallRating) {
                         rating = data.statsDb.getRatingAfterGame(id, games[index].gameId,
                             includeArchived: DataStore.displayArchivedStats);
@@ -87,6 +92,9 @@ class _TrendsSectionState extends State<TrendsSection>
                             includeArchived: DataStore.displayArchivedStats);
                       } else if (stat == StatType.winnerRating) {
                         rating = data.statsDb.getWinnerRatingAfterGame(id, games[index].gameId,
+                            includeArchived: DataStore.displayArchivedStats);
+                      } else if (stat == StatType.setterRating) {
+                        rating = data.statsDb.getSetterRatingAfterGame(id, games[index].gameId,
                             includeArchived: DataStore.displayArchivedStats);
                       }
                       rating = (rating * 10).round() / 10.0;

@@ -13,7 +13,6 @@ import 'stat_item.dart';
 import 'stat_type.dart';
 
 class StatsDb {
-  static const int MIN_GAMES = 3;
   static const int MIN_ROUNDS = 10;
   List<Game> allGames;
   Map<String, Player> allPlayers;
@@ -52,15 +51,13 @@ class StatsDb {
       String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
       List<Game> games = getGames(teamId, false);
       double teamRating;
-      if (games.length < MIN_GAMES) {
+      if (games.isEmpty) {
         double totalPlayerRating = 0;
         for (int j = 0; j < 2; j++) {
           String playerId = currentPlayerIds[i + j * 2];
           totalPlayerRating += (getStat(playerId, StatType.overallRating, false) as OverallRatingStatItem).rating;
         }
-        teamRating = totalPlayerRating / 2 * (MIN_GAMES - games.length);
-        teamRating += (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating * games.length;
-        teamRating /= MIN_GAMES;
+        teamRating = totalPlayerRating / 2;
       } else {
         teamRating = (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating;
       }
@@ -206,7 +203,7 @@ class StatsDb {
       return StatItem.empty(statType);
     }
     List<String> gameIds = _entitiesGameIdsHistories[entityId];
-    gameIds = gameIds.sublist(max(gameIds.length - MIN_GAMES, 0));
+    gameIds = gameIds.sublist(max(gameIds.length - 3, 0));
     switch (statType) {
       case StatType.overallRating:
         return OverallRatingStatItem.fromRawStats(getRawStats(entityId, gameIds, false), entityId.contains(' '));
@@ -215,6 +212,14 @@ class StatsDb {
       default:
         throw Exception('Stat type is not a rating: $statType');
     }
+  }
+
+  double getSetterRatingAfterGame(String entityId, String gameId, {bool includeArchived = false}) {
+    int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
+    List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
+    return SetterRatingStatItem.calculateSetterRating(
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '),
+        isAdjusted: true);
   }
 
   StatItem getStat(String entityId, StatType statType, bool includeArchived) {
