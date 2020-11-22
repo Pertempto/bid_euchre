@@ -168,11 +168,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                       groupValue: teams,
                     )),
                 ExpansionTile(
-                  title: Column(
-                    children: [
-                      Text(StatItem.getStatName(displayStatType), style: textTheme.headline6),
-                    ],
-                  ),
+                  title: Text(StatItem.getStatName(displayStatType), style: textTheme.headline6),
                   children: <Widget>[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
