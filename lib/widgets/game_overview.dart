@@ -310,6 +310,7 @@ class _GameOverviewState extends State<GameOverview>
     }
     double madeBidPercent = MadeBidPercentageStatItem.fromRawStats([rawStats], isSelectedTeam).percentage;
     BidderRatingStatItem thisGameBidderRating = BidderRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
+    SetterRatingStatItem thisGameSetterRating = SetterRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
     BidderRatingStatItem bidderRating = data.statsDb.getStat(selectedId, StatType.bidderRating, false);
     BiddingFrequencyStatItem biddingFrequency = data.statsDb.getStat(selectedId, StatType.biddingFrequency, false);
     GainedPerBidStatItem gainedPerBid = data.statsDb.getStat(selectedId, StatType.gainedPerBid, false);
@@ -322,6 +323,8 @@ class _GameOverviewState extends State<GameOverview>
             statBar('Made Bids', '${rawStats.madeBids}/${rawStats.numBids}', madeBidPercent, selectedTeamColor),
             statBar(
                 'Bidder Rating', thisGameBidderRating.toString(), thisGameBidderRating.rating / 100, selectedTeamColor),
+            statBar(
+                'Setter Rating', thisGameSetterRating.toString(), thisGameSetterRating.rating / 100, selectedTeamColor),
           ],
         ),
         SizedBox(height: 16),
