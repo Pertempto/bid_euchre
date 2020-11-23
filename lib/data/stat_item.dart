@@ -170,8 +170,8 @@ class OverallRatingStatItem extends RatingStatItem {
 
 class BidderRatingStatItem extends RatingStatItem {
   static const MIN_NUM_OPPORTUNITIES = 240;
-  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.117;
-  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.745;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.1;
+  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.74;
 
   String get statName => 'Bidder Rating';
 
@@ -238,7 +238,7 @@ class WinnerRatingStatItem extends RatingStatItem {
 
 class SetterRatingStatItem extends RatingStatItem {
   static const MIN_NUM_O_BIDS = 120;
-  static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.68;
+  static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.7;
 
   String get statName => 'Setter Rating';
 
@@ -363,10 +363,17 @@ class WinLossRecordStatItem extends RecordStatItem {
   }
 
   static Record calculateRecord(List<EntityRawGameStats> rawStats) {
-    List<bool> recentDiffs =
-        rawStats.where((gameStats) => gameStats.isFullGame).map((gameStats) => gameStats.won).toList().cast<bool>();
-    int wins = recentDiffs.where((won) => won).length;
-    int losses = recentDiffs.where((won) => !won).length;
+    int wins = 0;
+    int losses = 0;
+    for (EntityRawGameStats gameStats in rawStats) {
+      if (gameStats.fractionOfGame >= 0.5) {
+        if (gameStats.won) {
+          wins++;
+        } else {
+          losses++;
+        }
+      }
+    }
     return Record(wins, losses);
   }
 }

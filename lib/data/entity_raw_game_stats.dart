@@ -2,27 +2,32 @@ class EntityRawGameStats {
   String entityId;
   bool isFinished;
   bool isArchived;
-  bool isFullGame;
   bool won;
   int timestamp;
   int numRounds;
+  int gameNumRounds;
   int numPoints;
   int numBids;
   int numOBids;
   int madeBids;
   int biddingTotal;
   int gainedOnBids;
-  int gainedBySet;
+  int gainedOnSets;
+
+  double get fractionOfGame {
+    return numRounds / gameNumRounds;
+  }
 
   EntityRawGameStats(this.entityId) {
     this.numRounds = 0;
+    this.gameNumRounds = 0;
     this.numPoints = 0;
     this.numBids = 0;
     this.numOBids = 0;
     this.madeBids = 0;
     this.biddingTotal = 0;
     this.gainedOnBids = 0;
-    this.gainedBySet = 0;
+    this.gainedOnSets = 0;
   }
 
   static int combineRawStats(List<EntityRawGameStats> rawStats, CombinableRawStat rawStat) {
@@ -54,7 +59,7 @@ class EntityRawGameStats {
           total += gameRawStats.gainedOnBids;
           break;
         case CombinableRawStat.GainedBySet:
-          total += gameRawStats.gainedBySet;
+          total += gameRawStats.gainedOnSets;
           break;
       }
     }
