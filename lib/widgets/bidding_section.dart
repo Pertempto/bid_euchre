@@ -63,18 +63,21 @@ class _BiddingSectionState extends State<BiddingSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Bids', style: titleStyle), flex: 6),
+            Expanded(child: Text('Opportunities', style: titleStyle), flex: 6),
             Expanded(
-              child: Text(data.statsDb.getStat(id, StatType.numBids, DataStore.displayArchivedStats).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
+              child: Text(
+                  data.statsDb.getStat(id, StatType.numBiddingOpportunities, DataStore.displayArchivedStats).toString(),
+                  style: statStyle,
+                  textAlign: TextAlign.end),
               flex: 2,
             ),
             Expanded(child: Container(), flex: 1),
-            Expanded(child: Text('Bidding Freq.', style: titleStyle), flex: 5),
+            Expanded(child: Text('Oftenness', style: titleStyle), flex: 5),
             Expanded(
               child: Text(
-                  data.statsDb.getStat(id, StatType.biddingFrequency, DataStore.displayArchivedStats).toString(),
-                  style: statStyle, textAlign: TextAlign.end),
+                  data.statsDb.getStat(id, StatType.biddingOftenness, DataStore.displayArchivedStats).toString(),
+                  style: statStyle,
+                  textAlign: TextAlign.end),
               flex: 3,
             ),
           ],

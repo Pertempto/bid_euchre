@@ -31,13 +31,13 @@ class StatsDb {
     int count = 0;
     // only finished games for now
     for (Game g in allGames.reversed.where((g) => g.isFinished)) {
-      Map gameRawStatsMap = g.rawStatsMap;
+      Map<String, EntityRawGameStats> gameRawStatsMap = g.rawStatsMap;
       for (String id in gameRawStatsMap.keys) {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
-        if (id.contains(" ")) {
-          total += gameRawStatsMap[id].gainedOnSets;
-          count += gameRawStatsMap[id].numOBids;
+        if (!id.contains(" ")) {
+          total += gameRawStatsMap[id].gainedOnBids;
+          count += gameRawStatsMap[id].numBiddingOpportunities;
         }
       }
       _gameRawStats[g.gameId] = gameRawStatsMap;

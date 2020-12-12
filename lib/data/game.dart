@@ -180,10 +180,12 @@ class Game {
           gameStatsMap[teamId].numPoints += round.score[i];
           if (round.bidderIndex % 2 == i) {
             gameStatsMap[teamId].numBids++;
+            gameStatsMap[teamId].numBiddingOpportunities++;
             gameStatsMap[oTeamId].numOBids++;
             int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
             if (round.madeBid) {
               gameStatsMap[teamId].madeBids++;
+              gameStatsMap[oTeamId].numBiddingOpportunities++;
             } else {
               gameStatsMap[oTeamId].gainedOnSets += -gainedPts;
             }
@@ -201,11 +203,14 @@ class Game {
         }
         String bidderId = rPlayerIds[round.bidderIndex];
         gameStatsMap[bidderId].numBids++;
+        gameStatsMap[bidderId].numBiddingOpportunities++;
         gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].numOBids++;
         gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].numOBids++;
         int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
         if (round.madeBid) {
           gameStatsMap[bidderId].madeBids++;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].numBiddingOpportunities++;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].numBiddingOpportunities++;
         } else {
           gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].gainedOnSets += -gainedPts;
           gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].gainedOnSets += -gainedPts;

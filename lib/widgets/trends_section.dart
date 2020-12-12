@@ -72,10 +72,7 @@ class _TrendsSectionState extends State<TrendsSection>
     EdgeInsets padding = EdgeInsets.fromLTRB(24, 40, 24, 16);
     double height = 250;
     double width = numGames * 5.0;
-    if (width < MediaQuery
-        .of(context)
-        .size
-        .width) {
+    if (width < MediaQuery.of(context).size.width) {
       children.add(Container(
         height: height,
         width: double.infinity,
