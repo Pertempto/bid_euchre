@@ -38,6 +38,12 @@ class _PlayerSettingsState extends State<PlayerSettings> {
                   },
           ),
           Divider(),
+          ListTile(
+            title: Text('Added By', style: leadingStyle),
+            trailing: Text(data.users[player.ownerId].name, style: trailingStyle),
+            dense: true,
+          ),
+          Divider(),
           if (!data.currentUser.pinnedPlayerIds.contains(player.playerId))
             ListTile(
               title: Text('Pin', style: leadingStyle),

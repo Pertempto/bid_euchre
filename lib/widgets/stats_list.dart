@@ -133,6 +133,7 @@ class _StatsListState extends State<StatsList> with AutomaticKeepAliveClientMixi
                 ],
               ),
             ),
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               if (teams) {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(id)));
