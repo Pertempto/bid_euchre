@@ -36,7 +36,8 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       if (showSharedGames) {
         filteredGames = filteredGames
             .where((g) => (g.userId != data.currentUser.userId &&
-                data.relationshipsDb.canShare(g.userId, data.currentUser.userId)))
+                data.relationshipsDb.canShare(g.userId, data.currentUser.userId) &&
+                g.rounds.length > 1))
             .toList();
       } else {
         filteredGames = filteredGames.where((g) => (g.userId == data.currentUser.userId)).toList();
@@ -54,7 +55,7 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
               width: double.infinity,
               padding: EdgeInsets.all(16),
               child: Text(
-                showSharedGames ? 'No shared games!' : 'Start a game to see it here!',
+                showSharedGames ? 'Join a group to see your friends\'s games here!' : 'Start a game to see it here!',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyText1,
               ),
