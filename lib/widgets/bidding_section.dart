@@ -41,13 +41,13 @@ class _BiddingSectionState extends State<BiddingSection>
         padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text('Made %', style: titleStyle), flex: 6),
+            Expanded(child: Text('Made %', style: titleStyle), flex: 5),
             Expanded(
               child: Text(
                   data.statsDb.getStat(id, StatType.madeBidPercentage, DataStore.displayArchivedStats).toString(),
                   style: statStyle,
                   textAlign: TextAlign.end),
-              flex: 2,
+              flex: 3,
             ),
             Expanded(child: Container(), flex: 1),
             Expanded(child: Text('Made-Set', style: titleStyle), flex: 5),

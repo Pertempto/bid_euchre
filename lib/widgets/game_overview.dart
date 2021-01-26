@@ -7,16 +7,15 @@ import 'package:bideuchre/data/player.dart';
 import 'package:bideuchre/data/round.dart';
 import 'package:bideuchre/data/stat_item.dart';
 import 'package:bideuchre/data/stat_type.dart';
+import 'package:bideuchre/util.dart';
+import 'package:bideuchre/widgets/player_profile.dart';
 import 'package:bideuchre/widgets/player_selection.dart';
+import 'package:bideuchre/widgets/team_profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-
-import '../util.dart';
-import 'player_profile.dart';
-import 'team_profile.dart';
 
 class GameOverview extends StatefulWidget {
   final Game game;
@@ -43,6 +42,8 @@ class _GameOverviewState extends State<GameOverview>
   bool get wantKeepAlive => true;
 
   bool get isSelectedTeam => selectedId.contains(" ");
+
+  bool get isSmallScreen => MediaQuery.of(context).size.height <= 600;
 
   Color get selectedTeamColor {
     int teamIndex;
@@ -149,10 +150,10 @@ class _GameOverviewState extends State<GameOverview>
             style: OutlinedButton.styleFrom(
               backgroundColor: selectedId == teamId ? Colors.white : game.teamColors[index],
               side: BorderSide(
-                width: 8.0,
+                width: 4,
                 color: game.teamColors[index],
               ),
-              padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 2 : 8),
             ),
             child: Text(
               scoreStrings[index],
@@ -218,8 +219,11 @@ class _GameOverviewState extends State<GameOverview>
                 padding: EdgeInsets.fromLTRB(12, 4, 12, 4),
                 child: Column(
                   children: [
-                    Text(player.shortName, style: textTheme.headline4.copyWith(color: teamColor)),
-                    if (captionStrings.isNotEmpty) Text(captionStrings.join(', '), style: textTheme.bodyText1),
+                    Text(player.shortName,
+                        style: textTheme.headline4.copyWith(color: teamColor, fontSize: isSmallScreen ? 24 : null)),
+                    if (captionStrings.isNotEmpty)
+                      Text(captionStrings.join(', '),
+                          style: textTheme.bodyText1.copyWith(fontSize: isSmallScreen ? 12 : null)),
                   ],
                 ),
                 onPressed: () {
@@ -243,31 +247,29 @@ class _GameOverviewState extends State<GameOverview>
   Widget bottomPane(BuildContext context) {
     if (selectedId == null) {
       return Container(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+          padding: EdgeInsets.all(32),
           alignment: Alignment.center,
           child: Text(
             'Select a team or player to view them here',
             style: textTheme.subtitle1,
+            textAlign: TextAlign.center,
           ));
     }
 
     List<Widget> children = [
-      Padding(
-        padding: EdgeInsets.fromLTRB(0, 4, 0, 8),
-        child: GestureDetector(
-            child: Text(selectedFullName, style: textTheme.headline5.copyWith(color: selectedTeamColor)),
-            onTap: () {
-              if (isSelectedTeam) {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(selectedId)));
-              } else {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => PlayerProfile(data.allPlayers[selectedId])));
-              }
-            }),
-      ),
+      if (isSelectedTeam)
+        Container(
+          height: 40,
+          padding: EdgeInsets.fromLTRB(0, 4, 0, 8),
+          child: Text(
+            selectedFullName,
+            style: textTheme.headline5.copyWith(color: selectedTeamColor),
+          ),
+        ),
       if (game.userId == data.currentUser.userId && !isSelectedTeam && !game.isFinished)
         Container(
           width: double.infinity,
+          height: 40,
           padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
           child: CupertinoSlidingSegmentedControl(
             children: Map.fromIterable(
@@ -327,7 +329,7 @@ class _GameOverviewState extends State<GameOverview>
                 'Setter Rating', thisGameSetterRating.toString(), thisGameSetterRating.rating / 100, selectedTeamColor),
           ],
         ),
-        SizedBox(height: 16),
+        SizedBox(height: isSmallScreen ? 4 : 16),
         Column(
           children: [
             Text('Bidder Profile', style: textTheme.subtitle2),
@@ -337,9 +339,10 @@ class _GameOverviewState extends State<GameOverview>
                 Expanded(
                   child: Row(
                     children: [
-                      Text('Bidding Freq'),
+                      Text('Bidding Freq', style: textTheme.bodyText2.copyWith(fontSize: isSmallScreen ? 12 : null)),
                       Spacer(),
-                      Text(biddingFrequency.toString(), style: textTheme.subtitle2),
+                      Text(biddingFrequency.toString(),
+                          style: textTheme.subtitle2.copyWith(fontSize: isSmallScreen ? 12 : null)),
                     ],
                   ),
                 ),
@@ -347,9 +350,10 @@ class _GameOverviewState extends State<GameOverview>
                 Expanded(
                   child: Row(
                     children: [
-                      Text('Gained Per Bid'),
+                      Text('Gained Per Bid', style: textTheme.bodyText2.copyWith(fontSize: isSmallScreen ? 12 : null)),
                       Spacer(),
-                      Text(gainedPerBid.toString(), style: textTheme.subtitle2),
+                      Text(gainedPerBid.toString(),
+                          style: textTheme.subtitle2.copyWith(fontSize: isSmallScreen ? 12 : null)),
                     ],
                   ),
                 )
@@ -358,24 +362,46 @@ class _GameOverviewState extends State<GameOverview>
           ],
         ),
         SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: () {
+            if (isSelectedTeam) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => TeamProfile(selectedId)));
+            } else {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => PlayerProfile(data.allPlayers[selectedId])));
+            }
+          },
+          icon: Icon(isSelectedTeam ? Icons.people : Icons.person),
+          label: Text('View Profile'),
+        ),
+        SizedBox(height: 8),
       ]),
     );
   }
 
   Widget actionsSection() {
     Round lastRound = game.rounds.last;
+
+    Widget createActionButton({Icon icon, String label, VoidCallback onPressed}) {
+      if (isSmallScreen) {
+        return IconButton(icon: icon, onPressed: onPressed, tooltip: label);
+      } else {
+        return TextButton.icon(onPressed: onPressed, icon: icon, label: Text(label));
+      }
+    }
+
     List<Widget> children = [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          TextButton.icon(
+          createActionButton(
             icon: Icon(MdiIcons.undo),
-            label: Text('Undo'),
+            label: 'Undo',
             onPressed: onUndoClick,
           ),
-          TextButton.icon(
+          createActionButton(
             icon: Icon(MdiIcons.accountSwitch),
-            label: Text('Replace'),
+            label: 'Replace',
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerSelection())).then((value) {
                 if (value != null) {
@@ -395,9 +421,9 @@ class _GameOverviewState extends State<GameOverview>
             },
           ),
           if (lastRound.bidderIndex == null)
-            TextButton.icon(
+            createActionButton(
               icon: Icon(MdiIcons.accountCowboyHat),
-              label: Text('Make Dealer'),
+              label: 'Make Dealer',
               onPressed: () {
                 game.rounds.last.dealerIndex = game.currentPlayerIds.indexOf(selectedId);
                 game.updateFirestore();
@@ -435,7 +461,7 @@ class _GameOverviewState extends State<GameOverview>
                       groupValue: selectedBid,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 4 : 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -502,9 +528,9 @@ class _GameOverviewState extends State<GameOverview>
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(
         children: [
-          Text(title),
+          Text(title, style: textTheme.bodyText2.copyWith(fontSize: isSmallScreen ? 12 : null)),
           Spacer(),
-          Text(leftLabel, style: textTheme.subtitle2),
+          Text(leftLabel, style: textTheme.subtitle2.copyWith(fontSize: isSmallScreen ? 12 : null)),
         ],
       ),
       Padding(
@@ -512,7 +538,7 @@ class _GameOverviewState extends State<GameOverview>
         child: LinearPercentIndicator(
           percent: min(1, max(0, percent)),
           progressColor: color,
-          lineHeight: 12,
+          lineHeight: isSmallScreen ? 4 : 6,
           linearStrokeCap: LinearStrokeCap.butt,
           padding: EdgeInsets.all(0),
         ),

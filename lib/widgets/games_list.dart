@@ -25,9 +25,12 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   @override
   bool get wantKeepAlive => true;
 
+  bool get isNarrowScreen => MediaQuery.of(context).size.width <= 360;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    print(MediaQuery.of(context).size.width);
     showSharedGames = widget.showSharedGames;
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
@@ -121,7 +124,7 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       padding: EdgeInsets.only(top: 4),
       child: Row(
         children: <Widget>[
-          Text('${game.dateString} - ${owner.name}', style: textTheme.caption),
+          Text(isNarrowScreen ? game.dateString : '${game.dateString} - ${owner.name}', style: textTheme.caption),
           Spacer(),
           Text(statusString,
               style: game.isFinished || game.isArchived
