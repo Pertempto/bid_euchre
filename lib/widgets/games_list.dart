@@ -30,7 +30,6 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    print(MediaQuery.of(context).size.width);
     showSharedGames = widget.showSharedGames;
     textTheme = Theme.of(context).textTheme;
     return DataStore.dataWrap((data) {
@@ -47,7 +46,9 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       }
       // bring unfinished games to the top
       List<Game> finishedGames = filteredGames.where((g) => g.isFinished || g.isArchived).toList();
-      List<Game> unfinishedGames = filteredGames.where((g) => !g.isFinished && !g.isArchived).toList();
+      List<Game> unfinishedGames = filteredGames
+          .where((g) => !g.isFinished && !g.isArchived && DateTime.now().difference(g.dateTime).inHours <= 24)
+          .toList();
       filteredGames = unfinishedGames + finishedGames;
 
       return Stack(

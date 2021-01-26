@@ -102,9 +102,12 @@ class Game {
   }
 
   String get dateString {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
     DateFormat formatter = DateFormat.yMd().add_jm();
-    return formatter.format(date);
+    return formatter.format(dateTime);
+  }
+
+  DateTime get dateTime {
+    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
   Set<String> get fullGamePlayerIds {
@@ -125,8 +128,7 @@ class Game {
   }
 
   bool get isArchived {
-    DateTime gameDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return DateTime.now().subtract(Duration(days: ARCHIVE_AGE)).isAfter(gameDateTime);
+    return DateTime.now().subtract(Duration(days: ARCHIVE_AGE)).isAfter(dateTime);
   }
 
   bool get isFinished {

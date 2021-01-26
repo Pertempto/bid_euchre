@@ -101,9 +101,8 @@ class _GamesSectionState extends State<GamesSection>
           if (flipScores[game.gameId]) {
             scoreChildren = scoreChildren.reversed.toList();
           }
-          DateTime date = DateTime.fromMillisecondsSinceEpoch(game.timestamp);
-          String dateString = intl.DateFormat.yMd().format(date);
-          String timeString = intl.DateFormat.jm().format(date);
+          String dateString = intl.DateFormat.yMd().format(game.dateTime);
+          String timeString = intl.DateFormat.jm().format(game.dateTime);
           OverallRatingStatItem gameRating = OverallRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
           BidderRatingStatItem gameBidderRating = BidderRatingStatItem.fromRawStats([game.rawStatsMap[id]], isTeam);
           return Card(
