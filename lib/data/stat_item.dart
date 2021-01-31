@@ -391,7 +391,7 @@ class WinLossRecordStatItem extends RecordStatItem {
     int wins = 0;
     int losses = 0;
     for (EntityRawGameStats gameStats in rawStats) {
-      if (gameStats.fractionOfGame >= 0.5) {
+      if (gameStats.isFinished && gameStats.fractionOfGame >= 0.5) {
         if (gameStats.won) {
           wins++;
         } else {

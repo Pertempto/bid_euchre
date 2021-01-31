@@ -156,6 +156,8 @@ class Game {
       if (isFinished) {
         gameStatsMap[teamId].isFinished = true;
         gameStatsMap[teamId].won = winningTeamIndex == i;
+      } else {
+        gameStatsMap[teamId].isFinished = false;
       }
       gameStatsMap[teamId].gameNumRounds = numRounds;
       gameStatsMap[teamId].timestamp = timestamp;
@@ -166,6 +168,8 @@ class Game {
       if (isFinished) {
         gameStatsMap[playerId].isFinished = true;
         gameStatsMap[playerId].won = winningPlayerIds.contains(playerId);
+      } else {
+        gameStatsMap[playerId].isFinished = false;
       }
       gameStatsMap[playerId].gameNumRounds = numRounds;
       gameStatsMap[playerId].timestamp = timestamp;
