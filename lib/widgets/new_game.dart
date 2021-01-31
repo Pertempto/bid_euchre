@@ -86,7 +86,7 @@ class _NewGameState extends State<NewGame> {
           String team1Id = Util.teamId([playerIds[0], playerIds[2]]);
           String team2Id = Util.teamId([playerIds[1], playerIds[3]]);
           List<Color> teamColors = [data.statsDb.getColor(team1Id), data.statsDb.getColor(team2Id)];
-          List<double> winProbs = data.statsDb.calculateWinChances(playerIds, [0, 0], gameOverScore);
+          List<double> winProbs = data.statsDb.calculateWinChances(playerIds);
           comboWidgets.add(InkWell(
             onTap: () {
               setState(() {
@@ -204,7 +204,7 @@ class _NewGameState extends State<NewGame> {
           playerIds = [sortedPlayerIds[0], sortedPlayerIds[1], sortedPlayerIds[3], sortedPlayerIds[2]];
           break;
       }
-      List<double> chances = data.statsDb.calculateWinChances(playerIds, [0, 0], gameOverScore);
+      List<double> chances = data.statsDb.calculateWinChances(playerIds);
       // put the team with the better chances first
       if (chances[0] < chances[1]) {
         String tempId = playerIds[0];

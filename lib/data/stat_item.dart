@@ -28,6 +28,8 @@ abstract class StatItem {
         return WinningPercentageStatItem(0);
       case StatType.madeBidPercentage:
         return MadeBidPercentageStatItem(0);
+      case StatType.biddingOftenness:
+        return BiddingOftennessStatItem(0);
       case StatType.biddingFrequency:
         return BiddingFrequencyStatItem(0);
       case StatType.gainedPerBid:
@@ -40,6 +42,8 @@ abstract class StatItem {
         return NumRoundsStatItem(0);
       case StatType.numBids:
         return NumBidsStatItem(0);
+      case StatType.numBiddingOpportunities:
+        return NumBiddingOpportunitiesStatItem(0);
       case StatType.numPoints:
         return NumPointsStatItem(0);
       case StatType.lastPlayed:
@@ -66,6 +70,8 @@ abstract class StatItem {
         return WinningPercentageStatItem.fromRawStats(rawStats, isTeam);
       case StatType.madeBidPercentage:
         return MadeBidPercentageStatItem.fromRawStats(rawStats, isTeam);
+      case StatType.biddingOftenness:
+        return BiddingOftennessStatItem.fromRawStats(rawStats, isTeam);
       case StatType.biddingFrequency:
         return BiddingFrequencyStatItem.fromRawStats(rawStats, isTeam);
       case StatType.gainedPerBid:
@@ -78,6 +84,8 @@ abstract class StatItem {
         return NumRoundsStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numBids:
         return NumBidsStatItem.fromRawStats(rawStats, isTeam);
+      case StatType.numBiddingOpportunities:
+        return NumBiddingOpportunitiesStatItem.fromRawStats(rawStats, isTeam);
       case StatType.numPoints:
         return NumPointsStatItem.fromRawStats(rawStats, isTeam);
       case StatType.lastPlayed:
@@ -99,8 +107,12 @@ abstract class StatItem {
         return 'Number of Rounds';
       case StatType.numBids:
         return 'Number of Bids';
+      case StatType.numBiddingOpportunities:
+        return 'Number of Bidding Opportunities';
       case StatType.numPoints:
         return 'Number of Points';
+      case StatType.biddingOftenness:
+        return 'Bidding Oftenness';
       case StatType.biddingFrequency:
         return 'Bidding Frequency';
       case StatType.biddingRecord:
@@ -163,15 +175,15 @@ class OverallRatingStatItem extends RatingStatItem {
     double bidderRating = BidderRatingStatItem.calculateBidderRating(rawStats, isTeam, isAdjusted: isAdjusted);
     double winnerRating = WinnerRatingStatItem.calculateWinnerRating(rawStats, isTeam, isAdjusted: isAdjusted);
     double setterRating = SetterRatingStatItem.calculateSetterRating(rawStats, isTeam, isAdjusted: isAdjusted);
-    double ovr = bidderRating * 0.4 + winnerRating * 0.4 + setterRating * 0.2;
+    double ovr = bidderRating * 0.45 + winnerRating * 0.45 + setterRating * 0.1;
     return ovr;
   }
 }
 
 class BidderRatingStatItem extends RatingStatItem {
   static const MIN_NUM_OPPORTUNITIES = 240;
-  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.117;
-  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.745;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.2;
+  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.84;
 
   String get statName => 'Bidder Rating';
 
@@ -182,9 +194,7 @@ class BidderRatingStatItem extends RatingStatItem {
   }
 
   static double calculateBidderRating(List<EntityRawGameStats> rawStats, bool isTeam, {bool isAdjusted = false}) {
-    int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
-    int numOBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumOBids);
-    int numOpportunities = numBids + numOBids;
+    int numOpportunities = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBiddingOpportunities);
     double totalGainedAdj = 0;
     if (isAdjusted && numOpportunities < MIN_NUM_OPPORTUNITIES) {
       if (isTeam) {
@@ -198,9 +208,7 @@ class BidderRatingStatItem extends RatingStatItem {
       return 0;
     }
     double totalGained = totalGainedAdj;
-    if (numBids != 0) {
-      totalGained += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
-    }
+    totalGained += EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.GainedOnBids);
     double gainedPerOpportunity = totalGained / numOpportunities;
     if (isTeam) {
       return gainedPerOpportunity / (MIDDLE_TEAM_GAINED_PER_OPPORTUNITY * 2) * 100;
@@ -238,7 +246,7 @@ class WinnerRatingStatItem extends RatingStatItem {
 
 class SetterRatingStatItem extends RatingStatItem {
   static const MIN_NUM_O_BIDS = 120;
-  static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.68;
+  static const MIDDLE_GAINED_BY_SET_PER_O_BID = 1.7;
 
   String get statName => 'Setter Rating';
 
@@ -299,6 +307,23 @@ class MadeBidPercentageStatItem extends PercentageStatItem {
       madeBidPercentage = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.MadeBids) / numBids;
     }
     return MadeBidPercentageStatItem(madeBidPercentage);
+  }
+}
+
+class BiddingOftennessStatItem extends PercentageStatItem {
+  String get statName => 'Bidding Oftenness';
+
+  BiddingOftennessStatItem(double biddingOftenness) : super(biddingOftenness);
+
+  factory BiddingOftennessStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    int numBids = EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids);
+    int numBiddingOpportunities =
+        EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBiddingOpportunities);
+    double biddingOftenness = 0;
+    if (numBiddingOpportunities != 0) {
+      biddingOftenness = numBids / numBiddingOpportunities;
+    }
+    return BiddingOftennessStatItem(biddingOftenness);
   }
 }
 
@@ -363,10 +388,17 @@ class WinLossRecordStatItem extends RecordStatItem {
   }
 
   static Record calculateRecord(List<EntityRawGameStats> rawStats) {
-    List<bool> recentDiffs =
-        rawStats.where((gameStats) => gameStats.isFullGame).map((gameStats) => gameStats.won).toList().cast<bool>();
-    int wins = recentDiffs.where((won) => won).length;
-    int losses = recentDiffs.where((won) => !won).length;
+    int wins = 0;
+    int losses = 0;
+    for (EntityRawGameStats gameStats in rawStats) {
+      if (gameStats.fractionOfGame >= 0.5) {
+        if (gameStats.won) {
+          wins++;
+        } else {
+          losses++;
+        }
+      }
+    }
     return Record(wins, losses);
   }
 }
@@ -478,6 +510,17 @@ class NumBidsStatItem extends IntStatItem {
 
   factory NumBidsStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
     return NumBidsStatItem(EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBids));
+  }
+}
+
+class NumBiddingOpportunitiesStatItem extends IntStatItem {
+  String get statName => 'Number of Bidding Opportunities';
+
+  NumBiddingOpportunitiesStatItem(int numOpps) : super(numOpps);
+
+  factory NumBiddingOpportunitiesStatItem.fromRawStats(List<EntityRawGameStats> rawStats, bool isTeam) {
+    return NumBiddingOpportunitiesStatItem(
+        EntityRawGameStats.combineRawStats(rawStats, CombinableRawStat.NumBiddingOpportunities));
   }
 }
 

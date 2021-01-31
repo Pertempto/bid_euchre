@@ -25,6 +25,8 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
   @override
   bool get wantKeepAlive => true;
 
+  bool get isNarrowScreen => MediaQuery.of(context).size.width <= 360;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -36,14 +38,17 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       if (showSharedGames) {
         filteredGames = filteredGames
             .where((g) => (g.userId != data.currentUser.userId &&
-                data.relationshipsDb.canShare(g.userId, data.currentUser.userId)))
+                data.relationshipsDb.canShare(g.userId, data.currentUser.userId) &&
+                g.rounds.length > 1))
             .toList();
       } else {
         filteredGames = filteredGames.where((g) => (g.userId == data.currentUser.userId)).toList();
       }
       // bring unfinished games to the top
       List<Game> finishedGames = filteredGames.where((g) => g.isFinished || g.isArchived).toList();
-      List<Game> unfinishedGames = filteredGames.where((g) => !g.isFinished && !g.isArchived).toList();
+      List<Game> unfinishedGames = filteredGames
+          .where((g) => !g.isFinished && !g.isArchived && DateTime.now().difference(g.dateTime).inHours <= 24)
+          .toList();
       filteredGames = unfinishedGames + finishedGames;
 
       return Stack(
@@ -54,7 +59,7 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
               width: double.infinity,
               padding: EdgeInsets.all(16),
               child: Text(
-                showSharedGames ? 'No shared games!' : 'Start a game to see it here!',
+                showSharedGames ? 'Join a group to see your friends\'s games here!' : 'Start a game to see it here!',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyText1,
               ),
@@ -120,7 +125,7 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       padding: EdgeInsets.only(top: 4),
       child: Row(
         children: <Widget>[
-          Text('${game.dateString} - ${owner.name}', style: textTheme.caption),
+          Text(isNarrowScreen ? game.dateString : '${game.dateString} - ${owner.name}', style: textTheme.caption),
           Spacer(),
           Text(statusString,
               style: game.isFinished || game.isArchived

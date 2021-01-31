@@ -13,10 +13,10 @@ import 'stat_item.dart';
 import 'stat_type.dart';
 
 class StatsDb {
-  static const int MIN_GAMES = 3;
   static const int MIN_ROUNDS = 10;
   List<Game> allGames;
   Map<String, Player> allPlayers;
+  Map<int, List<double>> _winChancesCache;
   Map<String, List<String>> _entitiesGameIdsHistories;
   Map<String, Map<String, EntityRawGameStats>> _gameRawStats;
 
@@ -27,18 +27,19 @@ class StatsDb {
   _loadRawStats() {
     _entitiesGameIdsHistories = {};
     _gameRawStats = {};
+    _winChancesCache = {};
 
     int total = 0;
     int count = 0;
     // only finished games for now
     for (Game g in allGames.reversed.where((g) => g.isFinished)) {
-      Map gameRawStatsMap = g.rawStatsMap;
+      Map<String, EntityRawGameStats> gameRawStatsMap = g.rawStatsMap;
       for (String id in gameRawStatsMap.keys) {
         _entitiesGameIdsHistories.putIfAbsent(id, () => []);
         _entitiesGameIdsHistories[id].add(g.gameId);
-        if (id.contains(" ")) {
+        if (!id.contains(" ")) {
           total += gameRawStatsMap[id].gainedOnBids;
-          count += gameRawStatsMap[id].numOBids + gameRawStatsMap[id].numBids;
+          count += gameRawStatsMap[id].numBiddingOpportunities;
         }
       }
       _gameRawStats[g.gameId] = gameRawStatsMap;
@@ -46,39 +47,31 @@ class StatsDb {
     print("$total $count ${total / count}");
   }
 
-  List<double> calculateWinChances(List<String> currentPlayerIds, List<int> score, int gameOverScore) {
+  List<double> calculateWinChances(List<String> currentPlayerIds) {
+    int hash = hashList(currentPlayerIds);
+    if (_winChancesCache.containsKey(hash)) {
+      return _winChancesCache[hash];
+    }
     List<double> teamRatings = [];
     for (int i = 0; i < 2; i++) {
       String teamId = Util.teamId([currentPlayerIds[i], currentPlayerIds[i + 2]]);
       List<Game> games = getGames(teamId, false);
       double teamRating;
-      if (games.length < MIN_GAMES) {
+      if (games.isEmpty) {
         double totalPlayerRating = 0;
         for (int j = 0; j < 2; j++) {
           String playerId = currentPlayerIds[i + j * 2];
-          totalPlayerRating += (getStat(playerId, StatType.overallRating, false) as OverallRatingStatItem).rating;
+          totalPlayerRating += (getStat(playerId, StatType.winnerRating, false) as RatingStatItem).rating;
         }
-        teamRating = totalPlayerRating / 2 * (MIN_GAMES - games.length);
-        teamRating += (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating * games.length;
-        teamRating /= MIN_GAMES;
+        teamRating = totalPlayerRating / 2;
       } else {
-        teamRating = (getStat(teamId, StatType.overallRating, false) as OverallRatingStatItem).rating;
+        teamRating = (getStat(teamId, StatType.winnerRating, false) as RatingStatItem).rating;
       }
       teamRatings.add(teamRating);
     }
-    List<double> winChances = ratingsToWinChances(teamRatings);
-    List<double> adjWinChances = [];
-    for (int i = 0; i < 2; i++) {
-      double chance = winChances[i];
-      // used desmos regression to find these coeffiecients
-      chance *= (1 / (pow(10, -(score[i] - score[1 - i]) / gameOverScore * 1.943) + 1));
-      double sPct = max(score[i] / gameOverScore, 0);
-      // used desmos regression to find these coeffiecients
-      chance *= 0.716 * pow(sPct, 3) - 0.771 * pow(sPct, 2) + 0.565 * sPct + 0.3321;
-      adjWinChances.add(chance);
-    }
-    double sum = adjWinChances[0] + adjWinChances[1];
-    return [adjWinChances[0] / sum, adjWinChances[1] / sum];
+    List<double> chances = ratingsToWinChances(teamRatings);
+    _winChancesCache[hash] = chances;
+    return chances;
   }
 
   double getBidderRatingAfterGame(String entityId, String gameId, {bool includeArchived = false}) {
@@ -187,7 +180,8 @@ class StatsDb {
     int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
     List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
     return OverallRatingStatItem.calculateOverallRating(
-        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '), isAdjusted: true);
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '),
+        isAdjusted: true);
   }
 
   List<EntityRawGameStats> getRawStats(String entityId, List<String> gameIds, bool includeArchived) {
@@ -206,7 +200,7 @@ class StatsDb {
       return StatItem.empty(statType);
     }
     List<String> gameIds = _entitiesGameIdsHistories[entityId];
-    gameIds = gameIds.sublist(max(gameIds.length - MIN_GAMES, 0));
+    gameIds = gameIds.sublist(max(gameIds.length - 3, 0));
     switch (statType) {
       case StatType.overallRating:
         return OverallRatingStatItem.fromRawStats(getRawStats(entityId, gameIds, false), entityId.contains(' '));
@@ -215,6 +209,14 @@ class StatsDb {
       default:
         throw Exception('Stat type is not a rating: $statType');
     }
+  }
+
+  double getSetterRatingAfterGame(String entityId, String gameId, {bool includeArchived = false}) {
+    int endIndex = _entitiesGameIdsHistories[entityId].indexOf(gameId) + 1;
+    List<String> gameIds = _entitiesGameIdsHistories[entityId].sublist(0, endIndex);
+    return SetterRatingStatItem.calculateSetterRating(
+        getRawStats(entityId, gameIds, includeArchived), entityId.contains(' '),
+        isAdjusted: true);
   }
 
   StatItem getStat(String entityId, StatType statType, bool includeArchived) {

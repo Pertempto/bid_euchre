@@ -8,11 +8,13 @@ enum StatType {
   winningPercentage,
   madeBidPercentage,
   biddingFrequency,
+  biddingOftenness,
   gainedPerBid,
   averageBid,
   numGames,
   numRounds,
   numBids,
+  numBiddingOpportunities,
   numPoints,
   lastPlayed,
 }

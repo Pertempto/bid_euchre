@@ -102,9 +102,12 @@ class Game {
   }
 
   String get dateString {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
     DateFormat formatter = DateFormat.yMd().add_jm();
-    return formatter.format(date);
+    return formatter.format(dateTime);
+  }
+
+  DateTime get dateTime {
+    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
   Set<String> get fullGamePlayerIds {
@@ -125,8 +128,7 @@ class Game {
   }
 
   bool get isArchived {
-    DateTime gameDateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return DateTime.now().subtract(Duration(days: ARCHIVE_AGE)).isAfter(gameDateTime);
+    return DateTime.now().subtract(Duration(days: ARCHIVE_AGE)).isAfter(dateTime);
   }
 
   bool get isFinished {
@@ -155,18 +157,17 @@ class Game {
         gameStatsMap[teamId].isFinished = true;
         gameStatsMap[teamId].won = winningTeamIndex == i;
       }
-      gameStatsMap[teamId].isFullGame = true;
+      gameStatsMap[teamId].gameNumRounds = numRounds;
       gameStatsMap[teamId].timestamp = timestamp;
     }
     Set<String> winningPlayerIds = winningTeamIndex == null ? {} : allTeamsPlayerIds[winningTeamIndex];
-    Set<String> fullGamers = fullGamePlayerIds;
     for (String playerId in allPlayerIds) {
       gameStatsMap[playerId].isArchived = isArchived;
       if (isFinished) {
         gameStatsMap[playerId].isFinished = true;
         gameStatsMap[playerId].won = winningPlayerIds.contains(playerId);
       }
-      gameStatsMap[playerId].isFullGame = fullGamers.contains(playerId);
+      gameStatsMap[playerId].gameNumRounds = numRounds;
       gameStatsMap[playerId].timestamp = timestamp;
     }
     for (Round round in rounds) {
@@ -181,12 +182,14 @@ class Game {
           gameStatsMap[teamId].numPoints += round.score[i];
           if (round.bidderIndex % 2 == i) {
             gameStatsMap[teamId].numBids++;
+            gameStatsMap[teamId].numBiddingOpportunities++;
             gameStatsMap[oTeamId].numOBids++;
             int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
             if (round.madeBid) {
               gameStatsMap[teamId].madeBids++;
+              gameStatsMap[oTeamId].numBiddingOpportunities++;
             } else {
-              gameStatsMap[oTeamId].gainedBySet += -gainedPts;
+              gameStatsMap[oTeamId].gainedOnSets += -gainedPts;
             }
             gameStatsMap[teamId].biddingTotal += round.bid;
             gameStatsMap[teamId].gainedOnBids += gainedPts;
@@ -202,14 +205,17 @@ class Game {
         }
         String bidderId = rPlayerIds[round.bidderIndex];
         gameStatsMap[bidderId].numBids++;
+        gameStatsMap[bidderId].numBiddingOpportunities++;
         gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].numOBids++;
         gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].numOBids++;
         int gainedPts = round.score[round.bidderIndex % 2] - round.score[1 - round.bidderIndex % 2];
         if (round.madeBid) {
           gameStatsMap[bidderId].madeBids++;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].numBiddingOpportunities++;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].numBiddingOpportunities++;
         } else {
-          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].gainedBySet += -gainedPts;
-          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].gainedBySet += -gainedPts;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 1) % 4]].gainedOnSets += -gainedPts;
+          gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].gainedOnSets += -gainedPts;
         }
         gameStatsMap[bidderId].biddingTotal += round.bid;
         gameStatsMap[bidderId].gainedOnBids += gainedPts;

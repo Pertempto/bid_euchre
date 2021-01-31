@@ -119,7 +119,7 @@ class _GameSettingsState extends State<GameSettings> {
       },
     ));
     children.add(Divider());
-    if (game.userId == data.currentUser.userId && !game.isFinished) {
+    if (game.userId == data.currentUser.userId && !game.isFinished && game.rounds.length <= 1) {
       children.add(ListTile(
         title: Text('Delete Game', style: leadingStyle.copyWith(color: Colors.red)),
         trailing: Icon(Icons.delete, color: Colors.red),

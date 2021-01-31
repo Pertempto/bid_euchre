@@ -46,3 +46,4 @@ app.*.map.json
 **/AppDelegate.swift
 **/google-services.json
 **/GoogleService-Info.plist
+**/.last_build_id
