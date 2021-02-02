@@ -47,7 +47,10 @@ class _GamesListState extends State<GamesList> with AutomaticKeepAliveClientMixi
       // bring unfinished games to the top
       List<Game> finishedGames = filteredGames.where((g) => g.isFinished || g.isArchived).toList();
       List<Game> unfinishedGames = filteredGames
-          .where((g) => !g.isFinished && !g.isArchived && DateTime.now().difference(g.dateTime).inHours <= 24)
+          .where((g) =>
+              !g.isFinished &&
+              !g.isArchived &&
+              (!showSharedGames || DateTime.now().difference(g.dateTime).inHours <= 24))
           .toList();
       filteredGames = unfinishedGames + finishedGames;
 
