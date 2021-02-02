@@ -182,8 +182,8 @@ class OverallRatingStatItem extends RatingStatItem {
 
 class BidderRatingStatItem extends RatingStatItem {
   static const MIN_NUM_OPPORTUNITIES = 240;
-  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.2;
-  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.84;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.1;
+  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.75;
 
   String get statName => 'Bidder Rating';
 
