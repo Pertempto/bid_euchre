@@ -182,8 +182,8 @@ class OverallRatingStatItem extends RatingStatItem {
 
 class BidderRatingStatItem extends RatingStatItem {
   static const MIN_NUM_OPPORTUNITIES = 240;
-  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.2;
-  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.84;
+  static const MIDDLE_TEAM_GAINED_PER_OPPORTUNITY = 1.1;
+  static const MIDDLE_PLAYER_GAINED_PER_OPPORTUNITY = 0.75;
 
   String get statName => 'Bidder Rating';
 
@@ -391,7 +391,7 @@ class WinLossRecordStatItem extends RecordStatItem {
     int wins = 0;
     int losses = 0;
     for (EntityRawGameStats gameStats in rawStats) {
-      if (gameStats.fractionOfGame >= 0.5) {
+      if (gameStats.isFinished && gameStats.fractionOfGame >= 0.5) {
         if (gameStats.won) {
           wins++;
         } else {

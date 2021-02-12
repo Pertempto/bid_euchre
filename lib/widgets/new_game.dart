@@ -79,6 +79,7 @@ class _NewGameState extends State<NewGame> {
       if (!initialPlayerIds.contains(null)) {
         children.add(ListTile(
           title: Text('Team Combos', style: leadingStyle),
+          trailing: Text('(Tap to select)', style: textTheme.bodyText2),
           dense: true,
         ));
         List<Widget> comboWidgets = [];

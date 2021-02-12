@@ -156,6 +156,8 @@ class Game {
       if (isFinished) {
         gameStatsMap[teamId].isFinished = true;
         gameStatsMap[teamId].won = winningTeamIndex == i;
+      } else {
+        gameStatsMap[teamId].isFinished = false;
       }
       gameStatsMap[teamId].gameNumRounds = numRounds;
       gameStatsMap[teamId].timestamp = timestamp;
@@ -166,6 +168,8 @@ class Game {
       if (isFinished) {
         gameStatsMap[playerId].isFinished = true;
         gameStatsMap[playerId].won = winningPlayerIds.contains(playerId);
+      } else {
+        gameStatsMap[playerId].isFinished = false;
       }
       gameStatsMap[playerId].gameNumRounds = numRounds;
       gameStatsMap[playerId].timestamp = timestamp;
@@ -192,7 +196,7 @@ class Game {
               gameStatsMap[oTeamId].gainedOnSets += -gainedPts;
             }
             gameStatsMap[teamId].biddingTotal += round.bid;
-            gameStatsMap[teamId].gainedOnBids += gainedPts;
+            gameStatsMap[teamId].gainedOnBids += round.bid == 3 ? gainedPts ~/ 2 : gainedPts;
           }
         }
       }
@@ -218,7 +222,7 @@ class Game {
           gameStatsMap[rPlayerIds[(round.bidderIndex + 3) % 4]].gainedOnSets += -gainedPts;
         }
         gameStatsMap[bidderId].biddingTotal += round.bid;
-        gameStatsMap[bidderId].gainedOnBids += gainedPts;
+        gameStatsMap[bidderId].gainedOnBids += round.bid == 3 ? gainedPts ~/ 2 : gainedPts;
       }
     }
     return gameStatsMap;

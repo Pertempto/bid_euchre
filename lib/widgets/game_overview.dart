@@ -196,7 +196,8 @@ class _GameOverviewState extends State<GameOverview>
             List<String> captionStrings = [];
             if (game.isFinished) {
               EntityRawGameStats rawStats = game.rawStatsMap[playerId];
-              captionStrings.add('Bidding Gained: ${rawStats.gainedOnBids}');
+              OverallRatingStatItem gameRating = OverallRatingStatItem.fromRawStats([rawStats], false);
+              captionStrings.add('Game Rating: $gameRating');
             } else {
               Round lastRound = game.rounds.last;
               if (!lastRound.isFinished) {
@@ -302,15 +303,9 @@ class _GameOverviewState extends State<GameOverview>
   Widget infoSection() {
     EntityRawGameStats rawStats = game.rawStatsMap[selectedId];
     int numRounds = game.numRounds;
-    double biddingGainedPercent = 0;
-    if (numRounds != 0) {
-      biddingGainedPercent = rawStats.gainedOnBids / numRounds;
-      if (isSelectedTeam) {
-        biddingGainedPercent /= 2;
-      }
-      biddingGainedPercent = max(0, min(1, biddingGainedPercent));
-    }
+
     double madeBidPercent = MadeBidPercentageStatItem.fromRawStats([rawStats], isSelectedTeam).percentage;
+    OverallRatingStatItem thisGameRating = OverallRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
     BidderRatingStatItem thisGameBidderRating = BidderRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
     SetterRatingStatItem thisGameSetterRating = SetterRatingStatItem.fromRawStats([rawStats], isSelectedTeam);
     BidderRatingStatItem bidderRating = data.statsDb.getStat(selectedId, StatType.bidderRating, false);
@@ -321,10 +316,10 @@ class _GameOverviewState extends State<GameOverview>
         Column(
           children: [
             Text('Game Stats', style: textTheme.subtitle2),
-            statBar('Bidding Points Gained', rawStats.gainedOnBids.toString(), biddingGainedPercent, selectedTeamColor),
-            statBar('Made Bids', '${rawStats.madeBids}/${rawStats.numBids}', madeBidPercent, selectedTeamColor),
+            statBar('Game Rating', thisGameRating.toString(), thisGameRating.rating / 100, selectedTeamColor),
             statBar(
                 'Bidder Rating', thisGameBidderRating.toString(), thisGameBidderRating.rating / 100, selectedTeamColor),
+            statBar('Made Bids', '${rawStats.madeBids}/${rawStats.numBids}', madeBidPercent, selectedTeamColor),
             statBar(
                 'Setter Rating', thisGameSetterRating.toString(), thisGameSetterRating.rating / 100, selectedTeamColor),
           ],
